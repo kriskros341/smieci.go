@@ -1,2 +1,0 @@
-# smieci.go
-smieci.go
