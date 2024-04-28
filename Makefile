@@ -1,0 +1,5 @@
+migrate-up:
+	migrate -database 'postgres://postgres:dbpass@localhost:5433/postgres?sslmode=disable' -path src/backend/migrations up
+
+migrate-down:
+	migrate -database 'postgres://postgres:dbpass@localhost:5433/postgres?sslmode=disable' -path src/backend/migrations down

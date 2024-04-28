@@ -1,13 +1,8 @@
-import axios from "axios";
-import { faker } from '@faker-js/faker'
-
-interface LeaderboardEntryDTO {
-  username: string,
-  points: number,
-}
+import { faker } from "@faker-js/faker";
+import { LeaderboardEntryDTO } from "../interfaces";
 
 export const getLeaderboard = async (): Promise<LeaderboardEntryDTO[]> => {
-  const results = []
+  const results = [];
   for (let i = 0; i < 100; i++) {
     results.push({
       username: faker.internet.userName(),
@@ -15,6 +10,5 @@ export const getLeaderboard = async (): Promise<LeaderboardEntryDTO[]> => {
       avatar: faker.image.dataUri(),
     });
   }
-  return Promise.resolve(results.sort((a, b) => b.points - a.points))
-  
+  return Promise.resolve(results.sort((a, b) => b.points - a.points));
 };

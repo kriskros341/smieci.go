@@ -1,40 +1,51 @@
-import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-expo';
-import { Link } from 'expo-router';
-import { Stack } from 'expo-router/stack';
-import { Button, View , Text, TextInput, TouchableOpacity} from 'react-native';
-
-
 import { useSignUp } from "@clerk/clerk-expo";
-import { useState } from 'react';
-import { Auth } from './interfaces';
+import { useMutation } from "@tanstack/react-query";
+import * as React from "react";
+import { Button, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { _createUser } from "../../api/users";
+import { useAxios } from "../../hooks/use-axios";
+import { Auth } from "../../interfaces";
 
 interface SignUpScreenProps {
-  auth: Auth
-  switchToSignIn: () => void,
+  auth: Auth;
+  switchToSignIn: () => void;
 }
 
-export default function SignUpScreen(props: SignUpScreenProps) {
+const SignUpScreen: React.FC<SignUpScreenProps> = ({
+  auth,
+  switchToSignIn,
+}) => {
   const { isLoaded, signUp, setActive } = useSignUp();
 
-  const [passwordRepeat, setPasswordRepeat] = useState("");
-  const [pendingVerification, setPendingVerification] = useState(false);
-  const [code, setCode] = useState("");
+  const [passwordRepeat, setPasswordRepeat] = React.useState("");
+  const [pendingVerification, setPendingVerification] = React.useState(false);
+  const [code, setCode] = React.useState("");
+  const [passwordError, setPasswordError] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  // start the sign up process.
+  const axios = useAxios();
+
+  const { mutateAsync: createUser } = useMutation({
+    mutationFn: ({ email, username }: { email: string; username: string }) =>
+      _createUser(axios, { email, username }),
+    onSuccess: () => {
+      console.log("successfuly created user");
+    },
+    onError: (err) => {
+      console.log(`failed to create user ${err.message}`);
+    },
+  });
+
   const onSignUpPress = async () => {
     if (!isLoaded) {
       return;
     }
 
     try {
-      if (props.auth.password !== passwordRepeat) {
-        throw "password repeat"
-      }
-
       await signUp.create({
-        username: props.auth.username,
-        emailAddress: props.auth.emailAddress,
-        password: props.auth.password,
+        username: auth.username,
+        emailAddress: auth.emailAddress,
+        password: auth.password,
       });
 
       // send the email.
@@ -42,7 +53,7 @@ export default function SignUpScreen(props: SignUpScreenProps) {
 
       // change the UI to our pending section.
       setPendingVerification(true);
-    } catch (err: any) {
+    } catch (err) {
       console.error(JSON.stringify(err, null, 2));
     }
   };
@@ -54,70 +65,76 @@ export default function SignUpScreen(props: SignUpScreenProps) {
     }
 
     try {
+      setIsLoading(true);
       const completeSignUp = await signUp.attemptEmailAddressVerification({
         code,
       });
 
+      await createUser({ email: auth.emailAddress, username: auth.username });
+
       await setActive({ session: completeSignUp.createdSessionId });
-    } catch (err: any) {
+    } catch (err) {
       console.error(JSON.stringify(err, null, 2));
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <View className="flex justify-center border">
       {!pendingVerification && (
-        <View className="p-4 gap-8">
+        <View className="gap-8 p-4">
           <View>
             <TextInput
               autoCapitalize="none"
-              value={props.auth.username}
+              value={auth.username}
               placeholder="User Name..."
-              onChangeText={(username) => props.auth.onChange('username', username)}
+              onChangeText={(username) => auth.onChange("username", username)}
             />
           </View>
           <View>
             <TextInput
               autoCapitalize="none"
-              value={props.auth.emailAddress}
+              value={auth.emailAddress}
               placeholder="Email..."
-              onChangeText={(email) => props.auth.onChange('emailAddress', email)}
+              onChangeText={(email) => auth.onChange("emailAddress", email)}
             />
           </View>
-
           <View>
             <TextInput
-              value={props.auth.password}
+              value={auth.password}
               placeholder="Password..."
               placeholderTextColor="#000"
               secureTextEntry={true}
-              onChangeText={(password) => props.auth.onChange('password', password)}
+              onChangeText={(password) => auth.onChange("password", password)}
             />
           </View>
-
           <View>
             <TextInput
               value={passwordRepeat}
               placeholder="Repeat Password..."
               placeholderTextColor="#000"
               secureTextEntry={true}
-              onChangeText={(password) => setPasswordRepeat(password)}
+              onChangeText={(password) => {
+                setPasswordRepeat(password);
+                if (password !== auth.password) {
+                  setPasswordError("Passwords don't match!");
+                }
+              }}
             />
           </View>
-
           <View className="flex items-center">
             <TouchableOpacity className="mb-4" onPress={onSignUpPress}>
-              <Text>Sign up</Text>
+              <Button title="Sign up" disabled={!!passwordError} />
             </TouchableOpacity>
-            
-            <TouchableOpacity onPress={props.switchToSignIn}>
+            <TouchableOpacity onPress={switchToSignIn}>
               <Text>Sign in instead</Text>
             </TouchableOpacity>
           </View>
         </View>
       )}
       {pendingVerification && (
-        <View className="p-4 gap-8">
+        <View className="gap-8 p-4">
           <View>
             <TextInput
               value={code}
@@ -125,12 +142,17 @@ export default function SignUpScreen(props: SignUpScreenProps) {
               onChangeText={(code) => setCode(code)}
             />
           </View>
-          <TouchableOpacity className="flex items-center" onPress={onPressVerify}>
-            <Text>Verify Email</Text>
+          <TouchableOpacity className="flex items-center">
+            <Button
+              title="Verify Email"
+              disabled={isLoading}
+              onPress={onPressVerify}
+            />
           </TouchableOpacity>
         </View>
       )}
-      
     </View>
   );
-}
+};
+
+export default SignUpScreen;
