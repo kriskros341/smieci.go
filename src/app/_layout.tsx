@@ -1,9 +1,9 @@
-import { ClerkProvider, SignedIn, SignedOut, useAuth } from "@clerk/clerk-expo";
+import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-expo";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Constants from "expo-constants";
 import { Stack } from "expo-router/stack";
 import * as SecureStore from "expo-secure-store";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
 import SignInScreen from "./clerk/signin";
 import SignUpScreen from "./clerk/signup";
@@ -31,39 +31,11 @@ interface GuardedProps extends React.PropsWithChildren {}
 const Guarded: React.FC<GuardedProps> = ({ children }) => {
   const [view, setView] = useState<"signup" | "signin">("signup");
 
-  const [auth, setAuth] = useState({
-    username: "",
-    emailAddress: "",
-    password: "",
-  });
-  const onChange = (key: string, value: string) =>
-    setAuth({ ...auth, [key]: value });
-
-  const { isSignedIn } = useAuth();
-
-  useEffect(() => {
-    setAuth({
-      username: "",
-      emailAddress: "",
-      password: "",
-    });
-  }, [isSignedIn]);
-
   let signedOutForm = null;
   if (view === "signup") {
-    signedOutForm = (
-      <SignUpScreen
-        switchToSignIn={() => setView("signin")}
-        auth={{ ...auth, onChange }}
-      />
-    );
+    signedOutForm = <SignUpScreen switchToSignIn={() => setView("signin")} />;
   } else if (view === "signin") {
-    signedOutForm = (
-      <SignInScreen
-        switchToSignUp={() => setView("signup")}
-        auth={{ ...auth, onChange }}
-      />
-    );
+    signedOutForm = <SignInScreen switchToSignUp={() => setView("signup")} />;
   }
 
   return (
