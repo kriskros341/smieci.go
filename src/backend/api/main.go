@@ -29,7 +29,7 @@ func main() {
 	router := gin.Default()
 	router.Use(cors.Default())
 	router.POST("/users/createUser", env.insertUser)
-
+	router.GET("/users/getUsers", env.getUsers)
 	router.Run("0.0.0.0:8080")
 }
 
@@ -55,4 +55,16 @@ func (e *Env) insertUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Person inserted successfully"})
+}
+
+func (e *Env) getUsers(c *gin.Context) {
+	var users []User
+
+	err := e.db.Select(&users, "SELECT username FROM users")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": users})
 }

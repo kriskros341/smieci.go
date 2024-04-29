@@ -1,42 +1,58 @@
 import { FlashList } from "@shopify/flash-list";
 import { useQuery } from "@tanstack/react-query";
-import { Text, TouchableOpacity, View } from "react-native";
-import { getLeaderboard } from "../../api/leaderboard";
+import { Text, View } from "react-native";
+import { _getUsers } from "../../api/users";
 import LeaderboardEntry from "../../components/leaderboard-entry";
+import { useAxios } from "../../hooks/use-axios";
+import Button from "../../ui/button";
 
 const Leaderboard = () => {
+  const axios = useAxios();
+
   const { isPending, error, data, refetch } = useQuery({
     queryKey: ["leaderboard"],
-    queryFn: getLeaderboard,
+    queryFn: () => _getUsers(axios),
   });
 
-  console.log({ isPending, error });
+  console.log({ isPending, error, data });
 
-  let leaderboard = (
-    <View>
-      <Text>loading</Text>
-    </View>
-  );
-  if (!isPending && !error) {
-    leaderboard = (
-      <View className="w-full h-full border">
-        <FlashList
-          data={data}
-          renderItem={({ item }) => (
-            <LeaderboardEntry key={item.username} {...item} />
-          )}
-          estimatedItemSize={200}
-        />
-      </View>
-    );
-  }
+  const getLeaderboard = () => {
+    switch (true) {
+      case isPending:
+        return (
+          <View>
+            <Text>loading</Text>
+          </View>
+        );
+      case !!error:
+        return (
+          <View>
+            <Text>error: {error.message}</Text>
+          </View>
+        );
+      default:
+        return (
+          <View className="w-full h-full p-4">
+            <FlashList
+              data={data.data}
+              renderItem={({ item }) => (
+                <LeaderboardEntry
+                  key={item.username}
+                  username={item.username}
+                  points={Math.floor(Math.random() * 100)}
+                />
+              )}
+              estimatedItemSize={200}
+            />
+          </View>
+        );
+    }
+  };
 
   return (
-    <View className="flex-1 bg-#fff items-center justify-center gap-4">
-      <TouchableOpacity onPress={() => refetch()}>
-        <Text>refetch</Text>
-      </TouchableOpacity>
-      {leaderboard}
+    <View className="flex items-center bg-#fff">
+      <Button title="refetch" onPress={() => refetch()} />
+      {getLeaderboard()}
     </View>
   );
 };

@@ -11,10 +11,12 @@ const LeaderboardEntry: React.FC<LeaderboardEntryDTO> = ({
       <View className="border">
         <Image className="w-4 h-4" source={{ uri: undefined }} />
       </View>
-      <View>
+      <View className="flex flex-row">
+        <Text className="text-gray-600">Username: </Text>
         <Text>{username}</Text>
       </View>
-      <View>
+      <View className="flex flex-row">
+        <Text className="text-gray-600">Points: </Text>
         <Text>{points}</Text>
       </View>
     </View>
