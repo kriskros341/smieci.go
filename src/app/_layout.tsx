@@ -1,24 +1,19 @@
-import { ClerkProvider, SignedIn, SignedOut, useAuth } from '@clerk/clerk-expo';
-import { Link } from 'expo-router';
-import { Stack } from 'expo-router/stack';
-import { Button, View , Text, TextInput, TouchableOpacity} from 'react-native';
-import * as SecureStore from "expo-secure-store";import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from '@tanstack/react-query'
-
-const ClerkKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
-
-import SignUpScreen from './clerk/signup';
-import { useEffect, useState } from 'react';
-import SignInScreen from './clerk/signin';
+import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-expo";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import Constants from "expo-constants";
+import { Stack } from "expo-router/stack";
+import * as SecureStore from "expo-secure-store";
+import { useState } from "react";
+import { View } from "react-native";
+import SignInScreen from "./clerk/signin";
+import SignUpScreen from "./clerk/signup";
 
 const tokenCache = {
   async getToken(key: string) {
     try {
       return SecureStore.getItemAsync(key);
     } catch (err) {
+      console.error(err);
       return null;
     }
   },
@@ -26,72 +21,48 @@ const tokenCache = {
     try {
       return SecureStore.setItemAsync(key, value);
     } catch (err) {
-      return;
+      console.error(err);
     }
   },
 };
 
-const Guarded = (props: any) => {
-  const [view, setView] = useState<'signup' | 'signin'>('signup');
+interface GuardedProps extends React.PropsWithChildren {}
 
-  const [auth, setAuth] = useState({
-    username: '',
-    emailAddress: '',
-    password: '',
-  })
-  const onChange = (key: string, value: string) => setAuth({ ...auth, [key]: value });
-
-  const { isSignedIn } = useAuth()
-
-  useEffect(() => {
-    setAuth({
-      username: '',
-      emailAddress: '',
-      password: '',
-    })
-  }, [isSignedIn])
+const Guarded: React.FC<GuardedProps> = ({ children }) => {
+  const [view, setView] = useState<"signup" | "signin">("signup");
 
   let signedOutForm = null;
-  if (view === 'signup') {
-    signedOutForm = (
-      <SignUpScreen
-        switchToSignIn={() => setView('signin')}
-        auth={{ ...auth, onChange }}
-      />
-    )
-  } else if (view === 'signin') {
-    signedOutForm = (
-      <SignInScreen
-        switchToSignUp={() => setView('signup')}
-        auth={{ ...auth, onChange }}
-      />
-    )
+  if (view === "signup") {
+    signedOutForm = <SignUpScreen switchToSignIn={() => setView("signin")} />;
+  } else if (view === "signin") {
+    signedOutForm = <SignInScreen switchToSignUp={() => setView("signup")} />;
   }
-  
+
   return (
-    <View className="flex align-center justify-center w-full h-full">
-        <SignedIn>
-          {props.children}
-        </SignedIn>
-        <SignedOut>
-          {signedOutForm}
-        </SignedOut>
+    <View className="flex justify-center w-full h-full align-center">
+      <SignedIn>{children}</SignedIn>
+      <SignedOut>{signedOutForm}</SignedOut>
     </View>
-  )
-}
+  );
+};
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
 
-export default function RootLayout(props: any) {
+function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ClerkProvider tokenCache={tokenCache} publishableKey={ClerkKey}>
+      <ClerkProvider
+        tokenCache={tokenCache}
+        publishableKey={Constants?.expoConfig?.extra?.clerkPublishableKey}
+      >
         <Guarded>
-          <Stack initialRouteName='map' screenOptions={{ headerShown: false }}>
+          <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
           </Stack>
         </Guarded>
       </ClerkProvider>
     </QueryClientProvider>
-  )
+  );
 }
+
+export default RootLayout;

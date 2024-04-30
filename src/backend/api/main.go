@@ -9,37 +9,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var schema = `
-CREATE TABLE IF NOT EXISTS person (
-    id serial primary key,
-    first_name text,
-    last_name text,
-    email text
-);
-`
-
-type Person struct {
-	ID        int    `db:"id"`
-	FirstName string `db:"first_name"`
-	LastName  string `db:"last_name"`
-	Email     string `db:"email"`
+type User struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
 }
 
 type Env struct {
 	db *sqlx.DB
-}
-
-type album struct {
-	ID     string  `json:"id"`
-	Title  string  `json:"title"`
-	Artist string  `json:"artist"`
-	Price  float64 `json:"price"`
-}
-
-var albums = []album{
-	{ID: "1", Title: "Blue Train", Artist: "John Coltrane", Price: 56.99},
-	{ID: "2", Title: "Jeru", Artist: "Gerry Mulligan", Price: 17.99},
-	{ID: "3", Title: "Sarah Vaughan and Clifford Brown", Artist: "Sarah Vaughan", Price: 39.99},
 }
 
 func main() {
@@ -49,28 +25,27 @@ func main() {
 	}
 	defer db.Close()
 
-	db.MustExec(schema)
-
 	env := &Env{db: db}
 	router := gin.Default()
 	router.Use(cors.Default())
-	router.GET("/albums", getAlbums)
-	router.POST("/insertPerson", env.insertPerson)
-
-	router.Run("localhost:8080")
+	router.POST("/users/createUser", env.insertUser)
+	router.GET("/users/getUsers", env.getUsers)
+	router.Run("0.0.0.0:8080")
 }
 
-func getAlbums(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, albums)
-}
+func (e *Env) insertUser(c *gin.Context) {
+	var user User
 
-func (e *Env) insertPerson(c *gin.Context) {
-	_, err := e.db.NamedExec(`INSERT INTO person (first_name, last_name, email)
-        VALUES (:first_name, :last_name, :email)`,
+	if err := c.BindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON body"})
+		return
+	}
+
+	_, err := e.db.NamedExec(`INSERT INTO users (email, username)
+        VALUES (:email, :username)`,
 		map[string]interface{}{
-			"first_name": "John",
-			"last_name":  "Doe",
-			"email":      "kczuba@gmail.com",
+			"email":    user.Email,
+			"username": user.Username,
 		},
 	)
 
@@ -80,4 +55,16 @@ func (e *Env) insertPerson(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Person inserted successfully"})
+}
+
+func (e *Env) getUsers(c *gin.Context) {
+	var users []User
+
+	err := e.db.Select(&users, "SELECT username FROM users")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": users})
 }

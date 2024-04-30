@@ -1,57 +1,60 @@
-import { StatusBar } from "expo-status-bar";
-import { Image, Pressable, Text, TouchableOpacity, View } from "react-native";
-import { getLeaderboard } from "../api/leaderboard";
-import { cn } from "../cn";
-import { Link } from "expo-router";
-import { useQuery } from '@tanstack/react-query'
 import { FlashList } from "@shopify/flash-list";
+import { useQuery } from "@tanstack/react-query";
+import { Text, View } from "react-native";
+import { _getUsers } from "../../api/users";
+import LeaderboardEntry from "../../components/leaderboard-entry";
+import { useAxios } from "../../hooks/use-axios";
+import Button from "../../ui/button";
 
-const LeaderboardEntry = (props: any) => {
-  return (
-    <View>
-      <View className="border">
-        <Image className="h-4 w-4" source={{ uri: props.avatar }} />
-      </View>
-      <View>
-        <Text>{props.username}</Text>
-      </View>
-      <View>
-        <Text>{props.points}</Text>
-      </View>
-    </View>
-  )
-}
+const Leaderboard = () => {
+  const axios = useAxios();
 
-const App = () => {
-  
   const { isPending, error, data, refetch } = useQuery({
-    queryKey: ['leaderboard'],
-    queryFn: getLeaderboard,
-  })
+    queryKey: ["leaderboard"],
+    queryFn: () => _getUsers(axios),
+  });
 
-  console.log({ isPending, error })
+  console.log({ isPending, error, data });
 
-  let leaderboard = <View><Text>loading</Text></View>;
-  if (!isPending && !error) {
-    leaderboard = (
-      <View className="border w-full h-full">
-        <FlashList
-          data={data}
-          renderItem={({ item, index }) => <LeaderboardEntry key={index} {...item} />}
-          estimatedItemSize={200}
-        />
-      </View>
-    )
-  } 
+  const getLeaderboard = () => {
+    switch (true) {
+      case isPending:
+        return (
+          <View>
+            <Text>loading</Text>
+          </View>
+        );
+      case !!error:
+        return (
+          <View>
+            <Text>error: {error.message}</Text>
+          </View>
+        );
+      default:
+        return (
+          <View className="w-full h-full p-4">
+            <FlashList
+              data={data.data}
+              renderItem={({ item }) => (
+                <LeaderboardEntry
+                  key={item.username}
+                  username={item.username}
+                  points={Math.floor(Math.random() * 100)}
+                />
+              )}
+              estimatedItemSize={200}
+            />
+          </View>
+        );
+    }
+  };
 
   return (
-    <View className="flex-1 bg-#fff items-center justify-center gap-4">
-      <TouchableOpacity onPress={() => refetch()}>
-        <Text>refetch</Text>
-      </TouchableOpacity>
-      {leaderboard}
+    <View className="flex items-center bg-#fff">
+      <Button title="refetch" onPress={() => refetch()} />
+      {getLeaderboard()}
     </View>
-  )
-}
+  );
+};
 
-export default App;
+export default Leaderboard;
