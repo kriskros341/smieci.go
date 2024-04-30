@@ -27,3 +27,11 @@ export const _getUsers = async (
 
   return response.data;
 };
+
+export const _deleteUser = async (axios: AxiosInstance, email: string) => {
+  const response = await axios.post("/users/deleteUser", {
+    email,
+  });
+
+  return response.data;
+};
