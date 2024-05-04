@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -41,16 +40,16 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		jwks, err := keyfunc.NewDefaultCtx(ctx, []string{os.Getenv("CLERK_JWKS_URL")})
 		if err != nil {
-			log.Fatalf("Failed to create a keyfunc.Keyfunc from the server's URL.\nError: %s", err)
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to create a keyfunc.Keyfunc from the server's URL."})
 		}
 
 		parsed, err := jwt.ParseWithClaims(token, &AuthorizerClaims{}, jwks.Keyfunc)
 		if err != nil {
-			log.Fatal(err)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		} else if claims, ok := parsed.Claims.(*AuthorizerClaims); ok {
 			c.Set("authorizerClaims", claims)
 		} else {
-			log.Fatal("Unknown claims type, cannot proceed")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		}
 
 		cancel()

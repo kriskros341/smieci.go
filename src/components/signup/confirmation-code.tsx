@@ -41,9 +41,9 @@ const ConfirmationCode: React.FC<Props> = ({ email, username }) => {
         code,
       });
 
-      await createUser({ email, username });
-
       await setActive({ session: completeSignUp.createdSessionId });
+
+      await createUser({ email, username });
     } catch (err) {
       console.error(JSON.stringify(err, null, 2));
     } finally {
