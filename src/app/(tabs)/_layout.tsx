@@ -11,6 +11,7 @@ function TabLayout() {
           headerTitleContainerStyle: {
             display: "none",
           },
+          href: "map",
           header() {
             return null;
           },

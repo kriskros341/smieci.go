@@ -1,9 +1,18 @@
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Button, Text, View } from "react-native";
+import { _getUsers } from "../../api/users";
+import { useAxios } from "../../hooks/use-axios";
 
 const Account = () => {
   const { user } = useUser();
   const { signOut } = useAuth();
+
+  const axios = useAxios();
+
+  const testApi = () => {
+    console.log(axios)
+    _getUsers(axios).then(test => console.log({ test }))
+  }
 
   return (
     <View className="flex-1 bg-#fff items-center p-8 gap-8">
@@ -16,6 +25,7 @@ const Account = () => {
         </View>
       </View>
       <View className="w-full gap-y-8">
+        <Button title="test api" onPress={() => testApi()}/>
         <Text>{user?.username ?? "Unknown"}</Text>
         <Text>{user?.emailAddresses[0]?.emailAddress ?? "Unknown"}</Text>
         <Button

@@ -8,9 +8,10 @@ import { useAxios } from "../../hooks/use-axios";
 interface Props {
   email: string;
   username: string;
+  goBack: () => void;
 }
 
-const ConfirmationCode: React.FC<Props> = ({ email, username }) => {
+const ConfirmationCode: React.FC<Props> = ({ email, username, goBack }) => {
   const { isLoaded, signUp, setActive } = useSignUp();
   const [isLoading, setIsLoading] = React.useState(false);
   const [code, setCode] = React.useState("");
@@ -18,8 +19,10 @@ const ConfirmationCode: React.FC<Props> = ({ email, username }) => {
   const axios = useAxios();
 
   const { mutateAsync: createUser } = useMutation({
-    mutationFn: ({ email, username }: { email: string; username: string }) =>
-      _createUser(axios, { email, username }),
+    mutationFn: ({ email, username }: { email: string; username: string }) => {
+      console.log({ email, username })
+      return _createUser(axios, { email, username });
+    },
 
     // TODO: convert to toast
     onSuccess: () => {
@@ -64,6 +67,10 @@ const ConfirmationCode: React.FC<Props> = ({ email, username }) => {
         title="Verify Email"
         disabled={isLoading}
         onPress={onPressVerify}
+      />
+      <Button
+        title="back"
+        onPress={goBack}
       />
     </View>
   );

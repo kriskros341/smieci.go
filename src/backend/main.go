@@ -1,7 +1,6 @@
 package main
 
 import (
-	"backend/api/auth"
 	"backend/api/handlers"
 	"backend/database"
 	"log"
@@ -22,7 +21,7 @@ func main() {
 
 	router := gin.Default()
 	router.Use(cors.Default())
-	router.Use(auth.AuthMiddleware())
+	// router.Use(auth.AuthMiddleware())
 
 	env := &handlers.Env{Db: db}
 	router.POST("/users/createUser", env.InsertUser)

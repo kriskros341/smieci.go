@@ -58,6 +58,7 @@ function RootLayout() {
         <Guarded>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="createMarker" />
           </Stack>
         </Guarded>
       </ClerkProvider>

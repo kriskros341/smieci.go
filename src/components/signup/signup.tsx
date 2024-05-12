@@ -7,6 +7,8 @@ import Button from "../../ui/button";
 import ConfirmationCode from "./confirmation-code";
 import { schema } from "./schema";
 import type { FormData } from "./types";
+import { _getUsers } from "../../api/users";
+import { useAxios } from "../../hooks/use-axios";
 
 interface Props {
   switchToSignIn: () => void;
@@ -51,6 +53,15 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
       console.error(JSON.stringify(err, null, 2));
     }
   };
+
+  const goBack = () => {
+    setPendingVerification(false);
+  }
+
+  const axios = useAxios();
+  const testApi = () => {
+    _getUsers(axios).then(r => console.log({ r }))
+  }
 
   return (
     <>
@@ -151,8 +162,10 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
         <ConfirmationCode
           email={getValues("emailAddress")}
           username={getValues("username")}
+          goBack={() => goBack()}
         />
       )}
+      <Button title="test api" onPress={testApi} />
     </>
   );
 };

@@ -1,10 +1,11 @@
 import { useAuth } from "@clerk/clerk-expo";
 import axios from "axios";
+import Constants from "expo-constants";
 
 export const useAxios = () => {
   const { getToken } = useAuth();
   const instance = axios.create({
-    baseURL: "http://192.168.21.10:8080",
+    baseURL: Constants?.expoConfig?.extra?.apiUrl,
   });
 
   instance.interceptors.request.use(async (req) => {
