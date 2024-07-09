@@ -5,7 +5,6 @@ import (
 	"backend/api/handlers"
 	"backend/database"
 
-	"backed/api/auth"
 	"log"
 
 	"github.com/gin-contrib/cors"
@@ -31,6 +30,7 @@ func main() {
 	router.GET("/users/getUsers", env.GetUsers)
 	router.POST("/users/deleteUser", env.DeleteUser)
 	router.POST("/markers", env.CreateMarker)
+	router.GET("/markers", env.GetMarkersCoordinates)
 
 	router.Run("0.0.0.0:8080")
 }

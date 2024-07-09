@@ -54,7 +54,7 @@ function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <ClerkProvider
-        // tokenCache={tokenCache}
+        tokenCache={tokenCache}
         publishableKey={Constants?.expoConfig?.extra?.clerkPublishableKey}
       >
         <Guarded>

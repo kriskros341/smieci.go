@@ -91,7 +91,7 @@ const CameraViewHandler = (props: CameraViewProps) => {
 import * as Location from 'expo-location';
 import { useUser } from "@clerk/clerk-expo";
 import { useAxios } from "../../../hooks/use-axios";
-import { _createMarker } from "../../../api/users";
+import { _createMarker } from "../../../api/markers";
 
 const CreateMarker = () => {
   const axios = useAxios();
@@ -131,19 +131,14 @@ const CreateMarker = () => {
     const result = _createMarker(
       axios,
       {
-        userId: user.user!.id,
         base64Image: tempPhoto,
         lat: location!.coords.latitude,
         long: location!.coords.longitude,
       },
     )
     .then((response) => {
-      console.log({ data: response.data });
+      router.replace('map')
     })
-    .catch((error) => {
-      // console.error(JSON.stringify(error.response));
-    })
-    console.log({ result })
   }
 
   return (

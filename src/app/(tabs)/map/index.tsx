@@ -5,6 +5,9 @@ import MapView, { Marker, MarkerPressEvent } from "react-native-maps";
 import * as Location from "expo-location";
 import Button from "../../../ui/button";
 import { router, useNavigation } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
+import { useAxios } from "../../../hooks/use-axios";
+import { _getAllMarkersCoordinates } from "../../../api/markers";
 
 const mapStyle =
 [
@@ -56,10 +59,35 @@ const MarkerView = (props: MarkerViewProps) => {
   )
 }
 
+const useMarkersQuery = () => {
+  const axios = useAxios();
+  const { isPending, error, data, refetch } = useQuery({
+    queryKey: ["allMarkersCoordinates"],
+    queryFn: () => _getAllMarkersCoordinates(axios),
+    initialData: [],
+  });
+  const result = []
+  console.log({ data })
+  for (const entry of data) {
+    result.push(
+      {
+        key: "g",
+        coordinate: {
+          latitude: entry.lat,
+          longitude: entry.long,
+        },
+        pointCount: 42069,
+        text: "To jest tekst powiązany ze znacznikiem"
+      }
+    );
+  }
+  return { isPending, error, data: result, refetch }
+};
+
 const Map = () => {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const navigation = useNavigation();
+  const { isPending, error, data: markers, refetch } = useMarkersQuery()
 
   useEffect(() => {
     (async () => {
@@ -100,18 +128,6 @@ const Map = () => {
       </View>
     );
   }
-
-  const markers = [
-    {
-      key: "g",
-      coordinate: {
-        latitude: location.coords.latitude + 0.001,
-        longitude: location.coords.longitude + 0.001
-      },
-      pointCount: 42069,
-      text: "To jest tekst powiązany ze znacznikiem"
-    }
-  ]
 
   const onMarkerPress = (event: MarkerPressEvent, index: number) => {
     event.preventDefault();

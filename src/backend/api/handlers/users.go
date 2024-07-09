@@ -6,7 +6,6 @@ import (
 	"backend/api/auth"
 
 	"github.com/gin-gonic/gin"
-	"fmt"
 )
 
 type InsertUserBody struct {
@@ -84,48 +83,6 @@ func (e *Env) DeleteUser(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
-}
-
-type CreateMarkerBody struct {
-	Email string `json:"email"`
-	Lat float64 `json:"lat"`
-	Long float64 `json:"long"`
-	Base64Image string `json:"base64Image"`
-}
-
-func (e *Env) CreateMarker(c *gin.Context) {
-	var body CreateMarkerBody
-
-	if err := c.BindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON body"})
-		return
-	}
-
-	_, exists := c.Get("authorizerClaims")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-	
-	fmt.Println(body)
-
-	_, err := e.Db.NamedExec(`
-	INSERT INTO Markers (userId, lat, long, base64Image)
-		VALUES (:userId, :lat, :long, :base64Image);
-	`, map[string]interface{}{
-		"userId": body.UserId,
-		"lat": body.Lat,
-		"long": body.Long,
-		"base64Image": body.Base64Image,
-	})
-
-	if err != nil {
-		var error = gin.H{"error": err.Error()}
-		fmt.Println(error)
 		return
 	}
 
