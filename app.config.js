@@ -17,6 +17,10 @@ module.exports = {
       supportsTablet: true,
     },
     android: {
+      permissions: [
+        "CAMERA",
+        "WRITE_EXTERNAL_STORAGE",
+      ],
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff",
@@ -26,7 +30,10 @@ module.exports = {
       favicon: "./assets/favicon.png",
       bundler: "metro",
     },
-    plugins: ["expo-router"],
+    plugins: [
+      "expo-router",
+      "expo-secure-store",
+    ],
     extra: {
       clerkPublishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY,
       apiUrl: process.env.API_URL,

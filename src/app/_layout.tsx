@@ -49,10 +49,12 @@ const Guarded: React.FC<GuardedProps> = ({ children }) => {
 const queryClient = new QueryClient();
 
 function RootLayout() {
+  const token = Constants?.expoConfig?.extra?.clerkPublishableKey;
+  console.log({ token })
   return (
     <QueryClientProvider client={queryClient}>
       <ClerkProvider
-        tokenCache={tokenCache}
+        // tokenCache={tokenCache}
         publishableKey={Constants?.expoConfig?.extra?.clerkPublishableKey}
       >
         <Guarded>

@@ -37,3 +37,16 @@ export const _deleteUser = async (axios: AxiosInstance, email: string) => {
 
   return response.data;
 };
+
+
+type createMarkerPayload = {
+  userId: string,
+  base64Image: string,
+  lat: number,
+  long: number,
+};
+
+export const _createMarker = async (axios: AxiosInstance, payload: createMarkerPayload) => {
+  console.log({ userId: payload.userId, lat: payload.lat, long: payload.long })
+  return await axios.post("/markers", payload);
+}

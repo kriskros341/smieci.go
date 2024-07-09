@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"fmt"
 
 	"github.com/MicahParks/keyfunc/v3"
 	"github.com/gin-gonic/gin"
@@ -51,6 +52,8 @@ func AuthMiddleware() gin.HandlerFunc {
 		} else {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		}
+
+		fmt.Println(parsed)
 
 		cancel()
 		c.Next()

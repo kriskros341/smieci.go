@@ -3,16 +3,29 @@ import { ActivityIndicator, BackHandler, Image, Pressable, Text, TextInput, View
 import Button from "../../../ui/button";
 import { useEffect, useRef, useState } from "react";
 
-import { Camera, CameraCapturedPicture } from "expo-camera";
+import { Camera, CameraView, CameraCapturedPicture, useCameraPermissions,  } from "expo-camera";
 
 type CameraViewProps = {
   onPhoto: (photo: CameraCapturedPicture) => void
 }
 
-const CameraView = (props: CameraViewProps) => {
-  const cameraRef = useRef<Camera>(null);
-  const [isLoading, setIsLoading] = useState(true)
-  const [permission, requestPermission] = Camera.useCameraPermissions();
+const CameraViewHandler = (props: CameraViewProps) => {
+  const cameraRef = useRef<CameraView>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [permission, requestPermission] = useCameraPermissions();
+
+  useEffect(() => {
+    async function getSizes() {
+      console.log("hi!");
+      console.log(permission);
+      if (permission?.granted && cameraRef.current) {
+        console.log("sized!");
+      }
+    }
+
+    getSizes();
+  }, [permission, cameraRef]);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -27,7 +40,7 @@ const CameraView = (props: CameraViewProps) => {
 
   const takePictureAsync = async () => {
     setIsLoading(true);
-    const photo = await cameraRef.current?.takePictureAsync();
+    const photo = await cameraRef.current?.takePictureAsync({ base64: true });
     setIsLoading(false);
     if (photo) {
       props.onPhoto(photo);
@@ -53,12 +66,12 @@ const CameraView = (props: CameraViewProps) => {
   return (
     <View className="flex-1 h-full">
       <View className="h-8" />
-      <Camera
+      <CameraView
         onCameraReady={() => onCameraReady()}
         ref={cameraRef}
         className="absolute flex flex-1 w-full h-full align-center"
       >
-      </Camera>
+      </CameraView>
       <View className="absolute flex items-center w-full bottom-16">
         {!isLoading ? (
           <Pressable onPress={() => takePictureAsync()}>
@@ -77,10 +90,13 @@ const CameraView = (props: CameraViewProps) => {
 
 import * as Location from 'expo-location';
 import { useUser } from "@clerk/clerk-expo";
+import { useAxios } from "../../../hooks/use-axios";
+import { _createMarker } from "../../../api/users";
 
 const CreateMarker = () => {
+  const axios = useAxios();
   const [location, setLocation] = useState<Location.LocationObject>();
-  const [tempPhotoUri, setTempPhotoUri] = useState<string>()
+  const [tempPhoto, setTempPhoto] = useState<string>()
   const user = useUser();
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -101,14 +117,34 @@ const CreateMarker = () => {
     })();
   }, []);
 
-  if (!tempPhotoUri) {
-    return <CameraView onPhoto={(photo) => setTempPhotoUri(photo.uri)} />
+  if (!tempPhoto) {
+    return <CameraViewHandler onPhoto={(photo) => setTempPhoto(photo.base64)} />
   }
 
   const clearPhoto = () => {
-    setTempPhotoUri(undefined)
+    setTempPhoto(undefined)
   }
 
+  console.log({ tempPhoto: !!tempPhoto })
+
+  const onCreateMarkerPress = () => {
+    const result = _createMarker(
+      axios,
+      {
+        userId: user.user!.id,
+        base64Image: tempPhoto,
+        lat: location!.coords.latitude,
+        long: location!.coords.longitude,
+      },
+    )
+    .then((response) => {
+      console.log({ data: response.data });
+    })
+    .catch((error) => {
+      // console.error(JSON.stringify(error.response));
+    })
+    console.log({ result })
+  }
 
   return (
     <>
@@ -119,7 +155,10 @@ const CreateMarker = () => {
         >
           <Image
             className="w-full aspect-square"
-            src={tempPhotoUri}
+            source={{uri: `data:image/png;base64,${tempPhoto}`}}
+            resizeMode="contain"
+            onError={(error) => console.log(error.nativeEvent.error)}
+            onLoad={() => console.log('Image loaded successfully')}
           />
           <Pressable
             onPress={() => clearPhoto()}
@@ -134,12 +173,22 @@ const CreateMarker = () => {
             )}
           </Pressable>
         </View>
-        <Text>latitude</Text>
-        <TextInput value={location?.coords.latitude.toString()} editable={false} />
-        <Text>longitude</Text>
-        <TextInput value={location?.coords.longitude.toString()} editable={false} />
+        <View>
+          <Text>latitude</Text>
+          <TextInput value={location?.coords.latitude.toString()} editable={false} />
+          <Text>longitude</Text>
+          <TextInput value={location?.coords.longitude.toString()} editable={false} />
+        </View>
         <Text>Issuer</Text>
         <TextInput value={user?.user!.username ?? ''} editable={false} />
+        <Pressable>
+          <Button
+            title="Create Marker"
+            onPress={onCreateMarkerPress}
+          >
+
+          </Button>
+        </Pressable>
       </View>
     </>
   )

@@ -1,13 +1,10 @@
-import { ActivityIndicator, Animated, Pressable, Text, TouchableWithoutFeedback, View, TouchableOpacity } from "react-native";
-import { useEffect, useRef, useState } from "react";
-import MapView, { Callout, Marker, MarkerPressEvent } from "react-native-maps";
+import { ActivityIndicator, Pressable, Text, TouchableWithoutFeedback, View, TouchableOpacity } from "react-native";
+import { useEffect, useState } from "react";
+import MapView, { Marker, MarkerPressEvent } from "react-native-maps";
 
 import * as Location from "expo-location";
-import { StatusBar } from "expo-status-bar";
 import Button from "../../../ui/button";
-import { Navigator, router, useNavigation } from "expo-router";
-import stack from "expo-router/stack";
-import Stack from "expo-router/stack";
+import { router, useNavigation } from "expo-router";
 
 const mapStyle =
 [
@@ -126,7 +123,7 @@ const Map = () => {
   return (
     <>
       {/* @TODO: find better status bar placeholder */}
-      <View className="h-8" />
+      {/* <View className="h-8" /> */}
       <View className="relative flex flex-row flex-1">
         <TouchableWithoutFeedback
           onPressIn={() => setDisplayMarkerIndex(undefined)}
@@ -157,13 +154,13 @@ const Map = () => {
         {displayMarkerIndex !== undefined ? (
           <MarkerView {...markers[displayMarkerIndex]} />
         ) : null}
-        <Pressable onPressOut={() => router.replace('map/createMarker')}>
+        <Pressable className="z-10" onPressOut={() => router.replace('map/createMarker')}>
           {({ pressed }) => (
             <View
               style={{ opacity: pressed ? 0.5 : 1 }}
-              className="absolute w-16 h-16 bg-white rounded-full bottom-4 right-4"
+              className="absolute items-center justify-center w-16 h-16 bg-white rounded-full bottom-4 right-4"
             >
-              <Text>jdjd</Text>  
+              <Text className="text-center">Gdize jest ten tekst?</Text>  
             </View>
           )}
         </Pressable>
