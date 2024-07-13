@@ -50,6 +50,7 @@ func (e *Env) CreateMarker(c *gin.Context) {
 	
 	var clerkId = claims.(*auth.AuthorizerClaims).UserId
 
+	fmt.Println(clerkId)
 	_, err := e.Db.NamedExec(`
 	INSERT INTO Markers (userId, lat, long, base64Image)
 		VALUES (

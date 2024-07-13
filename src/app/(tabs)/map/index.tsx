@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, Text, TouchableWithoutFeedback, View, TouchableOpacity } from "react-native";
 import { useEffect, useState } from "react";
-import MapView, { Marker, MarkerPressEvent } from "react-native-maps";
+import MapView, { Circle, Marker, MarkerPressEvent } from "react-native-maps";
 
 import * as Location from "expo-location";
 import Button from "../../../ui/button";
@@ -8,6 +8,8 @@ import { router, useNavigation } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { useAxios } from "../../../hooks/use-axios";
 import { _getAllMarkersCoordinates } from "../../../api/markers";
+import FloatingWindowContainer from '../../components/floatingWindowContainer';
+import CreateMarkerEditor from "../../components/createMarkerEditor";
 
 const mapStyle =
 [
@@ -66,8 +68,8 @@ const useMarkersQuery = () => {
     queryFn: () => _getAllMarkersCoordinates(axios),
     initialData: [],
   });
-  const result = []
-  console.log({ data })
+  const result = [];
+
   for (const entry of data) {
     result.push(
       {
@@ -81,13 +83,73 @@ const useMarkersQuery = () => {
       }
     );
   }
-  return { isPending, error, data: result, refetch }
+  return { isPending, error, data: result, refetch };
 };
+
+// Potrzebne mi cos w stylu strategii zeby zdecydowac w jaki sposob zostanie uzyta mapa.
+// Strategia bedzie zawierala komponenty MapContent oraz ActionButton
+
+type ViewMarkersStrategy = {
+  self: 'ViewMarkersStrategy',
+  markers: {
+    key: string;
+    coordinate: {
+        latitude: any;
+        longitude: any;
+    };
+    pointCount: number;
+    text: string;
+  }[],
+  onMarkerClick: (idx: number) => { }
+}
+
+type MoveMarkerStrategy = {
+  self: 'MoveMarkerStrategy',
+  fakeMarkerCoordinates: { lat: number, long: number } | undefined
+}
+
+type MapStrategy = ViewMarkersStrategy | MoveMarkerStrategy;
+
+// ??
+
+
+const MoveMarkerContent = ({ marker, userCoords }:  { marker: any, userCoords: { latitude: number, longitude: number } }) => {
+  return (
+    <>
+      <Marker
+        key={marker.key}
+        coordinate={marker.coordinate}
+      >
+      </Marker>
+      <Circle
+        center={userCoords}
+        radius={10} // calculate based on distance
+      />
+    </>
+  )
+}
+
+const ViewMarkersContent = ({ markers, onMarkerPress }: { markers: any[], onMarkerPress: Function }) => {
+  return (
+    <>
+      {markers.map((marker, index) => (
+        <Marker
+          key={marker.key}
+          coordinate={marker.coordinate}
+          onPress={(event) => onMarkerPress(event, index)}
+        >
+
+        </Marker>
+      ))}
+    </>
+  )
+}
 
 const Map = () => {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const { isPending, error, data: markers, refetch } = useMarkersQuery()
+  const { isPending, error, data: markers, refetch } = useMarkersQuery(); // Part of selectMarker stretegy
+  const [fakeMarkerCoordinates, setFakeMarkerCoordinates] = useState<{ lat: number, long: number } | undefined>(undefined); // Part of moveMarker strategy
 
   useEffect(() => {
     (async () => {
@@ -121,6 +183,9 @@ const Map = () => {
     } 
   }, [])
 
+  type createMarkerModalStates = 'hidden' | 'minimized' | 'fullscreen'
+  const [createMarkerModalState, setCreateMarkerModalState] = useState<createMarkerModalStates>('hidden')
+
   if (!location) {
     return (
       <View className="flex justify-center flex-1 h-full">
@@ -136,11 +201,15 @@ const Map = () => {
     setDisplayMarkerIndex(index);
   }
 
+  console.log({ createMarkerModalState })
+
+  const mapContentType = createMarkerModalState === 'minimized' ? 'moveMarker' : 'viewMarkers'
+
   return (
     <>
       {/* @TODO: find better status bar placeholder */}
-      {/* <View className="h-8" /> */}
-      <View className="relative flex flex-row flex-1">
+      <View className="h-8" />
+      <View className="relative flex flex-1">
         <TouchableWithoutFeedback
           onPressIn={() => setDisplayMarkerIndex(undefined)}
         >
@@ -156,21 +225,18 @@ const Map = () => {
               longitudeDelta: 0.1,
             }}
           >
-            {markers.map((marker, index) => (
-              <Marker
-                key={marker.key}
-                coordinate={marker.coordinate}
-                onPress={(event) => onMarkerPress(event, index)}
-              >
-
-              </Marker>
-            ))}
+            {mapContentType === 'viewMarkers' ? (
+              <ViewMarkersContent markers={markers} onMarkerPress={onMarkerPress} />
+            ) : (
+              <MoveMarkerContent marker={{ coordinates: fakeMarkerCoordinates, key: 'g' }} userCoords={location.coords} />
+            )}
           </MapView>
         </TouchableWithoutFeedback>
-        {displayMarkerIndex !== undefined ? (
+        {/* {displayMarkerIndex !== undefined ? (
           <MarkerView {...markers[displayMarkerIndex]} />
-        ) : null}
-        <Pressable className="z-10" onPressOut={() => router.replace('map/createMarker')}>
+        ) : null} */}
+        {/* <Pressable className="z-10" onPressOut={() => router.replace('map/createMarker')}> */}
+        <Pressable className="z-10" onPressOut={() => setCreateMarkerModalState('fullscreen')}>
           {({ pressed }) => (
             <View
               style={{ opacity: pressed ? 0.5 : 1 }}
@@ -180,9 +246,56 @@ const Map = () => {
             </View>
           )}
         </Pressable>
+        <FloatingWindowContainer
+          visibilityState={createMarkerModalState}
+          onClose={() => {
+            console.log({ jd: 'jd' })
+            setCreateMarkerModalState('hidden')
+          }} 
+        >
+          <CreateMarkerEditor
+            modalVisibilityState={createMarkerModalState}
+            fakeMarkerCoordinates={fakeMarkerCoordinates}
+            onSubmit={() => {
+              setCreateMarkerModalState('hidden')
+              refetch()
+            }}
+            onMoveMarkerPress={(currentLocation) => {
+              setCreateMarkerModalState('minimized');
+              setFakeMarkerCoordinates(currentLocation)
+              // create temproary marker in location from argument
+              // replace markers overlay with moveMarker overlay
+              // 
+            }}
+            onMoveMarkerConfirm={() => {
+              setCreateMarkerModalState('fullscreen')
+            }}
+          />
+        </FloatingWindowContainer>
       </View>
     </>
   );
 };
 
 export default Map;
+
+
+
+/* Map handler idea:
+
+MapHander
+  Map - stays rendered
+    MarkersOverlay
+    LocationChooserOverlay
+  Modal
+    Changing location: hide modal and give callback to MapHandler
+
+    const changeLocation = () => {
+      modal.minimize()  // Chowa okno tak ze wystaje tylko jego gorna czesc.
+                        // przeciagniecie oznacza onCancel
+      props.setLocationModal(onSuccess: (location) => {
+        changeEditorState({ location })
+      })
+    }
+
+    */
