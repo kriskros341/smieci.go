@@ -28,8 +28,10 @@ func main() {
 	env := &handlers.Env{Db: db}
 	router.POST("/users/createUser", env.InsertUser)
 	router.GET("/users/getUsers", env.GetUsers)
+	router.GET("/users/:userId", env.GetUser)
 	router.POST("/users/deleteUser", env.DeleteUser)
 	router.POST("/markers", env.CreateMarker)
+	router.GET("/markers/:markerId", env.GetMarker)
 	router.GET("/markers", env.GetMarkersCoordinates)
 
 	router.Run("0.0.0.0:8080")

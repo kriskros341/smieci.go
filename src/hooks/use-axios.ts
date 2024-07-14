@@ -4,8 +4,12 @@ import Constants from "expo-constants";
 
 export const useAxios = () => {
   const { getToken } = useAuth();
+  const baseURL = Constants?.expoConfig?.extra?.apiUrl;
+  if (!baseURL) {
+    throw 'missing apiURL configuration';
+  }
   const instance = axios.create({
-    baseURL: Constants?.expoConfig?.extra?.apiUrl,
+    baseURL, 
   });
 
   instance.interceptors.request.use(async (req) => {

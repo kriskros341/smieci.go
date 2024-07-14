@@ -14,8 +14,6 @@ const Leaderboard = () => {
     queryFn: () => _getUsers(axios),
   });
 
-  console.log({ isPending, error, data });
-
   const getLeaderboard = () => {
     switch (true) {
       case isPending:

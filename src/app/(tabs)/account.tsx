@@ -10,7 +10,6 @@ const Account = () => {
   const axios = useAxios();
 
   const testApi = () => {
-    console.log(axios)
     _getUsers(axios).then(test => console.log({ test }))
   }
 

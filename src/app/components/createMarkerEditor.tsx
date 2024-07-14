@@ -1,14 +1,15 @@
-import * as Location from 'expo-location';
+
 import { useUser } from "@clerk/clerk-expo";
 import { useAxios } from "../../hooks/use-axios";
 import { _createMarker } from "../../api/markers";
-import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import CameraViewHandler from './cameraViewHandler';
-import { Pressable, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, TextInput, View } from 'react-native';
 import { Image } from 'react-native';
 import { Text } from 'react-native';
 import Button from '../../ui/button';
+import { CameraView } from 'expo-camera';
+import useLocation from "../../hooks/useLocation";
 
 type editorStateType = {
   location?: {
@@ -19,14 +20,6 @@ type editorStateType = {
 }
 
 const getInitialEditorState = (): editorStateType => ({});
-
-const useLocation = () => {
-  const { data, isPending, error } = useQuery({
-    queryKey: ['location'],
-    queryFn: () => Location.getCurrentPositionAsync(),
-  });
-  return { location: data, isPending, error };
-}
 
 const useEditorState = () => {
   const [editorState, setEditorState] = useState(getInitialEditorState());
@@ -54,7 +47,7 @@ const useEditorState = () => {
 type Coords = { lat: number, long: number };
 
 type CreateMarkerEditorProps = {
-  modalVisibilityState: 'minimized' | 'fullscreen' | 'hidden', // Ostatni nie wystapi
+  modalVisibilityState: 'minimal' | 'fullscreen' | 'hidden',
   onSubmit: () => void,
   onMoveMarkerPress: (currentLocation: Coords, onSuccess: (newLocation: Coords) => void) => void
   fakeMarkerCoordinates?: Coords
@@ -62,13 +55,39 @@ type CreateMarkerEditorProps = {
 }
 
 const CreateMarkerEditor = ({ onSubmit, onMoveMarkerPress, modalVisibilityState, fakeMarkerCoordinates, onMoveMarkerConfirm }: CreateMarkerEditorProps) => {
+  
   const axios = useAxios();
   const user = useUser();
+  const cameraRef = useRef<CameraView>(null);
+
+  const takePicture = async () => {
+    const WAIT_AFTER_PHOTO = 1000;
+    setTimeout(() => setIsCameraActive(false), WAIT_AFTER_PHOTO)
+    // No await intentional
+    cameraRef.current?.takePictureAsync(
+      {
+        base64: true,
+        skipProcessing: true,
+        onPictureSaved: (result) => {
+          changeEditorState({ base64Image: result.base64 })
+        },
+      }
+    );
+
+  }
   const { editorState, changeEditorState, isPending } = useEditorState();
+
+  const [isCameraActive, setIsCameraActive] = useState(true);
 
   const clearPhoto = () => {
     changeEditorState({ base64Image: undefined })
   }
+
+  useEffect(() => {
+    if (fakeMarkerCoordinates) {
+      changeEditorState({ location: fakeMarkerCoordinates })
+    }
+  }, [fakeMarkerCoordinates])
 
   const onCreateMarkerPress = () => {
     if (isPending) {
@@ -82,21 +101,18 @@ const CreateMarkerEditor = ({ onSubmit, onMoveMarkerPress, modalVisibilityState,
         lat: editorState.location!.lat,
         long: editorState.location!.long,
       },
-    )
-    onSubmit?.();
+    ).then(() => {
+      onSubmit?.();
+    })
   }
 
-  if (!editorState.base64Image) {
-    return <CameraViewHandler onPicture={(result: any) => changeEditorState({ base64Image: result.base64 })} />
-  }
-
-  if (modalVisibilityState === 'minimized') {
+  if (modalVisibilityState === 'minimal') {
     return (
       <View>
         <Text>latitude</Text>
-        <TextInput value={editorState.location?.lat.toString()} editable={false} />
+        <TextInput value={fakeMarkerCoordinates?.lat.toString()} editable={false} />
         <Text>longitude</Text>
-        <TextInput value={editorState.location?.long.toString()} editable={false} />
+        <TextInput value={fakeMarkerCoordinates?.long.toString()} editable={false} />
         <View className="flex flex-row">
           <Button
             title="Move marker"
@@ -114,31 +130,48 @@ const CreateMarkerEditor = ({ onSubmit, onMoveMarkerPress, modalVisibilityState,
     )
   }
 
+  const isImageReady = !!editorState.base64Image;
+  const image = isImageReady ? (
+    <Image
+      className="w-full aspect-square"
+      source={{uri: `data:image/png;base64,${editorState.base64Image}`}}
+      resizeMode="contain"
+      onError={(error) => console.log(error.nativeEvent.error)}
+      onLoad={() => console.log('Image loaded successfully')}
+    />
+  ) : (
+    <View className="w-full aspect-square flex justify-center items-center">
+      <ActivityIndicator />
+    </View>
+  )
+
   return (
     <>
-      <View className="flex-1">
+      <View className={`flex-1 h-full ${isCameraActive ? '' : 'hidden'}`}>
+        <CameraViewHandler ref={cameraRef} onPicture={takePicture} />
+      </View>
+      <View className={`flex-1 ${!isCameraActive ? '' : 'hidden'}`}>
         <View
           className="relative w-full"
         >
-          <Image
-            className="w-full aspect-square"
-            source={{uri: `data:image/png;base64,${editorState.base64Image}`}}
-            resizeMode="contain"
-            onError={(error) => console.log(error.nativeEvent.error)}
-            onLoad={() => console.log('Image loaded successfully')}
-          />
-          <Pressable
-            onPress={() => clearPhoto()}
-          >
-            {({ pressed }) => (
-              <View
-                style={{ opacity: pressed ? 0.5 : 1 }}
-                className="absolute w-16 h-16 bg-white rounded-full bottom-4 right-4"
-              >
-                <Text>retake</Text>
-              </View>
-            )}
-          </Pressable>
+          {image}
+          {isImageReady ? (
+            <Pressable
+              onPress={() => {
+                setIsCameraActive(true)
+                clearPhoto()
+              }}
+            >
+              {({ pressed }) => (
+                <View
+                  style={{ opacity: pressed ? 0.5 : 1 }}
+                  className="absolute w-16 h-16 bg-white rounded-full bottom-4 right-4"
+                >
+                  <Text>retake</Text>
+                </View>
+              )}
+            </Pressable>
+          ) : null}
         </View>
         <View>
           <Text>latitude</Text>
@@ -158,6 +191,7 @@ const CreateMarkerEditor = ({ onSubmit, onMoveMarkerPress, modalVisibilityState,
           <Button
             title="Create Marker"
             onPress={onCreateMarkerPress}
+            disabled={!isImageReady}
           >
 
           </Button>

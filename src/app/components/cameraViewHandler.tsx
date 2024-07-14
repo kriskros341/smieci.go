@@ -1,28 +1,18 @@
 import { router } from "expo-router";
 import { ActivityIndicator, BackHandler, Image, Pressable, Text, TextInput, View } from "react-native"
 import Button from "../../ui/button";
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 
 import { CameraView, CameraCapturedPicture, useCameraPermissions } from "expo-camera";
 
 type CameraViewProps = {
-  onPicture: (picture: CameraCapturedPicture) => void
+  onPicture: () => void,
 }
 
-const CameraViewHandler = (props: CameraViewProps) => {
-  const cameraRef = useRef<CameraView>(null);
+const CameraViewHandler = forwardRef((props: CameraViewProps, cameraRef: any) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const [permission, requestPermission] = useCameraPermissions();
-
-  const takePictureAsync = async () => {
-    setIsLoading(true);
-    const photo = await cameraRef.current?.takePictureAsync({ base64: true });
-    setIsLoading(false);
-    if (photo) {
-      props.onPicture(photo);
-    }
-  }
 
   useEffect(() => {
     if (!permission?.granted) {
@@ -39,7 +29,7 @@ const CameraViewHandler = (props: CameraViewProps) => {
   }
 
   return (
-    <View className="flex-1 h-full">
+    <>
       <CameraView
         onCameraReady={() => onCameraReady()}
         ref={cameraRef}
@@ -48,7 +38,7 @@ const CameraViewHandler = (props: CameraViewProps) => {
       </CameraView>
       <View className="absolute flex items-center w-full bottom-16">
         {!isLoading ? (
-          <Pressable onPress={() => takePictureAsync()}>
+          <Pressable onPress={props.onPicture}>
             {({ pressed }) => (
               <View
                 className="inline-flex w-16 h-16 bg-white rounded-full"
@@ -58,8 +48,8 @@ const CameraViewHandler = (props: CameraViewProps) => {
           </Pressable>
         ) : <ActivityIndicator size="large" />}
       </View>
-    </View>
+    </>
   )
-}
+});
 
 export default CameraViewHandler;

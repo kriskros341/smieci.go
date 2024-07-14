@@ -1,5 +1,4 @@
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-expo";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Constants from "expo-constants";
 import { Stack } from "expo-router/stack";
 import * as SecureStore from "expo-secure-store";
@@ -7,6 +6,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import SignInScreen from "./clerk/signin";
 import SignUpScreen from "./clerk/signup";
+import CustomQueryClientProvider from "../components/queryClientProvider";
 
 const tokenCache = {
   async getToken(key: string) {
@@ -46,25 +46,22 @@ const Guarded: React.FC<GuardedProps> = ({ children }) => {
   );
 };
 
-const queryClient = new QueryClient();
-
 function RootLayout() {
   const token = Constants?.expoConfig?.extra?.clerkPublishableKey;
-  console.log({ token })
   return (
-    <QueryClientProvider client={queryClient}>
-      <ClerkProvider
-        tokenCache={tokenCache}
-        publishableKey={Constants?.expoConfig?.extra?.clerkPublishableKey}
-      >
+    <ClerkProvider
+      tokenCache={tokenCache}
+      publishableKey={token}
+    >
+      <CustomQueryClientProvider>
         <Guarded>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="createMarker" />
           </Stack>
         </Guarded>
-      </ClerkProvider>
-    </QueryClientProvider>
+      </CustomQueryClientProvider>
+    </ClerkProvider>
   );
 }
 

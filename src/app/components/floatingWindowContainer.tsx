@@ -31,17 +31,17 @@ const styles = StyleSheet.create({
 
 
 // Coupled af but works
-export default function FloatingWindowContainer({ visibilityState, children, onClose }: any) {
-  console.log({ visibilityState });
+export default function FloatingWindowContainer({ visibilityState, children, onClose, title }: any) {
   if (visibilityState === 'hidden') {
     return;
   }
 
   let className = "absolute bottom-0 z-50 flex-1 w-full"
 
-  if (visibilityState === 'minimized') {
+  if (visibilityState === 'minimal') {
     className += " h-64"
-  } else {
+  }
+  if (visibilityState === 'fullscreen') {
     className += " h-full"
   }
 
@@ -49,7 +49,7 @@ export default function FloatingWindowContainer({ visibilityState, children, onC
     <View className={className}>
       <View style={styles.modalContent} className="bg-slate-100">
         <View style={styles.titleContainer} className="h-8">
-          <Text style={styles.title}>Choose a sticker</Text>
+          <Text style={styles.title}>{ title }</Text>
           <Pressable onPress={onClose}>
             <MaterialIcons name="close" color="#fff" size={22} />
           </Pressable>
