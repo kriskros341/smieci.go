@@ -36,17 +36,10 @@ export default function FloatingWindowContainer({ visibilityState, children, onC
     return;
   }
 
-  let className = "absolute bottom-0 z-50 flex-1 w-full"
-
-  if (visibilityState === 'minimal') {
-    className += " h-64"
-  }
-  if (visibilityState === 'fullscreen') {
-    className += " h-full"
-  }
-
-  return (
-    <View className={className}>
+    <View className={cn(
+    "absolute bottom-0 z-50 flex-1 w-full", 
+    visibilityState === "minimal" && "h-64", 
+    visibilityState === "fullscreen" && "h-full")}
       <View style={styles.modalContent} className="bg-slate-100">
         <View style={styles.titleContainer} className="h-8">
           <Text style={styles.title}>{ title }</Text>
