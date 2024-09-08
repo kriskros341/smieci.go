@@ -16,7 +16,7 @@ type editorStateType = {
     lat: number,
     long: number,
   },
-  base64Image?: string,
+  uri?: string,
 }
 
 const getInitialEditorState = (): editorStateType => ({});
@@ -66,10 +66,9 @@ const CreateMarkerEditor = ({ onSubmit, onMoveMarkerPress, modalVisibilityState,
     // No await intentional
     cameraRef.current?.takePictureAsync(
       {
-        base64: true,
         skipProcessing: true,
         onPictureSaved: (result) => {
-          changeEditorState({ base64Image: result.base64 })
+          changeEditorState({ uri: result.uri })
         },
       }
     );
@@ -80,7 +79,7 @@ const CreateMarkerEditor = ({ onSubmit, onMoveMarkerPress, modalVisibilityState,
   const [isCameraActive, setIsCameraActive] = useState(true);
 
   const clearPhoto = () => {
-    changeEditorState({ base64Image: undefined })
+    changeEditorState({ uri: undefined })
   }
 
   useEffect(() => {
@@ -89,7 +88,7 @@ const CreateMarkerEditor = ({ onSubmit, onMoveMarkerPress, modalVisibilityState,
     }
   }, [fakeMarkerCoordinates])
 
-  const onCreateMarkerPress = () => {
+  const onCreateMarkerPress = async () => {
     if (isPending) {
       return;
     }
@@ -97,7 +96,7 @@ const CreateMarkerEditor = ({ onSubmit, onMoveMarkerPress, modalVisibilityState,
     _createMarker(
       axios,
       {
-        base64Image: editorState.base64Image!,
+        uri: editorState.uri!,
         lat: editorState.location!.lat,
         long: editorState.location!.long,
       },
@@ -121,20 +120,16 @@ const CreateMarkerEditor = ({ onSubmit, onMoveMarkerPress, modalVisibilityState,
               changeEditorState({ location: fakeMarkerCoordinates })
             }}
           />
-          {/* <Button
-            title="Cancel"
-            onPress={() => onCancelMoveMarker()}
-          /> */}
         </View>
       </View>
     )
   }
 
-  const isImageReady = !!editorState.base64Image;
+  const isImageReady = !!editorState.uri;
   const image = isImageReady ? (
     <Image
       className="w-full aspect-square"
-      source={{uri: `data:image/png;base64,${editorState.base64Image}`}}
+      source={{ uri: editorState.uri }}
       resizeMode="contain"
       onError={(error) => console.log(error.nativeEvent.error)}
       onLoad={() => console.log('Image loaded successfully')}

@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
 
-// Absolutnie nie chce mi się wykonywać osobnych funkcji do ogarniania najprostszych endpointów
+// Absolutnie nie chce mi się wydzielać osobnych funkcji do ogarniania najprostszych endpointów
 const getDefaultFetcher = (axios: AxiosInstance) => async ({ queryKey }: { queryKey: unknown[] } & any) => {
   return axios.get(queryKey[0])
     .then((response) => response.data)

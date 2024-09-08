@@ -4,6 +4,8 @@ import (
 	"backend/api/auth"
 	"backend/api/handlers"
 	"backend/database"
+	"fmt"
+	"os"
 
 	"log"
 
@@ -21,6 +23,13 @@ func main() {
 	db := database.Connect()
 	defer db.Close()
 
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error getting current working directory:", err)
+		return
+	}
+	fmt.Printf("Uploads will be placed in %s/uploads", cwd)
+
 	router := gin.Default()
 	router.Use(cors.Default())
 	router.Use(auth.AuthMiddleware())
@@ -33,6 +42,7 @@ func main() {
 	router.POST("/markers", env.CreateMarker)
 	router.GET("/markers/:markerId", env.GetMarker)
 	router.GET("/markers", env.GetMarkersCoordinates)
+	router.GET("/uploads/:uploadId", env.GetFile)
 
 	router.Run("0.0.0.0:8080")
 }

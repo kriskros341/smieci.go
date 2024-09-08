@@ -22,6 +22,12 @@ type AuthorizerClaims struct {
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		auth := c.Request.Header["Authorization"]
+
+		println(strings.Contains(c.Request.URL.Path, "uploads"))
+		if strings.Contains(c.Request.URL.Path, "uploads") {
+			c.Next()
+			return
+		}
 		if len(auth) == 0 {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Authorization header is missing"})
 			return
