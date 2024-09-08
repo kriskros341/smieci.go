@@ -23,9 +23,7 @@ interface GetUsersResponse extends BaseDataResponse<{ username: string }[]> {}
 export const _getUsers = async (
   axios: AxiosInstance,
 ): Promise<GetUsersResponse> => {
-  const response = await axios.get("/users/getUsers").catch(err => {
-    console.error(JSON.stringify(err, null, 2));
-  });
+  const response = await axios.get("/users/getUsers");
 
   return response?.data;
 };
