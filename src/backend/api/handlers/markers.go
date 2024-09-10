@@ -24,15 +24,17 @@ import (
 )
 
 type MarkerCoordinates struct {
-	Id   int64   `json:"id"`
-	Lat  float64 `json:"lat"`
-	Long float64 `json:"long"`
+	Id          int64   `json:"id"`
+	Lat         float64 `json:"lat"`
+	Long        float64 `json:"long"`
+	MainPhotoId int64   `json:"mainPhotoId"`
+	Blurhash    string  `json:"blurhash"`
 }
 
 func (e *Env) GetMarkersCoordinates(c *gin.Context) {
 	var markers []MarkerCoordinates
 
-	err := e.Db.Select(&markers, "SELECT id, lat, long FROM markers")
+	err := e.Db.Select(&markers, "SELECT m.id, m.lat, m.long, m.mainPhotoId, u.blurhash FROM markers m JOIN uploads u ON u.id = m.mainPhotoId")
 	if err != nil {
 		var error = gin.H{"error": err.Error()}
 		fmt.Println(error)
@@ -266,6 +268,7 @@ func (e *Env) CreateMarker(c *gin.Context) {
 
 	var clerkId = claims.(*auth.AuthorizerClaims).UserId
 
+	// KCTODO TRANSAKCJA?!?!
 	// Insert upload records into database
 	rows := []string{}
 	for i := 0; i < len(fileNames); i++ {
@@ -296,16 +299,18 @@ func (e *Env) CreateMarker(c *gin.Context) {
 
 	// Insert new marker into the database
 	data := map[string]interface{}{
-		"clerkId": clerkId,
-		"lat":     payload.Lat,
-		"long":    payload.Long,
+		"clerkId":     clerkId,
+		"lat":         payload.Lat,
+		"long":        payload.Long,
+		"mainPhotoId": fileIds[0],
 	}
 	query := `
-	INSERT INTO Markers (userId, lat, long)
+	INSERT INTO Markers (userId, lat, long, mainPhotoId)
 		VALUES (
 			(SELECT id FROM Users WHERE clerkId = :clerkId),
 			:lat,
-			:long
+			:long,
+			:mainPhotoId
 		) RETURNING id;
 	`
 	fmt.Println("Executing query:", query, "with data:", data)

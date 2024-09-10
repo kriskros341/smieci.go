@@ -69,11 +69,11 @@ const MarkerPreview = (props: MarkerPreviewProps) => {
     enabled: !!marker?.userId
   });
 
-  useEffect(() => {
-    // KCTODO temp
-    Image.clearMemoryCache()
-    Image.clearDiskCache()
-  }, [])
+  // useEffect(() => {
+  //   // KCTODO temp
+  //   Image.clearMemoryCache()
+  //   Image.clearDiskCache()
+  // }, [])
 
   let content = null;
   if (isPending) {

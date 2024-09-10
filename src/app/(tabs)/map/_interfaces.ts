@@ -10,6 +10,8 @@ export type MarkerState = {
   };
   pointCount: number;
   text: string;
+  mainPhotoId: number,
+  mainPhotoBlurhash: string,
 }
 
 export type MapStrategyBase = {

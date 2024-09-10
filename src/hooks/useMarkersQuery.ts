@@ -7,29 +7,28 @@ type MarkerCoordinates  = {
   id: string,
   lat: number,
   long: number,
+  mainPhotoId: number,
+  mainPhotoBlurhash: string,
 }
 
 export const useMarkersQuery = () => {
-  const { isPending, error, data, refetch } = useQuery<MarkerCoordinates[]>({ queryKey: ["/markers"] });
+  const { isPending, error, data, refetch } = useQuery({
+    queryKey: ["/markers"],
+    select: (markerPayload: MarkerCoordinates[]) => {
+      return markerPayload?.map((marker) => ({
+        key: marker.id,
+        coordinate: {
+          latitude: marker.lat,
+          longitude: marker.long,
+        },
+        pointCount: 42069,
+        text: "To jest tekst powiązany ze znacznikiem",
+        mainPhotoId: marker.mainPhotoId,
+        mainPhotoBlurhash: marker.mainPhotoBlurhash,
+      })) ?? [];
+    },
+    initialData: [],
+  });
 
-  const result = useMemo(() => {
-    const result = [];
-  
-    for (const entry of data ?? []) {
-      result.push(
-        {
-          key: entry.id,
-          coordinate: {
-            latitude: entry.lat,
-            longitude: entry.long,
-          },
-          pointCount: 42069,
-          text: "To jest tekst powiązany ze znacznikiem"
-        }
-      );
-    }
-
-    return result;
-  }, [data])
-  return { isPending, error, data: result, refetch };
+  return { isPending, error, data, refetch };
 };

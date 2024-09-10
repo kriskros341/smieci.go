@@ -2,14 +2,23 @@ import { ActivityIndicator, Pressable, Text, TouchableWithoutFeedback, View } fr
 import { MapStrategies } from "../_interfaces";
 import MapView, { Callout, MapMarkerProps, Marker, Region } from "react-native-maps";
 import { isMoveMarkerMapStrategy, isViewMarkersMapStrategy } from "../_useMapStrategy";
+import Constants from "expo-constants";
 import useLocation from "../../../../hooks/useLocation";
+import { Image } from "expo-image";
+import { styled } from "nativewind";
+
+const CustomCallout = styled(View, "bg-white p-3 rounded-lg shadow-md border border-gray-300 w-auto h-auto");
+
 
 interface CustomMarkerProps extends MapMarkerProps {
   isFocused: boolean,
-  onDispayPreviewPress: () => void
+  mainPhotoId: number,
+  mainPhotoBlurHash: string,
+  onDispayPreviewPress: () => void,
 }
 
 const CustomMarker = (props: CustomMarkerProps) => {
+  console.log({ props })
   return (
     <Marker
       {...props}
@@ -17,12 +26,15 @@ const CustomMarker = (props: CustomMarkerProps) => {
       description="jdjdjdj"
       className="flex flex-row w-auto"
     >
-      <Callout onPress={props.onDispayPreviewPress}>
-        <View className="flex flex-row w-auto bg-blue-200 gap-4">
-          <View style={{ display: 'flex', flexGrow: 1, flexShrink: 0, flexBasis: '100%' }}>
-            <Text>Issuer: Kr</Text>
-
-          </View>
+      <Callout tooltip onPress={props.onDispayPreviewPress}>
+        <CustomCallout>
+          <Image
+            className="w-40 h-40"
+            contentFit="contain"
+            source={Constants?.expoConfig?.extra?.apiUrl + "/uploads/" + props.mainPhotoId}
+            placeholder={{ blurhash: props.mainPhotoBlurHash }}
+            cachePolicy="memory"
+          />
           <Pressable>
             {({ pressed }) => (
               <View className={`flex-1 bg-indigo-500 p-4 ${pressed ? 'opacity-50' : ''}`}>
@@ -30,7 +42,7 @@ const CustomMarker = (props: CustomMarkerProps) => {
               </View>
             )}
           </Pressable>
-        </View>
+        </CustomCallout>
       </Callout>
     </Marker>
   )
@@ -103,15 +115,17 @@ const MapStrategyConsumer = (strategy: MapStrategyConsumerProps) => {
     >
         {strategy.markers.map((marker, index) => (
         <CustomMarker
-            isFocused={focusedMarkerKey === marker.key}
-            key={marker.key}
-            coordinate={marker.coordinate}
-            onPress={(event) => {
+          mainPhotoBlurHash={marker.mainPhotoBlurhash}
+          mainPhotoId={marker.mainPhotoId}
+          isFocused={focusedMarkerKey === marker.key}
+          key={marker.key}
+          coordinate={marker.coordinate}
+          onPress={(event) => {
             strategy.onPressInsideMarker(event, index)
-            }}
-            onDispayPreviewPress={() => {
+          }}
+          onDispayPreviewPress={() => {
             strategy.onMarkerPreviewClick(marker.key)
-            }}
+          }}
         >
 
         </CustomMarker>
