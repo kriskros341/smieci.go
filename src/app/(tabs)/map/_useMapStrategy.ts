@@ -2,7 +2,7 @@ import { debounce } from "lodash-es"
 import { useMemo, useState } from "react"
 import { MapStrategies, MapStrategyKey, MarkerState, MoveMarkerMapStrategy, ViewMarkersMapStrategy } from "./_interfaces"
 import { useMarkersQuery } from "../../../hooks/useMarkersQuery"
-import { MarkerPressEvent, Region } from "react-native-maps"
+import { LatLng, MarkerPressEvent, Region } from "react-native-maps"
 
 export const isMoveMarkerMapStrategy = (strategy: MapStrategies): strategy is MoveMarkerMapStrategy => {
     return strategy.strategyName === 'moveMarkerStrategy'
@@ -35,7 +35,7 @@ export const useMapStrategy = () => {
       }
     }
   
-    const onChangeMarkerPlacement = (region?: Region) => {
+    const onChangeMarkerPlacement = (region?: LatLng) => {
       if (!region) {
         return;
       }
@@ -61,7 +61,7 @@ export const useMapStrategy = () => {
         markers: [],
         onPressInsideMarker: () => { },
         onPressOutsideMarker: () => { },
-        onChangeMarkerPlacement: debounce(onChangeMarkerPlacement, 200),
+        onChangeMarkerPlacement: debounce(onChangeMarkerPlacement, 100),
         movedMarkerCoordinates,
       } satisfies MoveMarkerMapStrategy,
     } as const), [markers, focusedMarker, movedMarkerCoordinates]);

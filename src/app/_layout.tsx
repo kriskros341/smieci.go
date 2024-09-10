@@ -7,6 +7,7 @@ import { View } from "react-native";
 import SignInScreen from "./clerk/signin";
 import SignUpScreen from "./clerk/signup";
 import CustomQueryClientProvider from "../components/queryClientProvider";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const tokenCache = {
   async getToken(key: string) {
@@ -54,12 +55,19 @@ function RootLayout() {
       publishableKey={token}
     >
       <CustomQueryClientProvider>
-        <Guarded>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="createMarker" />
-          </Stack>
-        </Guarded>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <Guarded>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen
+                  name="photo"
+                  options={{
+                    presentation: 'modal',
+                  }}
+                />
+            </Stack>
+          </Guarded>
+        </GestureHandlerRootView>
       </CustomQueryClientProvider>
     </ClerkProvider>
   );

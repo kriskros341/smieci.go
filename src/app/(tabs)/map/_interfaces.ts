@@ -1,4 +1,4 @@
-import { MarkerPressEvent, Region } from "react-native-maps";
+import { LatLng, MarkerPressEvent, Region } from "react-native-maps";
 
 export type MapStrategyKey = 'viewMarkersStrategy' | 'moveMarkerStrategy'
 
@@ -27,7 +27,7 @@ export type ViewMarkersMapStrategy = MapStrategyBase & {
 
 export type MoveMarkerMapStrategy = MapStrategyBase & {
   strategyName: 'moveMarkerStrategy',
-  onChangeMarkerPlacement: (region?: Region) => void,
+  onChangeMarkerPlacement: (region?: LatLng) => void,
   movedMarkerCoordinates?: { lat: number, long: number },
 }
 

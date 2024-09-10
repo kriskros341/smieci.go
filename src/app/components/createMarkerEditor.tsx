@@ -10,6 +10,8 @@ import { Text } from 'react-native';
 import Button from '../../ui/button';
 import { CameraView } from 'expo-camera';
 import useLocation from "../../hooks/useLocation";
+import { usePhotoModal } from "../photo";
+import { router } from "expo-router";
 
 type editorStateType = {
   location?: {
@@ -47,22 +49,17 @@ const useEditorState = () => {
 type Coords = { lat: number, long: number };
 
 type CreateMarkerEditorProps = {
-  modalVisibilityState: 'minimal' | 'fullscreen' | 'hidden',
   onSubmit: () => void,
   onMoveMarkerPress: (currentLocation: Coords, onSuccess: (newLocation: Coords) => void) => void
   fakeMarkerCoordinates?: Coords
-  onMoveMarkerConfirm: () => void,
 }
 
-const CreateMarkerEditor = ({ onSubmit, onMoveMarkerPress, modalVisibilityState, fakeMarkerCoordinates, onMoveMarkerConfirm }: CreateMarkerEditorProps) => {
-  
+const CreateMarkerEditor = ({ onSubmit, onMoveMarkerPress, fakeMarkerCoordinates }: CreateMarkerEditorProps) => {
   const axios = useAxios();
   const user = useUser();
   const cameraRef = useRef<CameraView>(null);
 
   const takePicture = async () => {
-    const WAIT_AFTER_PHOTO = 1000;
-    setTimeout(() => setIsCameraActive(false), WAIT_AFTER_PHOTO)
     // No await intentional
     cameraRef.current?.takePictureAsync(
       {
@@ -72,15 +69,9 @@ const CreateMarkerEditor = ({ onSubmit, onMoveMarkerPress, modalVisibilityState,
         },
       }
     );
-
   }
   const { editorState, changeEditorState, isPending } = useEditorState();
-
-  const [isCameraActive, setIsCameraActive] = useState(true);
-
-  const clearPhoto = () => {
-    changeEditorState({ uri: undefined })
-  }
+  const [lastPhotoUri, showPhotoModal] = usePhotoModal();
 
   useEffect(() => {
     if (fakeMarkerCoordinates) {
@@ -96,7 +87,7 @@ const CreateMarkerEditor = ({ onSubmit, onMoveMarkerPress, modalVisibilityState,
     _createMarker(
       axios,
       {
-        uri: editorState.uri!,
+        uri: lastPhotoUri!,
         lat: editorState.location!.lat,
         long: editorState.location!.long,
       },
@@ -105,31 +96,10 @@ const CreateMarkerEditor = ({ onSubmit, onMoveMarkerPress, modalVisibilityState,
     })
   }
 
-  if (modalVisibilityState === 'minimal') {
-    return (
-      <View>
-        <Text>latitude</Text>
-        <TextInput value={fakeMarkerCoordinates?.lat.toString()} editable={false} />
-        <Text>longitude</Text>
-        <TextInput value={fakeMarkerCoordinates?.long.toString()} editable={false} />
-        <View className="flex flex-row">
-          <Button
-            title="Move marker"
-            onPress={() => {
-              onMoveMarkerConfirm?.();
-              changeEditorState({ location: fakeMarkerCoordinates })
-            }}
-          />
-        </View>
-      </View>
-    )
-  }
-
-  const isImageReady = !!editorState.uri;
-  const image = isImageReady ? (
+  const image = lastPhotoUri ? (
     <Image
       className="w-full aspect-square"
-      source={{ uri: editorState.uri }}
+      source={{ uri: lastPhotoUri }}
       resizeMode="contain"
       onError={(error) => console.log(error.nativeEvent.error)}
       onLoad={() => console.log('Image loaded successfully')}
@@ -142,56 +112,46 @@ const CreateMarkerEditor = ({ onSubmit, onMoveMarkerPress, modalVisibilityState,
 
   return (
     <>
-      <View className={`flex-1 h-full ${isCameraActive ? '' : 'hidden'}`}>
-        <CameraViewHandler ref={cameraRef} onPicture={takePicture} />
-      </View>
-      <View className={`flex-1 ${!isCameraActive ? '' : 'hidden'}`}>
-        <View
-          className="relative w-full"
+      <View className="relative w-full">
+        {image}
+        <Pressable
+          onPress={() => {
+            showPhotoModal()
+          }}
         >
-          {image}
-          {isImageReady ? (
-            <Pressable
-              onPress={() => {
-                setIsCameraActive(true)
-                clearPhoto()
-              }}
+          {({ pressed }) => (
+            <View
+              style={{ opacity: pressed ? 0.5 : 1 }}
+              className="absolute w-16 h-16 bg-white rounded-full bottom-4 right-4"
             >
-              {({ pressed }) => (
-                <View
-                  style={{ opacity: pressed ? 0.5 : 1 }}
-                  className="absolute w-16 h-16 bg-white rounded-full bottom-4 right-4"
-                >
-                  <Text>retake</Text>
-                </View>
-              )}
-            </Pressable>
-          ) : null}
-        </View>
-        <View>
-          <Text>latitude</Text>
-          <TextInput value={editorState.location?.lat.toString()} editable={false} />
-          <Text>longitude</Text>
-          <TextInput value={editorState.location?.long.toString()} editable={false} />
-          <Button
-            title="Move marker"
-            onPress={() => onMoveMarkerPress(editorState.location!, (location: Coords) => changeEditorState({ location }))}
-          >
-
-          </Button>
-        </View>
-        <Text>Issuer</Text>
-        <TextInput value={user?.user!.username ?? ''} editable={false} />
-        <Pressable>
-          <Button
-            title="Create Marker"
-            onPress={onCreateMarkerPress}
-            disabled={!isImageReady}
-          >
-
-          </Button>
+              <Text>retake</Text>
+            </View>
+          )}
         </Pressable>
       </View>
+      <View className="">
+        <Text>latitude</Text>
+        <TextInput value={editorState.location?.lat.toString()} editable={false} />
+        <Text>longitude</Text>
+        <TextInput value={editorState.location?.long.toString()} editable={false} />
+        <Button
+          title="Move marker"
+          onPress={() => onMoveMarkerPress(editorState.location!, (location: Coords) => changeEditorState({ location }))}
+        >
+
+        </Button>
+      </View>
+      <Text>Issuer</Text>
+      <TextInput value={user?.user!.username ?? ''} editable={false} />
+      <Pressable>
+        <Button
+          title="Create Marker"
+          onPress={onCreateMarkerPress}
+          disabled={!lastPhotoUri}
+        >
+
+        </Button>
+      </Pressable>
     </>
   )
 }

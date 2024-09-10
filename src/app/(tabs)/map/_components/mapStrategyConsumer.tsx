@@ -6,6 +6,7 @@ import Constants from "expo-constants";
 import useLocation from "../../../../hooks/useLocation";
 import { Image } from "expo-image";
 import { styled } from "nativewind";
+import { useRef } from "react";
 
 const CustomCallout = styled(View, "bg-white p-3 rounded-lg shadow-md border border-gray-300 w-auto h-auto");
 
@@ -66,6 +67,7 @@ type MapStrategyConsumerProps = MapStrategies & {
 }
 
 const MapStrategyConsumer = (strategy: MapStrategyConsumerProps) => {
+  const mapRef = useRef<MapView>(null)
   const { location, isPending, error } = useLocation();
 
   if (!location || isPending || error) {
@@ -76,9 +78,14 @@ const MapStrategyConsumer = (strategy: MapStrategyConsumerProps) => {
     );
   }
 
-  const onRegionChange = (region: Region) => {
+
+
+  const onRegionChange = async (region: Region) => {
+    const screenMapCenterPoint = await mapRef.current?.pointForCoordinate(region)!
+    screenMapCenterPoint.y -= 100
+    const mapTransformedCenter = await mapRef.current?.coordinateForPoint(screenMapCenterPoint)!
     if (isMoveMarkerMapStrategy(strategy)) {
-      strategy.onChangeMarkerPlacement(region);
+      strategy.onChangeMarkerPlacement(mapTransformedCenter);
     }
   }
 
@@ -101,17 +108,21 @@ const MapStrategyConsumer = (strategy: MapStrategyConsumerProps) => {
       onPressIn={strategy.onPressOutsideMarker}
     >
     <MapView
+      ref={mapRef}
       customMapStyle={mapStyle}
       provider={undefined}
       className="flex-1 h-full"
       showsUserLocation
       region={{
-      latitude: location?.coords.latitude ?? 0,
-      longitude: location?.coords.longitude ?? 0,
-      latitudeDelta: 0.1,
-      longitudeDelta: 0.1,
+        latitude: location?.coords.latitude ?? 0,
+        longitude: location?.coords.longitude ?? 0,
+        latitudeDelta: 0.1,
+        longitudeDelta: 0.1,
       }}
-      onRegionChange={onRegionChange}
+      onRegionChangeComplete={onRegionChange}
+      onMapReady={async () => {
+        await mapRef.current?.context
+      }}
     >
         {strategy.markers.map((marker, index) => (
         <CustomMarker

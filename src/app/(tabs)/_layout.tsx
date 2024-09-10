@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import React from "react";
 
-function TabLayout() {
+function Layout() {
   return (
     <Tabs>
       <Tabs.Screen
@@ -33,4 +33,4 @@ function TabLayout() {
   );
 }
 
-export default TabLayout;
+export default Layout;
