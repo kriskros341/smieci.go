@@ -2,8 +2,8 @@ import { useSignUp } from "@clerk/clerk-expo";
 import { useMutation } from "@tanstack/react-query";
 import * as React from "react";
 import { Button, TextInput, View } from "react-native";
-import { _createUser } from "../../api/users";
-import { useAxios } from "../../hooks/use-axios";
+import { _createUser } from "@api/users";
+import { useAxios } from "@hooks/use-axios";
 
 interface Props {
   email: string;

@@ -4,10 +4,11 @@ import { Stack } from "expo-router/stack";
 import * as SecureStore from "expo-secure-store";
 import { useState } from "react";
 import { View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
+import CustomQueryClientProvider from "@components/queryClientProvider";
 import SignInScreen from "./clerk/signin";
 import SignUpScreen from "./clerk/signup";
-import CustomQueryClientProvider from "../components/queryClientProvider";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const tokenCache = {
   async getToken(key: string) {
@@ -59,12 +60,6 @@ function RootLayout() {
           <Guarded>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="(tabs)" />
-              <Stack.Screen
-                  name="photo"
-                  options={{
-                    presentation: 'modal',
-                  }}
-                />
             </Stack>
           </Guarded>
         </GestureHandlerRootView>

@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Image, Text, View } from "react-native";
-import { LeaderboardEntryDTO } from "../interfaces";
+import { LeaderboardEntryDTO } from "@/interfaces";
 
 const LeaderboardEntry: React.FC<LeaderboardEntryDTO> = ({
   points,

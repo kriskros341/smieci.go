@@ -1,12 +1,10 @@
-import { useQuery } from "@tanstack/react-query"
-import { ActivityIndicator, Modal, Text, View } from "react-native"
-import { Image } from 'expo-image'
-import { useAxios } from "../../hooks/use-axios";
-import { _getUploadById } from "../../api/uploads";
+import { useQuery } from "@tanstack/react-query";
 import Constants from "expo-constants";
-import { useEffect, useState } from "react";
-import { decode } from "blurhash";
-import { Blurhash } from "react-native-blurhash";
+import { Image } from 'expo-image';
+import { useState } from "react";
+import { ActivityIndicator, Text, View } from "react-native";
+
+import { _getUploadById } from "@api/uploads";
 
 const ImageFromUri = (props: { uri: string, blurhash: string }) => {
   const [isLoading, setIsLoading] = useState(false)
@@ -41,7 +39,7 @@ type MarkerData = {
   blurHashes: string[],
   fileNamesString: string[],
   coords: {
-    lat: number,
+    latitude: number,
     long: number,
   },
   text: string,

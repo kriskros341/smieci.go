@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"backend/api/auth"
 
@@ -139,8 +140,8 @@ func (s *Semaphore) Release() {
 }
 
 type CreateMarkerBody struct {
-	Lat  float64 `json:"lat"`
-	Long float64 `json:"long"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
 }
 
 func (e *Env) CreateMarker(c *gin.Context) {
@@ -300,8 +301,8 @@ func (e *Env) CreateMarker(c *gin.Context) {
 	// Insert new marker into the database
 	data := map[string]interface{}{
 		"clerkId":     clerkId,
-		"lat":         payload.Lat,
-		"long":        payload.Long,
+		"lat":         payload.Latitude,
+		"long":        payload.Longitude,
 		"mainPhotoId": fileIds[0],
 	}
 	query := `
@@ -357,5 +358,6 @@ func (e *Env) CreateMarker(c *gin.Context) {
 		return
 	}
 
+	time.Sleep(time.Second * 64)
 	c.JSON(http.StatusOK, gin.H{"message": "Marker created successfully"})
 }

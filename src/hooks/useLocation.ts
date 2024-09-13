@@ -1,12 +1,13 @@
-import * as Location from 'expo-location';
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import * as Location from 'expo-location';
 
 const useLocation = () => {
   const [enabled, setEnabled] = useState(false);
   const { data, isPending, error } = useQuery({
     queryKey: ['location'],
     queryFn: () => Location.getCurrentPositionAsync(),
+    staleTime: Infinity,
     enabled,
   });
   

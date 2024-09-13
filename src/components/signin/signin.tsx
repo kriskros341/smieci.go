@@ -1,7 +1,8 @@
 import { useSignIn } from "@clerk/clerk-expo";
 import { Controller, useForm } from "react-hook-form";
 import { TextInput, View } from "react-native";
-import Button from "../../ui/button";
+
+import Button from "@ui/button";
 import type { FormData } from "./types";
 
 interface Props {

@@ -1,7 +1,8 @@
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Button, Text, View } from "react-native";
-import { _getUsers } from "../../api/users";
-import { useAxios } from "../../hooks/use-axios";
+
+import { _getUsers } from "@api/users";
+import { useAxios } from "@hooks/use-axios";
 
 const Account = () => {
   const { user } = useUser();

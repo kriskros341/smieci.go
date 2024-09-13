@@ -1,6 +1,7 @@
 import React from "react";
 import { View } from "react-native";
-import Signin from "../../components/signin";
+
+import Signin from "@components/signin";
 
 interface SignInScreenProps {
   switchToSignUp: () => void;

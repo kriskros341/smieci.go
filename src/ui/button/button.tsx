@@ -1,9 +1,9 @@
 import * as React from "react";
 import { Pressable, Text } from "react-native";
-import { cn } from "../../utils/cn";
+import { cn } from "@utils/cn";
 
 interface Props {
-  onPress: () => void;
+  onPress?: () => void;
   title: string;
   buttonClassName?: string;
   textClassName?: string;

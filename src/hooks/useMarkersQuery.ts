@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { useAxios } from "./use-axios";
-import { _getAllMarkersCoordinates } from "../api/markers";
-import { useMemo } from "react";
+
+import { _getAllMarkersCoordinates } from "@api/markers";
 
 type MarkerCoordinates  = {
   id: string,
@@ -9,6 +8,7 @@ type MarkerCoordinates  = {
   long: number,
   mainPhotoId: number,
   mainPhotoBlurhash: string,
+  placeholder: boolean,
 }
 
 export const useMarkersQuery = () => {
@@ -25,6 +25,7 @@ export const useMarkersQuery = () => {
         text: "To jest tekst powiązany ze znacznikiem",
         mainPhotoId: marker.mainPhotoId,
         mainPhotoBlurhash: marker.mainPhotoBlurhash,
+        placeholder: marker.id === "-1",
       })) ?? [];
     },
     initialData: [],

@@ -3,12 +3,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Text, TextInput, View } from "react-native";
-import Button from "../../ui/button";
+
+import { _getUsers } from "@api/users";
+import { useAxios } from "@hooks/use-axios";
+import Button from "@ui/button";
 import ConfirmationCode from "./confirmation-code";
 import { schema } from "./schema";
 import type { FormData } from "./types";
-import { _getUsers } from "../../api/users";
-import { useAxios } from "../../hooks/use-axios";
 
 interface Props {
   switchToSignIn: () => void;
