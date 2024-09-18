@@ -28,19 +28,15 @@ export const AddMarkerSheet = (props: AddMarkerSheetProps) => {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [currentBottomSheetIndex, setCurrentBottomSheetIndex] = useState(0);
 
-  const handleSheetChanges = (index: number) => {
-    setCurrentBottomSheetIndex(index);
-  };
-
   const onMoveMarkerPress = (currentCoordinates: LatLng) => {
     changeMapFocusPoint(currentCoordinates);
-    handleSheetChanges(SHEET_STATES.MOVE_MARKER);
+    setCurrentBottomSheetIndex(SHEET_STATES.MOVE_MARKER);
     props.onMoveMarkerPress();
   }
 
   const onMoveMarkerConfirm = () => {
     editorState.changeEditorState({ ...mapFocusPoint })
-    handleSheetChanges(SHEET_STATES.EDITOR);
+    setCurrentBottomSheetIndex(SHEET_STATES.EDITOR);
     props.onMoveMarkerConfirm();
   }
 
@@ -61,7 +57,7 @@ export const AddMarkerSheet = (props: AddMarkerSheetProps) => {
       index={currentBottomSheetIndex}
       enableContentPanningGesture={false}
       handleComponent={null}
-      onChange={handleSheetChanges}
+      onChange={setCurrentBottomSheetIndex}
       snapPoints={['100%', 200]}
       backdropComponent={(ownProps: any) => isBackdrop ? <Backdrop {...ownProps} hideBottomSheet={props.hide} /> : null}
     >

@@ -16,8 +16,9 @@ interface PhotoGalleryProps {
     uri: string,
     blurhash: string,
   }[],
-  onPhoto: () => void,
-  reorder: (newData: any) => void
+  onPhoto?: () => void,
+  reorder?: (newData: any) => void
+  isDragDisabled?: boolean,
 };
 
 export const PhotoGallery = (props: PhotoGalleryProps) => {
@@ -38,7 +39,7 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
     const newFocusedIndex = newData.findIndex((v) => v.uri === data[focusedIndex].uri);
     setFocusedIndex(newFocusedIndex)
     translateX.value = withTiming(from * -mainPhotoLayoutWidth.value, { duration: 1 });
-    props.reorder(newData.map((i) => i.uri))
+    props.reorder?.(newData.map((i) => i.uri))
   }
 
   const style = useAnimatedStyle(() => ({
@@ -125,8 +126,8 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
           onDragEnd={({ from, to, data }) => reorder(from, to, data)}
           horizontal
           keyExtractor={(data, index) => data.uri + index}
-          className="h-full aspect-[4]"
-          renderItem={DraggablePhoto}
+          className={cn("h-full", props.onPhoto ? "aspect-[4]" : "aspect-[5]")}
+          renderItem={(data) => <DraggablePhoto {...data} isDragDisabled={props.isDragDisabled} />}
         />
         <Pressable onPress={props.onPhoto}>
           {({ pressed }) => (

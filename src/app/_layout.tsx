@@ -3,7 +3,7 @@ import Constants from "expo-constants";
 import { Stack } from "expo-router/stack";
 import * as SecureStore from "expo-secure-store";
 import { useState } from "react";
-import { View } from "react-native";
+import { Platform, UIManager, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import CustomQueryClientProvider from "@components/queryClientProvider";
@@ -58,8 +58,9 @@ function RootLayout() {
       <CustomQueryClientProvider>
         <GestureHandlerRootView style={{ flex: 1 }}>
           <Guarded>
-            <Stack screenOptions={{ headerShown: false }}>
+            <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
               <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="markers/[id]" options={{ headerShown: true, title: 'Edytuj marker' }} />
             </Stack>
           </Guarded>
         </GestureHandlerRootView>

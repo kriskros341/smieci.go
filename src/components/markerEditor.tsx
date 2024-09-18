@@ -7,8 +7,8 @@ import { LatLng } from "react-native-maps";
 
 import { _createMarker } from "@api/markers";
 import { useEditorState } from '@sheets/AddMarkerSheet/helper';
-import Button from '@ui/button';
-import { hasCoords } from "@utils/hasCoords";
+import Button from '../ui/button';
+import { hasCoords } from "../utils/hasCoords";
 import PhotoGallery from "./photoGallery";
 
 type CreateMarkerEditorProps = {

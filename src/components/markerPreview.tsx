@@ -4,8 +4,6 @@ import { Image } from 'expo-image';
 import { useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 
-import { _getUploadById } from "@api/uploads";
-
 const ImageFromUri = (props: { uri: string, blurhash: string }) => {
   const [isLoading, setIsLoading] = useState(false)
   console.log({ test: props.blurhash })

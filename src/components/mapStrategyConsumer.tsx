@@ -2,7 +2,7 @@ import Constants from "expo-constants";
 import { Image } from "expo-image";
 import { styled } from "nativewind";
 import { useRef } from "react";
-import { ActivityIndicator, Pressable, Text, TouchableWithoutFeedback, View } from "react-native";
+import { ActivityIndicator, Animated, Pressable, Text, TouchableWithoutFeedback, View } from "react-native";
 import MapView, { Callout, MapMarkerProps, Marker, Region } from "react-native-maps";
 
 import useLocation from "@hooks/useLocation";
@@ -19,6 +19,8 @@ interface CustomMarkerProps extends MapMarkerProps {
   onDispayPreviewPress: () => void,
 }
 
+const AnimatedImage = Animated.createAnimatedComponent(Image)
+
 const CustomMarker = (props: CustomMarkerProps) => {
   return (
     <Marker
@@ -29,9 +31,10 @@ const CustomMarker = (props: CustomMarkerProps) => {
     >
       <Callout tooltip onPress={props.onDispayPreviewPress}>
         <CustomCallout>
-          <Image
+          <AnimatedImage
             className="w-40 h-40"
             contentFit="contain"
+            sharedTransitionTag="preview"
             source={Constants?.expoConfig?.extra?.apiUrl + "/uploads/" + props.mainPhotoId}
             placeholder={{ blurhash: props.mainPhotoBlurHash }}
             cachePolicy="memory"

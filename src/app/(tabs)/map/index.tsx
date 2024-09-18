@@ -5,6 +5,7 @@ import { Pressable, Text, View } from "react-native";
 import MapStrategyConsumer from "@components/mapStrategyConsumer";
 import { useMapStrategy } from "@hooks/useMapStrategy";
 import { AddMarkerSheet } from "@sheets/AddMarkerSheet";
+import { useRouter } from "expo-router";
 
 const Map = () => {
   const [mapStrategy, changeMapStrategy, refetch] = useMapStrategy();
@@ -31,6 +32,11 @@ const Map = () => {
     ));
   }
 
+  const router = useRouter();
+  const onMarkerPreviewClick = (key: string) => {
+    router.push(`/markers/${key}`)
+  }
+
   return (
     <>
       <StatusBar
@@ -40,7 +46,7 @@ const Map = () => {
         translucent={false}
       />
       <View className="relative flex flex-row flex-1">
-        <MapStrategyConsumer strategy={mapStrategy} onMarkerPreviewClick={() => {}} />
+        <MapStrategyConsumer strategy={mapStrategy} onMarkerPreviewClick={onMarkerPreviewClick} />
         <View className="absolute items-center justify-center bottom-4 right-4">
           {actions}
         </View>
