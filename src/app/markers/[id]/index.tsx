@@ -1,14 +1,10 @@
-import { useMarkersQuery } from "@hooks/useMarkersQuery"
-import { Image } from "expo-image"
-import { router, useLocalSearchParams, useRouter } from "expo-router"
+import { useLocalSearchParams, useRouter } from "expo-router"
 import Constants from "expo-constants";
 import { ScrollView, Text, TextInput, View } from "react-native"
-import Animated from "react-native-reanimated";
 import PhotoGallery from "@components/photoGallery";
 import { useQuery } from "@tanstack/react-query";
 import MapView, { Marker } from "react-native-maps";
-import Avatar from "@ui/button/avatar";
-import { FlatList } from "react-native-gesture-handler";
+import Avatar from "@ui/avatar";
 import Button from "@ui/button";
 
 const mapStyle =
@@ -36,7 +32,6 @@ const PreviewMarkerModal = () => {
   const { id } = useLocalSearchParams()
   const { data } = useMarkerQuery(id as string);
 
-  console.log({ data })
   const photos = data?.fileNamesString?.map((uri: string, idx: number) => ({
     uri: Constants?.expoConfig?.extra?.apiUrl + "/uploads/" + uri,
     blurhash: data.blurHashes[idx]
@@ -44,10 +39,9 @@ const PreviewMarkerModal = () => {
 
   return (
     <ScrollView>
-
       <View className="flex-1 w-full h-full bg-transparent">
         <PhotoGallery
-          photos={photos}
+          photos={[...photos]}
           isDragDisabled
         />
         <View className="p-4 flex flex-row gap-8">
@@ -93,9 +87,13 @@ const PreviewMarkerModal = () => {
                 <Avatar imageUrl={item.uri} className="mr-4" />
               </View>
             ))}
-            <Button title="Więcej" onPress={() => router.push("/supporters")} />
+            <Button title="Więcej" onPress={() => router.push({ pathname: `markers/${data.id}/supporters`})} />
           </View>
         </View>
+      </View>
+
+      <View>
+        <Button title="Wesprzyj" onPress={() => router.push({ pathname: `markers/${data.id}/support`})}  />
       </View>
     </ScrollView>
   )

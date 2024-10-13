@@ -20,7 +20,6 @@ const ConfirmationCode: React.FC<Props> = ({ email, username, goBack }) => {
 
   const { mutateAsync: createUser } = useMutation({
     mutationFn: ({ email, username }: { email: string; username: string }) => {
-      console.log({ email, username })
       return _createUser(axios, { email, username });
     },
 

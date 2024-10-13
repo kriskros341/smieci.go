@@ -14,7 +14,6 @@ const SHEET_STATES = {
 } as const
 
 interface AddMarkerSheetProps {
-  isOpen: boolean,
   hide: () => void,
   onMoveMarkerPress: () => void,
   onMoveMarkerConfirm: () => void,
@@ -45,10 +44,6 @@ export const AddMarkerSheet = (props: AddMarkerSheetProps) => {
   const onSubmit = () => {
     createMarkersMutation.mutate(editorState);
     props.onSubmit()
-  }
-
-  if (!props.isOpen) {
-    return;
   }
 
   return (

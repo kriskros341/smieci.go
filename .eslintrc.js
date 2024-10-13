@@ -4,5 +4,6 @@ module.exports = {
   rules: {
     "import/order": "off",
     "react/jsx-boolean-value": "off",
+    "prettier/prettier": "off",
   },
 };

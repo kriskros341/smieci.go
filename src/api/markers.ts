@@ -10,7 +10,7 @@ export const _createMarker = async (axios: AxiosInstance, payload: createMarkerP
   let formData = new FormData();
   payload.uris.forEach((uri) => {
     formData.append('file', {
-      uri: uri,
+      uri,
       name: 'upload.jpg', // You can provide the file name here
       type: 'image/jpeg', // Adjust the type as needed
     } as any);

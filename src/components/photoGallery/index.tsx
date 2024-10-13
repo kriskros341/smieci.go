@@ -22,6 +22,7 @@ interface PhotoGalleryProps {
 };
 
 export const PhotoGallery = (props: PhotoGalleryProps) => {
+
   const [focusedIndex, setFocusedIndex] = useState(0);
   const translateX = useSharedValue(0);
   const tempTranslateX = useSharedValue(0);
@@ -57,7 +58,6 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
         tempTranslateX.value = event.translationX;
     })
     .onUpdate((event) => {
-      console.log(event.translationX)
       if (focusedIndex === 0 && event.translationX > 0) {
         return;
       }
@@ -113,6 +113,7 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
           renderItem={({ item }) => (
             <AnimatedImage
               style={style}
+              key={item.uri}
               className={cn("aspect-square h-full bg-green-100")}
               source={{ uri: item.uri }}
               placeholder={{ blurhash: item.blurhash }}

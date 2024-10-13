@@ -51,17 +51,18 @@ const Map = () => {
           {actions}
         </View>
       </View>
-      <AddMarkerSheet
-        isOpen={isAddMarkerSheetOpen}
-        hide={() => setIsAddMarkerSheetOpen(false)}
-        onMoveMarkerPress={() => changeMapStrategy("moveMarkerStrategy")}
-        onMoveMarkerConfirm={() => changeMapStrategy("idle")}
-        onSubmit={() => {
-          setIsAddMarkerSheetOpen(false)
-          changeMapStrategy("viewMarkersStrategy")
-          refetch()
-        }}
-      />
+      {isAddMarkerSheetOpen && (
+        <AddMarkerSheet
+          hide={() => setIsAddMarkerSheetOpen(false)}
+          onMoveMarkerPress={() => changeMapStrategy("moveMarkerStrategy")}
+          onMoveMarkerConfirm={() => changeMapStrategy("idle")}
+          onSubmit={() => {
+            setIsAddMarkerSheetOpen(false)
+            changeMapStrategy("viewMarkersStrategy")
+            refetch()
+          }}
+        />
+      )}
     </>
   );
 };
