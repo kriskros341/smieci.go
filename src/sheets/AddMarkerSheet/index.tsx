@@ -22,7 +22,10 @@ interface AddMarkerSheetProps {
 
 export const AddMarkerSheet = (props: AddMarkerSheetProps) => {
   const editorState = useEditorState();
-  const createMarkersMutation = useCreateMarkerMutation();
+  const createMarkersMutation = useCreateMarkerMutation({
+    onSettled: props.onSubmit
+  });
+
   const { mapFocusPoint, changeMapFocusPoint } = useMapFocusPoint();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [currentBottomSheetIndex, setCurrentBottomSheetIndex] = useState(0);
@@ -43,7 +46,6 @@ export const AddMarkerSheet = (props: AddMarkerSheetProps) => {
 
   const onSubmit = () => {
     createMarkersMutation.mutate(editorState);
-    props.onSubmit()
   }
 
   return (
@@ -67,6 +69,7 @@ export const AddMarkerSheet = (props: AddMarkerSheetProps) => {
             editorState={editorState}
             onSubmit={onSubmit}
             moveMarker={onMoveMarkerPress}
+            isPending={createMarkersMutation.isPending}
           />
         )}
       </BottomSheetView>

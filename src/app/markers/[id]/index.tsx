@@ -20,7 +20,7 @@ const mapStyle =
     },
   ]
 
-const useMarkerQuery = (key: string) => {
+const useMarkerQuery = (key: unknown) => {
   const data = useQuery<any>({
     queryKey: [`/markers/${key}`]
   })
@@ -30,12 +30,26 @@ const useMarkerQuery = (key: string) => {
 const PreviewMarkerModal = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams()
-  const { data } = useMarkerQuery(id as string);
+  const { data } = useMarkerQuery(id);
 
   const photos = data?.fileNamesString?.map((uri: string, idx: number) => ({
     uri: Constants?.expoConfig?.extra?.apiUrl + "/uploads/" + uri,
     blurhash: data.blurHashes[idx]
   })) ?? []
+
+  const { data: markerSupportersData } = useQuery<{ username: string, total: number, profilePictureId?: number }[]>({
+    queryKey: [`/markers/${id}/supporters`],
+    enabled: !!id,
+  });
+
+  console.log({ markerSupportersData, jd:"jd", id })
+
+  const getUrlByUploadId = (uploadId: unknown) => {
+    if (!uploadId) {
+      return 'jdjd'
+    }
+    return Constants?.expoConfig?.extra?.apiUrl + "/uploads/" + uploadId
+  }
 
   return (
     <ScrollView>
@@ -65,8 +79,7 @@ const PreviewMarkerModal = () => {
           >
             <Marker
               key="jdjd"
-              pinColor={'green'}
-              //@ts-ignore
+              pinColor="green"
               coordinate={{
                 latitude: data?.lat ?? 0,
                 longitude: data?.lat ?? 0,
@@ -74,17 +87,20 @@ const PreviewMarkerModal = () => {
             />
           </MapView>
         </View>
-
+        {/* KCTODO loader */}
         <View className="p-4">
           <Text>This marker is HOT rn.</Text>
           <Text>You can support it by clicking here</Text>
-          <Text>Point count: {4000}</Text>
-          <Text>Gathered from {4} supporters</Text>
+          <Text>Point count: {data?.points}</Text>
+          <Text>Gathered from {markerSupportersData?.length} supporters</Text>
           <Text> list of profile few pics, clicking opens list modal </Text>
           <View className="flex flex-row py-4">
-            {photos?.splice(0, 3).map((item: any, index: number) => (
-              <View className="pr-4">
-                <Avatar imageUrl={item.uri} className="mr-4" />
+            {markerSupportersData?.splice(0, 3).map((item, index: number) => ( //KCTODO
+              <View className="pr-4 relative">
+                <Avatar imageUrl={getUrlByUploadId(item.profilePictureId)} className="mr-4" />
+                <View className="absolute bottom-0 right-0">
+                  <Text>{item.total}</Text>
+                </View>
               </View>
             ))}
             <Button title="Więcej" onPress={() => router.push({ pathname: `markers/${data.id}/supporters`})} />

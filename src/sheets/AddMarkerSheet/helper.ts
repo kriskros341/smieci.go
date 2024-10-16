@@ -52,43 +52,28 @@ type MarkerPayload = {
   longitude: number,
 }
 
-export const useCreateMarkerMutation = () => {
+type useCreateMarkerMutationOptions = {
+  onSettled: Function,
+}
+
+export const useCreateMarkerMutation = (options: useCreateMarkerMutationOptions) => {
   const queryClient = useQueryClient();
   const axios = useAxios();
-  const createMarkersMutation = useMutation<MarkerPayload, unknown, editorStateType>({
+  const createMarkersMutation = useMutation<unknown, unknown, editorStateType>({
     mutationFn: async ({ photosUris, latitude, longitude }) => {
       const payload = {
         uris: photosUris,
         latitude: latitude!,
         longitude: longitude!,
       }
-      await _createMarker(
+      return _createMarker(
         axios,
         payload,
       )
-      return payload
-    },
-    onMutate: async ({ photosUris, latitude, longitude }) => {
-      const placeholder = {
-        id: -1,
-        lat: latitude,
-        long: longitude,
-        fileNamesString: [photosUris[0]],
-        blurhashes: ['URFs0??uyCxu9DD*ozbZ-=%Moct5IVM_a#ae'],
-        userId: undefined,
-      }
-      await queryClient.cancelQueries({ queryKey: ["/markers"] });
-  
-      const previousTodos = queryClient.getQueryData(['todos']);
-      queryClient.setQueryData(["/markers"],  (old: any) => [...old, placeholder]);
-  
-      return { previousTodos };
-    },
-    onError: (err, newTodo, context: any) => {
-      queryClient.setQueryData(['todos'], context.previousTodos);
     },
     onSettled() {
-      queryClient.invalidateQueries({ queryKey: ['todos'] })
+      queryClient.invalidateQueries({ queryKey: ['markers'] });
+      options.onSettled()
       // onSubmit?.();
     }
   });

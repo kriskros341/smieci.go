@@ -1,7 +1,6 @@
 import { Stack } from "expo-router";
 
 const MapStack = () => {
-  console.log("jdd")
   return (
     <Stack>
       <Stack.Screen name="[id]"  options={{ headerShown: true, title: 'Detale' }}  />

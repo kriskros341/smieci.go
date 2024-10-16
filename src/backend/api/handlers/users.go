@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"net/http"
-	"fmt"
 	"backend/api/auth"
+	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -41,13 +41,15 @@ func (e *Env) InsertUser(c *gin.Context) {
 }
 
 type User struct {
+	Id       int32  `json:"id"`
 	Username string `json:"username"`
+	Points   int32  `json:"points"`
 }
 
 func (e *Env) GetUsers(c *gin.Context) {
 	var users []User
 
-	err := e.Db.Select(&users, "SELECT username FROM users")
+	err := e.Db.Select(&users, "SELECT id, username, points FROM users")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -108,11 +110,38 @@ func (e *Env) GetUser(c *gin.Context) {
 		return
 	}
 
-
 	userId := getUserPayload.UserId
 	query := "SELECT username FROM users WHERE id = $1"
 	fmt.Println("Executing query:", query, "with userId:", userId)
 	err := e.Db.Get(&user, query, userId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
+type GetUserByClerIdPayload struct {
+	ClerkId string `uri:"clerkId" binding:"required"`
+}
+
+func (e *Env) GetUserByClerkId(c *gin.Context) {
+	var user User
+
+	var getUserPayload GetUserByClerIdPayload
+
+	if err := c.ShouldBindUri(&getUserPayload); err != nil {
+		var error = gin.H{"error": err.Error()}
+		fmt.Println(error)
+		c.JSON(http.StatusBadRequest, error)
+		return
+	}
+
+	ClerkId := getUserPayload.ClerkId
+	query := "SELECT id, username, points FROM users WHERE clerkid = $1"
+	fmt.Println("Executing query:", query, "with userId:", ClerkId)
+	err := e.Db.Get(&user, query, ClerkId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

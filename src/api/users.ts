@@ -35,3 +35,9 @@ export const _deleteUser = async (axios: AxiosInstance, email: string) => {
 
   return response.data;
 };
+
+export const _getUserByClerkId = async (axios: AxiosInstance, id: unknown) => {
+  const response = await axios.get(`/users/clerk/${id}`);
+
+  return response.data;
+}

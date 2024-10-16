@@ -37,6 +37,8 @@ const Map = () => {
     router.push(`/markers/${key}`)
   }
 
+  console.log({ isAddMarkerSheetOpen })
+
   return (
     <>
       <StatusBar
@@ -54,10 +56,12 @@ const Map = () => {
       {isAddMarkerSheetOpen && (
         <AddMarkerSheet
           hide={() => setIsAddMarkerSheetOpen(false)}
+          key={isAddMarkerSheetOpen ? 'j' : 'd'}
           onMoveMarkerPress={() => changeMapStrategy("moveMarkerStrategy")}
           onMoveMarkerConfirm={() => changeMapStrategy("idle")}
           onSubmit={() => {
             setIsAddMarkerSheetOpen(false)
+            console.log("onSubmit!")
             changeMapStrategy("viewMarkersStrategy")
             refetch()
           }}

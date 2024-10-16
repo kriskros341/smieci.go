@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"time"
 
 	"backend/api/auth"
 
@@ -59,6 +58,7 @@ type GetMarkerPayload struct {
 	FileNamesString []string `json:"fileNamesString"`
 	BlurHashes      []string `json:"blurHashes"`
 	UserId          int64    `json:"userId"`
+	Points          int64    `json:"points"`
 }
 
 type GetMarkerRequestPayload struct {
@@ -78,7 +78,7 @@ func (e *Env) GetMarker(c *gin.Context) {
 	markerId := markerRequestPayload.MarkerId
 
 	// Query db for said marker
-	query := "SELECT id, lat, long, userId FROM markers WHERE id = $1"
+	query := "SELECT id, lat, long, userId, points FROM markers WHERE id = $1"
 	fmt.Println("Executing query:", query, "with markerId:", markerId)
 
 	err := e.Db.Get(&marker, query, markerId)
@@ -358,6 +358,90 @@ func (e *Env) CreateMarker(c *gin.Context) {
 		return
 	}
 
-	time.Sleep(time.Second * 64)
+	// time.Sleep(time.Second * 64)
 	c.JSON(http.StatusOK, gin.H{"message": "Marker created successfully"})
+}
+
+type SupportMarkerBody struct {
+	UserId   int32 `json:"userId"`
+	MarkerId int32 `json:"markerId"`
+	Amount   int64 `json:"amount"`
+}
+
+func (e *Env) SupportMarker(c *gin.Context) {
+	var body SupportMarkerBody
+
+	if err := c.BindJSON(&body); err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON body"})
+		return
+	}
+
+	usersQuery := fmt.Sprintf(`UPDATE users SET points = points - %d where id = %d`, body.Amount, body.UserId)
+	markersQuery := fmt.Sprintf(`UPDATE markers SET points = points + %d WHERE id = %d`, body.Amount, body.MarkerId)
+	tracesQuery := fmt.Sprintf(`INSERT INTO points_traces (userId, markerId, amount) VALUES (%d, %d, %d)`, body.UserId, body.MarkerId, body.Amount)
+
+	tx, err := e.Db.Begin()
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to begin transaction"})
+		return
+	}
+	fmt.Println("Executing in transaction query:", usersQuery)
+	_, err = tx.Exec(usersQuery)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "transaction query failed"})
+		return
+	}
+	fmt.Println("Executing in transaction query:", markersQuery)
+	_, err = tx.Exec(markersQuery)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "transaction query failed"})
+		return
+	}
+	fmt.Println("Executing in transaction query:", tracesQuery)
+	_, err = tx.Exec(tracesQuery)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "transaction query failed"})
+		return
+	}
+	err = tx.Commit()
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "transaction failed"})
+		return
+	}
+	c.JSON(http.StatusOK, "")
+}
+
+type GetMarkerSupportersResult struct {
+	Id               int32  `json:"id"`
+	Username         string `json:"username"`
+	Total            int32  `json:"total"`
+	ProfilePictureId *int32 `json:"profilePictureId"`
+}
+
+func (e *Env) GetMarkerSupporters(c *gin.Context) {
+	var getMarkerRequestPayload GetMarkerRequestPayload
+	results := []GetMarkerSupportersResult{}
+
+	// Recieve marker id payload
+	if err := c.ShouldBindUri(&getMarkerRequestPayload); err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	query := fmt.Sprintf(`select u.id, u.username, SUM(pt.amount) as total, u.profilepictureid from points_traces pt join users u on pt.userId = u.id where pt.markerId = %s group by u.id`, getMarkerRequestPayload.MarkerId)
+	fmt.Printf("Executing query: %s\n", query)
+	if err := e.Db.Select(&results, query); err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, results)
 }

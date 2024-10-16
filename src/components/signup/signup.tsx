@@ -154,7 +154,7 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
             <Button
               title="Sign up"
               onPress={handleSubmit(onSignUpPress)}
-              buttonClassName="mr-2 "
+              className="mr-2 "
             />
             <Button title="Sign in instead" onPress={switchToSignIn} />
           </View>

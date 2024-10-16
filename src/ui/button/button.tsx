@@ -5,7 +5,7 @@ import { cn } from "@utils/cn";
 interface Props {
   onPress?: () => void;
   title: string;
-  buttonClassName?: string;
+  className?: string;
   textClassName?: string;
   disabled?: boolean,
 }
@@ -14,13 +14,13 @@ const Button: React.FC<Props> = ({
   onPress,
   title,
   disabled,
-  buttonClassName,
+  className,
   textClassName,
 }) => {
   return (
     <Pressable
       onPress={onPress}
-      className={cn(`bg-blue-500 p-2 ${disabled ? "opacity-40" : ''}`, buttonClassName)}
+      className={cn(`bg-blue-500 p-2 ${disabled ? "opacity-40" : ''}`, className)}
       disabled={disabled}
     >
       <Text className={cn("text-white", textClassName)}>{title}</Text>

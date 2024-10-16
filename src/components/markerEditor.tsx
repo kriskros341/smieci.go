@@ -14,10 +14,11 @@ import PhotoGallery from "./photoGallery";
 type CreateMarkerEditorProps = {
   onSubmit: () => void,
   moveMarker: (currentLocation: LatLng, onSuccess: (newLocation: LatLng) => void) => void
-  editorState: ReturnType<typeof useEditorState>
+  editorState: ReturnType<typeof useEditorState>,
+  isPending: boolean,
 }
 
-const MarkerEditor = ({ onSubmit, moveMarker, editorState }: CreateMarkerEditorProps) => {
+const MarkerEditor = ({ onSubmit, moveMarker, editorState, isPending }: CreateMarkerEditorProps) => {
   const user = useUser();
 
   const onMoveMarker = () => {
@@ -60,7 +61,7 @@ const MarkerEditor = ({ onSubmit, moveMarker, editorState }: CreateMarkerEditorP
         <Button
           title="Create Marker"
           onPress={onSubmit}
-          disabled={!editorState.photosUris.length}
+          disabled={!editorState.photosUris.length || isPending}
         >
 
         </Button>

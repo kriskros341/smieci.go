@@ -38,10 +38,13 @@ func main() {
 	router.POST("/users/createUser", env.InsertUser)
 	router.GET("/users/getUsers", env.GetUsers)
 	router.GET("/users/:userId", env.GetUser)
+	router.GET("/users/clerk/:clerkId", env.GetUserByClerkId)
 	router.POST("/users/deleteUser", env.DeleteUser)
 	router.POST("/markers", env.CreateMarker)
 	router.GET("/markers/:markerId", env.GetMarker)
+	router.GET("/markers/:markerId/supporters", env.GetMarkerSupporters)
 	router.GET("/markers", env.GetMarkersCoordinates)
+	router.PUT("/markers/support", env.SupportMarker)
 	router.GET("/uploads/:uploadId", env.GetFile)
 
 	router.Run("0.0.0.0:8080")
