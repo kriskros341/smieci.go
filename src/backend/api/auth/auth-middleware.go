@@ -28,6 +28,10 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.Next()
 			return
 		}
+		if strings.Contains(c.Request.URL.Path, "webhook") {
+			c.Next()
+			return
+		}
 		if len(auth) == 0 {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Authorization header is missing"})
 			return

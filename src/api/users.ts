@@ -1,5 +1,6 @@
 import { AxiosInstance } from "axios";
 import { BaseDataResponse, BaseResponse } from "./types";
+import { getClerkInstance } from "@clerk/clerk-expo";
 
 interface CreateUserParams {
   username: string;

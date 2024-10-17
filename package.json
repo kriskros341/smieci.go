@@ -8,7 +8,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,md}\"",
-    "lint": "eslint . --ext .ts,.tsx,.js,.jsx"
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "tunnel": "ssh -R youruniquesubdomain:80:localhost:8080 serveo.net"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^1.2.5",

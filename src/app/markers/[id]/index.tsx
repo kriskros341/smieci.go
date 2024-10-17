@@ -48,7 +48,7 @@ const PreviewMarkerModal = () => {
     if (!uploadId) {
       return 'jdjd'
     }
-    return Constants?.expoConfig?.extra?.apiUrl + "/uploads/" + uploadId
+    return Constants?.expoConfig?.extra?.apiUrl + "/uploads/" + uploadId;
   }
 
   return (

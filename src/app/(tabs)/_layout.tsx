@@ -1,7 +1,9 @@
+import { useUser } from "@clerk/clerk-expo";
 import { Tabs } from "expo-router";
 import React from "react";
 
 function Layout() {
+  const { user } = useUser();
   return (
     <Tabs>
       <Tabs.Screen
@@ -26,7 +28,7 @@ function Layout() {
       <Tabs.Screen
         name="account"
         options={{
-          title: "Account",
+          title: user?.username ?? '',
         }}
       />
     </Tabs>

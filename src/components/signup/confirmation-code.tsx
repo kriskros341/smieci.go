@@ -12,46 +12,7 @@ interface Props {
 }
 
 const ConfirmationCode: React.FC<Props> = ({ email, username, goBack }) => {
-  const { isLoaded, signUp, setActive } = useSignUp();
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [code, setCode] = React.useState("");
 
-  const axios = useAxios();
-
-  const { mutateAsync: createUser } = useMutation({
-    mutationFn: ({ email, username }: { email: string; username: string }) => {
-      return _createUser(axios, { email, username });
-    },
-
-    // TODO: convert to toast
-    onSuccess: () => {
-      console.log("successfuly created user");
-    },
-    onError: (err) => {
-      console.log(`failed to create user ${err.message}`);
-    },
-  });
-
-  const onPressVerify = async () => {
-    if (!isLoaded) {
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      const completeSignUp = await signUp.attemptEmailAddressVerification({
-        code,
-      });
-
-      await setActive({ session: completeSignUp.createdSessionId });
-
-      await createUser({ email, username });
-    } catch (err) {
-      console.error(JSON.stringify(err, null, 2));
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <View className="gap-8 p-4">

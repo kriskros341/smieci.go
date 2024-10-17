@@ -13,7 +13,7 @@ type InsertUserBody struct {
 	Username string `json:"username"`
 }
 
-func (e *Env) InsertUser(c *gin.Context) {
+func (e *Env) InsertUser(c *gin.Context) { // DEPRECATED
 	var body InsertUserBody
 
 	if err := c.BindJSON(&body); err != nil {

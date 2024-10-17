@@ -1,0 +1,1 @@
+ALTER table users ADD column deleted boolean default False;

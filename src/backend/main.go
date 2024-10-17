@@ -4,7 +4,6 @@ import (
 	"backend/api/auth"
 	"backend/api/handlers"
 	"backend/database"
-	"fmt"
 	"os"
 
 	"log"
@@ -13,10 +12,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	svix "github.com/svix/svix-webhooks/go"
 )
 
 func main() {
 	err := godotenv.Load()
+	WEBHOOK_SECRET := os.Getenv("WEBHOOK_SECRET")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -25,16 +26,22 @@ func main() {
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Println("Error getting current working directory:", err)
+		println("Error getting current working directory:", err)
 		return
 	}
-	fmt.Printf("Uploads will be placed in %s/uploads", cwd)
+	println("Uploads will be placed in %s/uploads", cwd)
+
+	wh, err := svix.NewWebhook(WEBHOOK_SECRET)
+	println("created webhook handler with secret", WEBHOOK_SECRET)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	router := gin.Default()
 	router.Use(cors.Default())
 	router.Use(auth.AuthMiddleware())
 
-	env := &handlers.Env{Db: db}
+	env := &handlers.Env{Db: db, Wh: wh}
 	router.POST("/users/createUser", env.InsertUser)
 	router.GET("/users/getUsers", env.GetUsers)
 	router.GET("/users/:userId", env.GetUser)
@@ -46,6 +53,7 @@ func main() {
 	router.GET("/markers", env.GetMarkersCoordinates)
 	router.PUT("/markers/support", env.SupportMarker)
 	router.GET("/uploads/:uploadId", env.GetFile)
+	router.POST("/webhook", env.HandleEvent)
 
 	router.Run("0.0.0.0:8080")
 }
