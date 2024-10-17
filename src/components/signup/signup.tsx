@@ -1,6 +1,6 @@
 import { useSignUp } from "@clerk/clerk-expo";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as React from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Text, TextInput, View } from "react-native";
 
@@ -15,8 +15,8 @@ interface Props {
 
 const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
   const { isLoaded, signUp, setActive } = useSignUp();
-  const [pendingVerification, setPendingVerification] = React.useState(false);
-
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [code, setCode] = useState('')
   const {
     control,
     handleSubmit,
@@ -27,7 +27,6 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
       emailAddress: "",
       password: "",
       confirmPassword: "",
-      code: "",
     },
     resolver: zodResolver(schema),
   });
@@ -53,12 +52,10 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
     },
   });
 
-  const onPressVerify = async (formData: FormData) => {
+  const onPressVerify = async () => {
     if (!isLoaded) {
       return;
     }
-
-    const { code, emailAddress, username, password } = formData;
 
     try {
       const completeSignUp = await signUp.attemptEmailAddressVerification({
@@ -66,19 +63,23 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
       });
 
       await setActive({ session: completeSignUp.createdSessionId });
-
-      await createUser({ emailAddress, username, password });
     } catch (err) {
       console.error(JSON.stringify(err, null, 2));
     }
   };
 
-  const onSignUpPress = async () => {
+  const onSignUpPress = async ({ username, emailAddress, password }: FormData) => {
     if (!isLoaded) {
       return;
     }
 
+    await signUp.create({
+      username,
+      emailAddress,
+      password,
+    })
     await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+    console.log("kdkdkd")
     
     setPendingVerification(true);
   };
@@ -175,7 +176,7 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
         <View className="flex flex-row items-center justify-center my-4">
           <Button
             title="Sign up"
-            onPress={onSignUpPress}
+            onPress={handleSubmit(onSignUpPress)}
             className="mr-2 "
           />
           <Button title="Sign in instead" onPress={switchToSignIn} />
@@ -186,29 +187,23 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
 
   return (
     <>
-      <Controller
-        control={control}
-        render={({ field: { onChange, value } }) => (
-          <View className="gap-8 p-4">
-            <View>
-              <TextInput
-                value={value}
-                placeholder="Code..."
-                onChangeText={(code) => onChange(code)}
-              />
-            </View>
-            <Button
-              title="Verify Email"
-              onPress={handleSubmit(onPressVerify)}
-            />
-            <Button
-              title="back"
-              onPress={goBack}
-            />
-          </View>
-        )}
-        name="code"
-      />
+      <View className="gap-8 p-4">
+        <View>
+          <TextInput
+            value={code}
+            placeholder="Code..."
+            onChangeText={(code) => setCode(code)}
+          />
+        </View>
+        <Button
+          title="Verify Email"
+          onPress={onPressVerify}
+        />
+        <Button
+          title="back"
+          onPress={goBack}
+        />
+      </View>
       <View className="flex flex-row items-center justify-center my-4">
         <Button
           title="Sign up"
