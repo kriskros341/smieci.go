@@ -1,1 +1,3 @@
-ALTER table users ADD column deleted boolean default False;
+
+ALTER table users ADD column deleted boolean not null default FALSE;
+
