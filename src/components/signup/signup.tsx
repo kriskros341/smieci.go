@@ -1,6 +1,6 @@
 import { useSignUp } from "@clerk/clerk-expo";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Text, TextInput, View } from "react-native";
 
@@ -16,17 +16,32 @@ interface Props {
 const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
   const { isLoaded, signUp, setActive } = useSignUp();
   const [pendingVerification, setPendingVerification] = useState(false);
-  const [code, setCode] = useState('')
+  const [code, setCode] = useState('');
+  const codeVerificationCallback = useRef<(code: string) => void>();
+  
+  const handleCodeVerification = () => {
+    if (!isLoaded) {
+      return;
+    }  
+    setPendingVerification(true);
+    return new Promise<string>((resolve) => {
+      codeVerificationCallback.current = (code: string) => {
+        resolve(code);
+      }
+    })
+  }
+  
+  
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      username: "",
-      emailAddress: "",
-      password: "",
-      confirmPassword: "",
+      username: "test",
+      emailAddress: "test+clerk_test@ll.ll",
+      password: "testtest",
+      confirmPassword: "testtest",
     },
     resolver: zodResolver(schema),
   });
@@ -34,13 +49,29 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
   const { mutateAsync: createUser } = useMutation({
     mutationFn: async ({ emailAddress, username, password }: { emailAddress: string; username: string, password: string }) => {
       if (!isLoaded) {
-        return;
-      }  
-      return signUp.create({
+        console.warn("Clerk failed to load")
+        throw new Error("Clerk failed to load");
+      }
+      console.log("test!")
+      await signUp.create({
         username,
         emailAddress,
         password,
-      });//_createUser(axios, { email, username }); /// REPLACE
+      })
+      console.log("test!")
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      console.log("test!")
+      const code = await handleCodeVerification();
+      console.log("test!")
+      if (!code) {
+        throw new Error("Code was undefined");
+      }
+      console.log("test!")
+      const completeSignUp = await signUp.attemptEmailAddressVerification({
+        code,
+      });
+      console.log("test!")
+      await setActive({ session: completeSignUp.createdSessionId });
     },
 
     // TODO: convert to toast
@@ -48,40 +79,15 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
       console.log("successfuly created user");
     },
     onError: (err) => {
-      console.log(`failed to create user ${err.message}`);
+      console.warn(`failed to create user ${err}`);
     },
   });
-
-  const onPressVerify = async () => {
-    if (!isLoaded) {
-      return;
-    }
-
-    try {
-      const completeSignUp = await signUp.attemptEmailAddressVerification({
-        code,
-      });
-
-      await setActive({ session: completeSignUp.createdSessionId });
-    } catch (err) {
-      console.error(JSON.stringify(err, null, 2));
-    }
-  };
 
   const onSignUpPress = async ({ username, emailAddress, password }: FormData) => {
     if (!isLoaded) {
       return;
     }
-
-    await signUp.create({
-      username,
-      emailAddress,
-      password,
-    })
-    await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-    console.log("kdkdkd")
-    
-    setPendingVerification(true);
+    createUser({ username, emailAddress, password })
   };
 
   const goBack = () => {
@@ -197,20 +203,12 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
         </View>
         <Button
           title="Verify Email"
-          onPress={onPressVerify}
+          onPress={() => codeVerificationCallback.current?.(code)}
         />
         <Button
           title="back"
           onPress={goBack}
         />
-      </View>
-      <View className="flex flex-row items-center justify-center my-4">
-        <Button
-          title="Sign up"
-          onPress={handleSubmit(onSignUpPress)}
-          className="mr-2 "
-        />
-        <Button title="Sign in instead" onPress={switchToSignIn} />
       </View>
     </>
   );
