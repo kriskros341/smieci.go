@@ -18,20 +18,7 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
   const [pendingVerification, setPendingVerification] = useState(false);
   const [code, setCode] = useState('');
   const codeVerificationCallback = useRef<(code: string) => void>();
-  
-  const handleCodeVerification = () => {
-    if (!isLoaded) {
-      return;
-    }  
-    setPendingVerification(true);
-    return new Promise<string>((resolve) => {
-      codeVerificationCallback.current = (code: string) => {
-        resolve(code);
-      }
-    })
-  }
-  
-  
+
   const {
     control,
     handleSubmit,
@@ -46,10 +33,21 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
     resolver: zodResolver(schema),
   });
 
+  const handleCodeVerification = () => {
+    if (!isLoaded) {
+      return;
+    }  
+    setPendingVerification(true);
+    return new Promise<string>((resolve) => {
+      codeVerificationCallback.current = (code: string) => {
+        resolve(code);
+      }
+    })
+  }
+
   const { mutateAsync: createUser } = useMutation({
     mutationFn: async ({ emailAddress, username, password }: { emailAddress: string; username: string, password: string }) => {
       if (!isLoaded) {
-        console.warn("Clerk failed to load")
         throw new Error("Clerk failed to load");
       }
       await signUp.create({
@@ -58,22 +56,16 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
         password,
       })
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      const code = await handleCodeVerification();
-      if (!code) {
-        throw new Error("Code was undefined");
-      }
-      const completeSignUp = await signUp.attemptEmailAddressVerification({
-        code,
-      });
-      await setActive({ session: completeSignUp.createdSessionId });
+      const session = await handleCodeVerification();
+      await setActive({ session });
     },
 
     // TODO: convert to toast
     onSuccess: () => {
       console.log("successfuly created user");
     },
-    onError: (err) => {
-      console.warn(`failed to create user ${err}`);
+    onError: (error) => {
+      console.warn(`error occured ${error}`)
     },
   });
 
@@ -81,10 +73,28 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
     if (!isLoaded) {
       return;
     }
-    createUser({ username, emailAddress, password })
+    createUser({ username, emailAddress, password });
   };
 
+  const verifyCode = async () => {
+    if (!isLoaded) {
+      return;
+    }
+    try {
+      const completeSignUp = await signUp.attemptEmailAddressVerification({
+        code,
+      });
+      if (!completeSignUp.createdSessionId) {
+        return;
+      }
+      codeVerificationCallback.current?.(completeSignUp.createdSessionId);
+    } catch (error) {
+      console.warn(`error occured ${error}`)
+    }
+  }
+
   const goBack = () => {
+    setCode('');
     setPendingVerification(false);
   }
 
@@ -187,22 +197,26 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
 
   return (
     <>
-      <View className="gap-8 p-4">
-        <View>
+      <View className="p-4 flex gap-y-4">
+        <View className="border">
           <TextInput
             value={code}
             placeholder="Code..."
             onChangeText={(code) => setCode(code)}
           />
         </View>
-        <Button
-          title="Verify Email"
-          onPress={() => codeVerificationCallback.current?.(code)}
-        />
-        <Button
-          title="back"
-          onPress={goBack}
-        />
+        <View>
+          <Button
+            title="Verify Email"
+            onPress={verifyCode}
+          />
+        </View>
+        <View>
+          <Button
+            title="back"
+            onPress={goBack}
+          />
+        </View>
       </View>
     </>
   );
