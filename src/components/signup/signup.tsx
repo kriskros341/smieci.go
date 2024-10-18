@@ -52,25 +52,19 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
         console.warn("Clerk failed to load")
         throw new Error("Clerk failed to load");
       }
-      console.log("test!")
       await signUp.create({
         username,
         emailAddress,
         password,
       })
-      console.log("test!")
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      console.log("test!")
       const code = await handleCodeVerification();
-      console.log("test!")
       if (!code) {
         throw new Error("Code was undefined");
       }
-      console.log("test!")
       const completeSignUp = await signUp.attemptEmailAddressVerification({
         code,
       });
-      console.log("test!")
       await setActive({ session: completeSignUp.createdSessionId });
     },
 
