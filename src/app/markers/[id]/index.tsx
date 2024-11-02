@@ -27,9 +27,9 @@ const useMarkerQuery = (key: unknown) => {
   return data;
 }
 
-const PreviewMarkerModal = () => {
+const MarkerPreview = () => {
   const router = useRouter();
-  const { id } = useLocalSearchParams()
+  const { id } = useLocalSearchParams();
   const { data } = useMarkerQuery(id);
 
   const photos = data?.fileNamesString?.map((uri: string, idx: number) => ({
@@ -37,19 +37,10 @@ const PreviewMarkerModal = () => {
     blurhash: data.blurHashes[idx]
   })) ?? []
 
-  const { data: markerSupportersData } = useQuery<{ username: string, total: number, profilePictureId?: number }[]>({
+  const { data: markerSupportersData } = useQuery<{ username: string, total: number, profileImageUrl?: string }[]>({
     queryKey: [`/markers/${id}/supporters`],
     enabled: !!id,
   });
-
-  console.log({ markerSupportersData, jd:"jd", id })
-
-  const getUrlByUploadId = (uploadId: unknown) => {
-    if (!uploadId) {
-      return 'jdjd'
-    }
-    return Constants?.expoConfig?.extra?.apiUrl + "/uploads/" + uploadId;
-  }
 
   return (
     <ScrollView>
@@ -89,30 +80,39 @@ const PreviewMarkerModal = () => {
         </View>
         {/* KCTODO loader */}
         <View className="p-4">
-          <Text>This marker is HOT rn.</Text>
           <Text>You can support it by clicking here</Text>
           <Text>Point count: {data?.points}</Text>
           <Text>Gathered from {markerSupportersData?.length} supporters</Text>
-          <Text> list of profile few pics, clicking opens list modal </Text>
-          <View className="flex flex-row py-4">
-            {markerSupportersData?.splice(0, 3).map((item, index: number) => ( //KCTODO
-              <View className="pr-4 relative">
-                <Avatar imageUrl={getUrlByUploadId(item.profilePictureId)} className="mr-4" />
-                <View className="absolute bottom-0 right-0">
-                  <Text>{item.total}</Text>
+          {markerSupportersData && markerSupportersData?.length !== 0 ? (
+            <View className="flex flex-row py-4">
+              {markerSupportersData?.splice(0, 3).map((item, index: number) => ( //KCTODO
+                <View className="pr-4 relative">
+                  <Avatar imageUrl={item.profileImageUrl} className="mr-4" />
+                  <View className="absolute bottom-0 right-0">
+                    <Text>{item.total}</Text>
+                  </View>
                 </View>
-              </View>
-            ))}
-            <Button title="Więcej" onPress={() => router.push({ pathname: `markers/${data.id}/supporters`})} />
-          </View>
+              ))}
+            </View>
+          ) : (
+            <View className="py-4">
+              <Text>This marker has no supporters yet.</Text>
+            </View>
+          )}
+          <Button title="Więcej" onPress={() => router.push({ pathname: `markers/${data.id}/supporters`})} />
+
         </View>
       </View>
 
       <View>
         <Button title="Wesprzyj" onPress={() => router.push({ pathname: `markers/${data.id}/support`})}  />
       </View>
+      <View>
+        <Text>Wysprzątane?</Text>
+        <Button title="Podziel się rezultatem" onPress={() => router.push({ pathname: `markers/${data.id}/solvePreface`})} />
+      </View>
     </ScrollView>
   )
 }
 
-export default PreviewMarkerModal
+export default MarkerPreview

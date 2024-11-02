@@ -418,10 +418,10 @@ func (e *Env) SupportMarker(c *gin.Context) {
 }
 
 type GetMarkerSupportersResult struct {
-	Id               int32  `json:"id"`
-	Username         string `json:"username"`
-	Total            int32  `json:"total"`
-	ProfilePictureId *int32 `json:"profilePictureId"`
+	Id              int32  `json:"id"`
+	Username        string `json:"username"`
+	Total           int32  `json:"total"`
+	ProfileImageUrl *int32 `json:"profileImageUrl"`
 }
 
 func (e *Env) GetMarkerSupporters(c *gin.Context) {
@@ -435,7 +435,7 @@ func (e *Env) GetMarkerSupporters(c *gin.Context) {
 		return
 	}
 
-	query := fmt.Sprintf(`select u.id, u.username, SUM(pt.amount) as total, u.profilepictureid from points_traces pt join users u on pt.userId = u.id where pt.markerId = %s group by u.id`, getMarkerRequestPayload.MarkerId)
+	query := fmt.Sprintf(`select u.id, u.username, SUM(pt.amount) as total, u.profileImageUrl from points_traces pt join users u on pt.userId = u.id where pt.markerId = %s group by u.id`, getMarkerRequestPayload.MarkerId)
 	fmt.Printf("Executing query: %s\n", query)
 	if err := e.Db.Select(&results, query); err != nil {
 		fmt.Println(err.Error())

@@ -5,11 +5,11 @@ import * as ImagePicker from 'expo-image-picker';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { LatLng } from "react-native-maps";
 
-import { _createMarker } from "@api/markers";
 import { useEditorState } from '@sheets/AddMarkerSheet/helper';
-import Button from '../ui/button';
-import { hasCoords } from "../utils/hasCoords";
-import PhotoGallery from "./photoGallery";
+import Button from '@/ui/button';
+import { hasCoords } from "@/utils/hasCoords";
+
+import PhotoGallery from "../photoGallery";
 
 type CreateMarkerEditorProps = {
   onSubmit: () => void,
@@ -62,9 +62,7 @@ const MarkerEditor = ({ onSubmit, moveMarker, editorState, isPending }: CreateMa
           title="Create Marker"
           onPress={onSubmit}
           disabled={!editorState.photosUris.length || isPending}
-        >
-
-        </Button>
+        />
       </Pressable>
     </>
   )

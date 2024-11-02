@@ -34,7 +34,7 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
     setFocusedIndex(index);
   }
 
-  let data = props.photos.map((photo, index) => ({ ...photo, isFocused: index === focusedIndex, onFocus: () => onFocusChange(index) }))
+  const data = props.photos.map((photo, index) => ({ ...photo, isFocused: index === focusedIndex, onFocus: () => onFocusChange(index) }))
 
   const reorder = (from: number, to: number, newData: any[]) => {
     const newFocusedIndex = newData.findIndex((v) => v.uri === data[focusedIndex].uri);
@@ -123,6 +123,8 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
       </GestureDetector>
       <View className="max-w-full flex flex-row aspect-[5]">
         <DraggableFlatList
+          bounces={false}
+          overScrollMode='never'
           data={data}
           onDragEnd={({ from, to, data }) => reorder(from, to, data)}
           horizontal

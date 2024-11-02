@@ -37,8 +37,6 @@ const Map = () => {
     router.push(`/markers/${key}`)
   }
 
-  console.log({ isAddMarkerSheetOpen })
-
   return (
     <>
       <StatusBar

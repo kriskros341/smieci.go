@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { LatLng } from "react-native-maps";
 
 import Backdrop from "@components/backdrop";
-import CreateMarkerEditor from "@components/markerEditor";
+import CreateMarkerEditor from "@components/editors/MarkerEditor";
 import MinimalCoordinatesView from "@components/minimalCoordinatesView";
 import { useMapFocusPoint } from "@stores/useMapFocusPoint";
 import { useCreateMarkerMutation, useEditorState } from "./helper";

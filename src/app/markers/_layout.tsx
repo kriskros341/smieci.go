@@ -3,9 +3,7 @@ import { Stack } from "expo-router";
 const MapStack = () => {
   return (
     <Stack>
-      <Stack.Screen name="[id]"  options={{ headerShown: true, title: 'Detale' }}  />
-      <Stack.Screen name="[id]/supporters" options={{ headerShown: true, title: 'Lista wspierających' }} />
-      <Stack.Screen name="[id]/support" options={{ headerShown: true, title: 'Wesprzyj' }} />
+      <Stack.Screen name="[id]"  options={{ headerShown: false, title: 'Detale' }}  />
     </Stack>
   );
 }
