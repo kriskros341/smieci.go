@@ -15,6 +15,7 @@ module.exports = {
     assetBundlePatterns: ["**/*"],
     ios: {
       supportsTablet: true,
+      jsEngine: "hermes"
     },
     android: {
       permissions: [
@@ -25,6 +26,7 @@ module.exports = {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff",
       },
+      jsEngine: "hermes"
     },
     web: {
       favicon: "./assets/favicon.png",
@@ -39,11 +41,5 @@ module.exports = {
       clerkPublishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY,
       apiUrl: process.env.API_URL,
     },
-    android: {
-      jsEngine: "hermes"
-    },
-    ios: {
-      jsEngine: "hermes"
-    }
   },
 };
