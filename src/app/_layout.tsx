@@ -62,7 +62,7 @@ function RootLayout() {
             <Guarded>
               <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
                 <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="markers/[id]" options={{ headerShown: true }}/>
+                <Stack.Screen name="markers/[id]" />
               </Stack>
             </Guarded>
         </CustomQueryClientProvider>

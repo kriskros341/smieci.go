@@ -9,20 +9,24 @@ import { useMarkerQuery } from "@hooks/useMarkerQuery";
 import { useYesNoModal } from "@hooks/modals/useYesNoModal";
 import { isEqual } from "lodash-es";
 import Toast from "react-native-toast-message";
-
+import { useAuth, useClerk, useUser } from "@clerk/clerk-expo";
 
 const SolveMarker = () => {
   const { id } = useLocalSearchParams();
   const navigation = useNavigation();
   const { data } = useMarkerQuery(id);
   const { YesNoModal, openYesNoModal } = useYesNoModal();
+  const { user } = useUser();
 
   const methods = useForm<SolveMarkerEditorFormValues>({
     defaultValues: {
       photos: data?.fileNamesString.map(() => ({ uri: undefined })) ?? [],
       additionalPhotos: [],
+      participants: [{ userId: user?.id }]
     },
   });
+
+  console.log({ values: methods.getValues().participants })
 
   const { setError, handleSubmit, clearErrors, getValues, formState: { defaultValues } } = methods;
 

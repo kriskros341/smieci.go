@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/guregu/null/v5"
 )
 
 type InsertUserBody struct {
@@ -41,15 +42,17 @@ func (e *Env) InsertUser(c *gin.Context) { // DEPRECATED
 }
 
 type User struct {
-	Id       int32  `json:"id"`
-	Username string `json:"username"`
-	Points   int32  `json:"points"`
+	Id              int32       `json:"id"`
+	Username        string      `json:"username"`
+	Points          int32       `json:"points"`
+	Clerkid         string      `json:"clerkid"`
+	ProfileImageURL null.String `json:"profileImageURL"`
 }
 
 func (e *Env) GetUsers(c *gin.Context) {
 	var users []User
 
-	err := e.Db.Select(&users, "SELECT id, username, points FROM users")
+	err := e.Db.Select(&users, "SELECT id, username, points, clerkid, profileImageURL FROM users")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

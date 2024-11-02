@@ -13,6 +13,7 @@ import { useMarkerQuery } from "@hooks/useMarkerQuery";
 import VerificationPhotosFormField from "./VerificationPhotosFormField";
 import AdditionalPhotosFormField from "./AdditionalPhotosFormField";
 import { SolveMarkerEditorFormValues } from "./interfaces";
+import ParticipantsFormField from "./ParticipantsFormField";
 
 type ResolveMarkerEditorProps = {
   markerId: unknown,
@@ -42,6 +43,10 @@ function SolveMarkerEditor(props: ResolveMarkerEditorProps) {
 
   return (
     <ScrollView>
+      <DividerWithText>
+        <Text className="mr-2">Uczestnicy<Text className="text-red-800">*</Text></Text>
+      </DividerWithText>
+      <ParticipantsFormField control={control} />
       <DividerWithText>
         <Text className="mr-2">Zdjęcia ze zgłoszenia<Text className="text-red-800">*</Text></Text>
         <Tooltip delayDuration={150}>

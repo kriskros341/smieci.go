@@ -18,6 +18,7 @@ const Account = () => {
     enabled: !!user?.id
   });
 
+  console.log({ id: user?.id })
   console.log({ useruri: user?.imageUrl })
 
   return (

@@ -9,13 +9,13 @@ const MapStack = () => {
       <Stack.Screen
         name="index"
         options={{
-            title: "Szczegóły",
-            headerLeft: () => (
-              <TouchableOpacity onPress={() => router.back()} className="mr-9">
-                <Ionicons name="arrow-back" size={24} color="black" />
-              </TouchableOpacity>
-            ),
-          }} 
+          title: "Szczegóły",
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()} className="mr-9">
+              <Ionicons name="arrow-back" size={24} color="black" />
+            </TouchableOpacity>
+          ),
+        }}
       />
       <Stack.Screen name="support" options={{ title: "Wesprzyj" }} />
       <Stack.Screen name="supporters" options={{ title: "Wspierający" }} />
