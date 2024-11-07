@@ -23,11 +23,11 @@ const VerificationPhotosFormField = ({ control, openPreviewImageModal, originalP
     control,
   });
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
-  const { clearErrors } = useFormContext()
+  const { clearErrors } = useFormContext();
 
   const onUpdatePhoto = (activePhotoIdx: number, uri: string, openNext?: boolean) => {
     update(activePhotoIdx, { uri });
-    clearErrors(`photos.${activePhotoIdx}`)
+    clearErrors(`photos.${activePhotoIdx}`);
     if (!openNext) {
       return;
     }
@@ -39,7 +39,7 @@ const VerificationPhotosFormField = ({ control, openPreviewImageModal, originalP
       openVerificationPhotoModal({
         newPhotoUri: fields[activePhotoIdx]?.uri,
         originalPhotoUri: originalPhotos[activePhotoIdx]?.uri,
-        commit: (uri: string) => onUpdatePhoto(activePhotoIdx, uri, true)
+        commit: (uri: string) => onUpdatePhoto(activePhotoIdx, uri, true),
       });
     }
   };
@@ -84,7 +84,7 @@ const VerificationPhotosFormField = ({ control, openPreviewImageModal, originalP
     );
   });
 
-  const buttons = []
+  const buttons = [];
   if (fields[activePhotoIdx]?.uri) {
     buttons.push(
       <Button
@@ -98,8 +98,8 @@ const VerificationPhotosFormField = ({ control, openPreviewImageModal, originalP
             }
           })
         }}
-      />
-    )
+      />,
+    );
   } else {
     buttons.push(
       <Button
@@ -111,8 +111,8 @@ const VerificationPhotosFormField = ({ control, openPreviewImageModal, originalP
             commit: (uri: string) => onUpdatePhoto(activePhotoIdx, uri, true)
           })
         }}
-      />
-    )
+      />,
+    );
   }
 
   return (
@@ -124,6 +124,6 @@ const VerificationPhotosFormField = ({ control, openPreviewImageModal, originalP
       {VerificationPhotoModal}
     </>
   );
-}
+};
 
 export default VerificationPhotosFormField;

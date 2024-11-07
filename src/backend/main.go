@@ -49,6 +49,7 @@ func main() {
 	router.POST("/users/deleteUser", env.DeleteUser)
 	router.POST("/markers", env.CreateMarker)
 	router.GET("/markers/:markerId", env.GetMarker)
+	router.POST("/markers/:markerId/solve", env.PostMarkerSolution)
 	router.GET("/markers/:markerId/supporters", env.GetMarkerSupporters)
 	router.GET("/markers", env.GetMarkersCoordinates)
 	router.PUT("/markers/support", env.SupportMarker)

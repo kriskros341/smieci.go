@@ -12,16 +12,13 @@ const ParticipantsFormField = ({
   control: Control<SolveMarkerEditorFormValues>;
 }) => {
   const { AddParticipantsModal, openAddParticipantsModal } = useAddParticipantsModal();
-
   const { fields, replace } = useFieldArray({
     name: "participants",
     control,
   });
   const { data } = useUsers() as { data: any };
-
   const remainder = fields.slice(3);
 
-  console.log({ fields })
   return (
     <View>
       {fields.slice(0, 3).map(({ userId }) => {
@@ -53,7 +50,7 @@ const ParticipantsFormField = ({
         />
       {AddParticipantsModal}
     </View>
-  )
-}
+  );
+};
 
 export default ParticipantsFormField;

@@ -33,14 +33,14 @@ const AddParticipantsEditor = (props: ModalProps) => {
     } else {
       removeUser(userId);
     }
-  }
+  };
 
   const displayData = data.map(({ clerkid, username, profileImageURL }: any) => ({
     clerkid,
     username,
     profileImageURL,
     isActive: !!users[clerkid],
-  }))
+  }));
   
   return (
     <View className="flex-1">
@@ -70,9 +70,8 @@ const AddParticipantsEditor = (props: ModalProps) => {
         </View>
       </Fabs>
     </View>
-  )
-}
-
+  );
+};
 
 export const useAddParticipantsModal = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -80,12 +79,12 @@ export const useAddParticipantsModal = () => {
   const openAddParticipantsModal = (props: ModalProps) => {
     setProps(props);
     setIsModalVisible(true);
-  }
+  };
 
   const withExitModal = (fun: Function) => (...args: any) => {
-    setIsModalVisible(false)
+    setIsModalVisible(false);
     fun(...args);
-  }
+  };
 
   const AddParticipantsModal = (
     <Modal
@@ -97,10 +96,10 @@ export const useAddParticipantsModal = () => {
       }}>
         <AddParticipantsEditor participantsIds={props?.participantsIds ?? []} onCloseRequest={withExitModal(props?.onCloseRequest!)} />
     </Modal>
-  )
+  );
 
   return {
     AddParticipantsModal,
-    openAddParticipantsModal
-  }
-}
+    openAddParticipantsModal,
+  };
+};

@@ -47,7 +47,7 @@ export const useEditorState = () => {
 }
 
 type MarkerPayload = {
-  uris: string[],
+  photosUris: string[],
   latitude: number,
   longitude: number,
 }
@@ -59,7 +59,7 @@ type useCreateMarkerMutationOptions = {
 export const useCreateMarkerMutation = (options: useCreateMarkerMutationOptions) => {
   const queryClient = useQueryClient();
   const axios = useAxios();
-  const createMarkersMutation = useMutation<unknown, unknown, editorStateType>({
+  const createMarkersMutation = useMutation<unknown, MarkerPayload, editorStateType>({
     mutationFn: async ({ photosUris, latitude, longitude }) => {
       const payload = {
         uris: photosUris,
@@ -74,7 +74,6 @@ export const useCreateMarkerMutation = (options: useCreateMarkerMutationOptions)
     onSettled() {
       queryClient.invalidateQueries({ queryKey: ['markers'] });
       options.onSettled()
-      // onSubmit?.();
     }
   });
   return createMarkersMutation;

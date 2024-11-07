@@ -52,13 +52,14 @@ type Upload struct {
 }
 
 type GetMarkerPayload struct {
-	Id              int64    `json:"id"`
-	Lat             float64  `json:"lat"`
-	Long            float64  `json:"long"`
-	FileNamesString []string `json:"fileNamesString"`
-	BlurHashes      []string `json:"blurHashes"`
-	UserId          int64    `json:"userId"`
-	Points          int64    `json:"points"`
+	Id                        int64    `json:"id"`
+	Lat                       float64  `json:"lat"`
+	Long                      float64  `json:"long"`
+	FileNamesString           []string `json:"fileNamesString"`
+	BlurHashes                []string `json:"blurHashes"`
+	UserId                    int64    `json:"userId"`
+	Points                    int64    `json:"points"`
+	PendingVerificationsCount int64    `json:"pendingVerificationsCount"` // -1 if approved else ++
 }
 
 type GetMarkerRequestPayload struct {
@@ -100,6 +101,28 @@ func (e *Env) GetMarker(c *gin.Context) {
 		return
 	}
 
+	var pendingVerificationsCount int64
+	{
+		query = fmt.Sprintf("SELECT verification_status FROM solutions WHERE markerid = %s", markerId)
+		verificationStatusRow, err := e.Db.Query(query)
+		if err != nil {
+			var error = gin.H{"error": err.Error()}
+			fmt.Println(error)
+			c.JSON(http.StatusInternalServerError, error)
+			return
+		}
+
+		var currentVerificationStatus string
+		for verificationStatusRow.Next() {
+			uploadRow.Scan(&currentVerificationStatus)
+			if currentVerificationStatus == "approved" {
+				pendingVerificationsCount = -1
+				break
+			} else if currentVerificationStatus == "pending" {
+				pendingVerificationsCount += 1
+			}
+		}
+	}
 	filesIds := []string{}
 	blurHashes := []string{}
 
@@ -114,6 +137,7 @@ func (e *Env) GetMarker(c *gin.Context) {
 
 	defer uploadRow.Close()
 
+	marker.PendingVerificationsCount = pendingVerificationsCount
 	marker.FileNamesString = filesIds
 	marker.BlurHashes = blurHashes
 	c.JSON(http.StatusOK, marker)
@@ -139,6 +163,92 @@ func (s *Semaphore) Release() {
 	<-s.ch // This releases one slot in the channel
 }
 
+func processFiles(fileHeaders []*multipart.FileHeader) ([]string, []string, chan error) {
+	var sliceMutex sync.Mutex
+	fileNames := []string{}
+	blurHashes := []string{}
+	fileProcessingErrors := make(chan error, len(fileHeaders)) // Channel to capture any processing errors
+	const maxConcurrent = 3
+	semaphore := NewSemaphore(maxConcurrent) // Create a semaphore with capacity
+
+	var waitGroupCounter sync.WaitGroup
+	for _, fileHeader := range fileHeaders {
+		waitGroupCounter.Add(1)
+		// Launch a goroutine to handle file upload concurrently
+		go func(fileHeader *multipart.FileHeader) {
+			defer waitGroupCounter.Done() // Mark this goroutine as done
+			semaphore.Acquire()           // Acquire the semaphore
+			defer semaphore.Release()     // Ensure the semaphore is released
+
+			// Open the file
+			file, err := fileHeader.Open()
+			if err != nil {
+				fileProcessingErrors <- fmt.Errorf("error opening file: %w", err)
+				return
+			}
+			defer file.Close()
+
+			// Create a buffer to hold file chunks
+			fileBuffer := new(bytes.Buffer)
+			_, err = io.Copy(fileBuffer, file) // Copying whole file in memory...
+			if err != nil {
+				fileProcessingErrors <- fmt.Errorf("error reading file: %w", err)
+				return
+			}
+			fileBytes := fileBuffer.Bytes()
+
+			// Generate new file name
+			newFileName, err := TransformFileNameFromFileData(fileBytes, fileHeader.Filename)
+			if err != nil {
+				fileProcessingErrors <- fmt.Errorf("error generating file name: %w", err)
+				return
+			}
+
+			// Save file to disk in chunks
+			savePath := filepath.Join(UPLOADS_FOLDER, newFileName)
+			outFile, err := os.Create(savePath)
+			if err != nil {
+				fileProcessingErrors <- fmt.Errorf("failed to save file: %w", err)
+				return
+			}
+			defer outFile.Close()
+
+			_, err = outFile.Write(fileBytes) // Write the file data to disk
+			if err != nil {
+				fileProcessingErrors <- fmt.Errorf("error writing file: %w", err)
+				return
+			}
+
+			// Recreate image from bytes
+			img, _, err := image.Decode(bytes.NewReader(fileBytes))
+			if err != nil {
+				fileProcessingErrors <- fmt.Errorf("failed to generate placeholder image: %w", err)
+				return
+			}
+
+			// Create blur hash
+			blurHash, err := blurhash.Encode(4, 4, img)
+			if err != nil {
+				fileProcessingErrors <- fmt.Errorf("failed to generate blur hash: %w", err)
+				return
+			}
+
+			// Safely update shared slices
+			sliceMutex.Lock()
+			blurHashes = append(blurHashes, blurHash)
+			fileNames = append(fileNames, newFileName)
+			sliceMutex.Unlock()
+		}(fileHeader)
+	}
+	// Wait for all goroutines to finish
+	waitGroupCounter.Wait()
+
+	// Check for errors during file processing
+	close(fileProcessingErrors)
+
+	return fileNames, blurHashes, fileProcessingErrors
+}
+
 type CreateMarkerBody struct {
 	Latitude  float64 `json:"latitude"`
 	Longitude float64 `json:"longitude"`
@@ -153,91 +263,14 @@ func (e *Env) CreateMarker(c *gin.Context) {
 		return
 	}
 
-	var sliceMutex sync.Mutex
-	fileNames := []string{}
-	blurHashes := []string{}
-	fileProcessingErrors := make(chan error, len(c.Request.MultipartForm.File)) // Channel to capture any processing errors
-	const maxConcurrent = 3
-	semaphore := NewSemaphore(maxConcurrent) // Create a semaphore with capacity
-
-	var waitGroupCounter sync.WaitGroup
-	// 1. Handle file uploads
-	for key, fileHeaders := range c.Request.MultipartForm.File {
-		fmt.Printf("Form key (file): %s\n", key)
+	var allFileHeaders []*multipart.FileHeader
+	for _, fileHeaders := range c.Request.MultipartForm.File {
 		for _, fileHeader := range fileHeaders {
-			waitGroupCounter.Add(1)
-			// Launch a goroutine to handle file upload concurrently
-			go func(fileHeader *multipart.FileHeader) {
-				defer waitGroupCounter.Done() // Mark this goroutine as done
-				semaphore.Acquire()           // Acquire the semaphore
-				defer semaphore.Release()     // Ensure the semaphore is released
-
-				// Open the file
-				file, err := fileHeader.Open()
-				if err != nil {
-					fileProcessingErrors <- fmt.Errorf("error opening file: %w", err)
-					return
-				}
-				defer file.Close()
-
-				// Create a buffer to hold file chunks
-				fileBuffer := new(bytes.Buffer)
-				_, err = io.Copy(fileBuffer, file) // Copying whole file in memory...
-				if err != nil {
-					fileProcessingErrors <- fmt.Errorf("error reading file: %w", err)
-					return
-				}
-				fileBytes := fileBuffer.Bytes()
-
-				// Generate new file name
-				newFileName, err := TransformFileNameFromFileData(fileBytes, fileHeader.Filename)
-				if err != nil {
-					fileProcessingErrors <- fmt.Errorf("error generating file name: %w", err)
-					return
-				}
-
-				// Save file to disk in chunks
-				savePath := filepath.Join(UPLOADS_FOLDER, newFileName)
-				outFile, err := os.Create(savePath)
-				if err != nil {
-					fileProcessingErrors <- fmt.Errorf("failed to save file: %w", err)
-					return
-				}
-				defer outFile.Close()
-
-				_, err = outFile.Write(fileBytes) // Write the file data to disk
-				if err != nil {
-					fileProcessingErrors <- fmt.Errorf("error writing file: %w", err)
-					return
-				}
-
-				// Recreate image from bytes
-				img, _, err := image.Decode(bytes.NewReader(fileBytes))
-				if err != nil {
-					fileProcessingErrors <- fmt.Errorf("failed to generate placeholder image: %w", err)
-					return
-				}
-
-				// Create blur hash
-				blurHash, err := blurhash.Encode(4, 4, img)
-				if err != nil {
-					fileProcessingErrors <- fmt.Errorf("failed to generate blur hash: %w", err)
-					return
-				}
-
-				// Safely update shared slices
-				sliceMutex.Lock()
-				blurHashes = append(blurHashes, blurHash)
-				fileNames = append(fileNames, newFileName)
-				sliceMutex.Unlock()
-			}(fileHeader)
+			allFileHeaders = append(allFileHeaders, fileHeader)
 		}
 	}
-	// Wait for all goroutines to finish
-	waitGroupCounter.Wait()
+	fileNames, blurHashes, fileProcessingErrors := processFiles(allFileHeaders)
 
-	// Check for errors during file processing
-	close(fileProcessingErrors)
 	for err := range fileProcessingErrors {
 		if err != nil {
 			fmt.Println("File processing error:", err)
@@ -444,4 +477,217 @@ func (e *Env) GetMarkerSupporters(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, results)
+}
+
+// Define a struct for photos with an optional URI field
+type Photo struct {
+	Uri *string `json:"uri,omitempty"` // Pointer allows for null (optional) value
+}
+
+// Define a struct for participants
+type Participant struct {
+	UserId string `json:"userId"`
+}
+
+// Main struct that holds the payload
+type PostMarkerSolutionPayload struct {
+	Participants []Participant `json:"participants"` // Array of participants
+}
+
+// Main struct that holds the payload
+type PostMarkerSolutionUriPayload struct {
+	MarkerId string `json:"markerId"` // Marker id
+}
+
+func (e *Env) PostMarkerSolution(c *gin.Context) {
+	var getMarkerRequestPayload GetMarkerRequestPayload
+	if err := c.ShouldBindUri(&getMarkerRequestPayload); err != nil {
+		var error = gin.H{"error": err.Error()}
+		fmt.Println(error)
+		c.JSON(http.StatusBadRequest, error)
+		return
+	}
+
+	// Parse the multipart form data
+	err := c.Request.ParseMultipartForm(32 << 24) // 512MB max memory
+	if err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Payload too large"})
+		return
+	}
+
+	// Authorize user
+	claims, exists := c.Get("authorizerClaims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	// KCTODO
+	var _ = claims.(*auth.AuthorizerClaims).UserId
+
+	var primaryFiles []*multipart.FileHeader
+	var additionalFiles []*multipart.FileHeader
+
+	for key, fileHeaders := range c.Request.MultipartForm.File {
+		if key != "primary" && key != "additional" {
+			continue
+		}
+
+		for _, fileHeader := range fileHeaders {
+			if key == "primary" {
+				primaryFiles = append(primaryFiles, fileHeader)
+			} else if key == "additional" {
+				additionalFiles = append(additionalFiles, fileHeader)
+			}
+		}
+	}
+
+	primaryFileNames, primaryBlurHashes, fileProcessingErrors := processFiles(primaryFiles)
+
+	for err := range fileProcessingErrors {
+		if err != nil {
+			fmt.Println("File processing error:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	additionalFileNames, additionalBlurHashes, fileProcessingErrors := processFiles(additionalFiles)
+
+	for err := range fileProcessingErrors {
+		if err != nil {
+			fmt.Println("File processing error:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	// 2. Extract JSON data (as string) from the form
+	jsonData := c.PostForm("payload")
+	if jsonData == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing JSON data"})
+		return
+	}
+
+	// 3. Parse JSON data into the PostMarkerSolutionPayload struct
+	var payload PostMarkerSolutionPayload
+	if err := json.Unmarshal([]byte(jsonData), &payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON data"})
+		return
+	}
+
+	tx, err := e.Db.Begin()
+
+	var primaryFileIds []string
+	var additionalFileIds []string
+	// STEP: Insert primary upload records into database
+	{
+		rows := []string{}
+		for i := 0; i < len(primaryFileNames); i++ {
+			rows = append(rows, fmt.Sprintf(`('%s', '%s')`, primaryFileNames[i], primaryBlurHashes[i]))
+		}
+		filesQuery := fmt.Sprintf(`INSERT INTO uploads (filename, blurHash) VALUES %s RETURNING id`, strings.Join(rows, ","))
+		fmt.Println("Executing query:", filesQuery)
+		fileIdentifiersResult, err := tx.Query(filesQuery)
+		if err != nil {
+			var error = gin.H{"error": err.Error()}
+			fmt.Println(error)
+			c.JSON(http.StatusInternalServerError, error)
+			tx.Rollback()
+			return
+		}
+
+		for fileIdentifiersResult.Next() {
+			var id int
+			err := fileIdentifiersResult.Scan(&id)
+			if err != nil {
+				tx.Rollback()
+				log.Fatal(err)
+			}
+			primaryFileIds = append(primaryFileIds, fmt.Sprintf("%d", id))
+		}
+		defer fileIdentifiersResult.Close()
+	}
+	// STEP: Insert additional upload records into database
+	{
+		rows := []string{}
+		for i := 0; i < len(additionalFileNames); i++ {
+			rows = append(rows, fmt.Sprintf(`('%s', '%s')`, additionalFileNames[i], additionalBlurHashes[i]))
+		}
+		filesQuery := fmt.Sprintf(`INSERT INTO uploads (filename, blurHash) VALUES %s RETURNING id`, strings.Join(rows, ","))
+		fmt.Println("Executing query:", filesQuery)
+		fileIdentifiersResult, err := tx.Query(filesQuery)
+		if err != nil {
+			var error = gin.H{"error": err.Error()}
+			fmt.Println(error)
+			c.JSON(http.StatusInternalServerError, error)
+			tx.Rollback()
+			return
+		}
+
+		for fileIdentifiersResult.Next() {
+			var id int
+			err := fileIdentifiersResult.Scan(&id)
+			if err != nil {
+				tx.Rollback()
+				log.Fatal(err)
+			}
+			additionalFileIds = append(additionalFileIds, fmt.Sprintf("%d", id))
+		}
+		defer fileIdentifiersResult.Close()
+	}
+	// STEP: Create solution
+	var solutionId int
+	insertSolutionQuery := fmt.Sprintf(`INSERT INTO solutions (markerid) VALUES (%s) RETURNING id`, getMarkerRequestPayload.MarkerId)
+	fmt.Println("Executing query: %s", insertSolutionQuery)
+	err = tx.QueryRow(insertSolutionQuery).Scan(&solutionId)
+	if err != nil {
+		tx.Rollback()
+		log.Fatalln("Error executing query:", err.Error())
+		c.JSON(http.StatusInternalServerError, err)
+	}
+
+	// STEP: POPULATE SOLUTIONS-USERS RELATION
+	{
+		values := []string{}
+		for _, participant := range payload.Participants {
+			values = append(values, fmt.Sprintf(`('%d', '%s')`, solutionId, participant.UserId))
+		}
+		insertSolutionUsersQuery := fmt.Sprintf(`INSERT INTO solutions_users_relation (solutionid, clerkid) VALUES %s`, strings.Join(values, ","))
+		fmt.Println("Executing query:", insertSolutionUsersQuery)
+		_, err := tx.Exec(insertSolutionUsersQuery)
+
+		if err != nil {
+			var error = gin.H{"error": err.Error()}
+			fmt.Println(error)
+			c.JSON(http.StatusInternalServerError, error)
+			tx.Rollback()
+			return
+		}
+	}
+
+	// STEP: POPULATE SOLUTION-UPLOADS RELATION
+	{
+		values := []string{}
+		for _, uploadId := range primaryFileIds {
+			values = append(values, fmt.Sprintf(`('%d', '%s', 'primary')`, solutionId, uploadId))
+		}
+		for _, uploadId := range additionalFileIds {
+			values = append(values, fmt.Sprintf(`('%d', '%s', 'additional')`, solutionId, uploadId))
+		}
+		insertSolutionUsersQuery := fmt.Sprintf(`INSERT INTO solutions_uploads_relation (solutionid, uploadid, uploadtype) VALUES %s`, strings.Join(values, ","))
+		fmt.Println("Executing query:", insertSolutionUsersQuery)
+		_, err := tx.Exec(insertSolutionUsersQuery)
+
+		if err != nil {
+			var error = gin.H{"error": err.Error()}
+			fmt.Println(error)
+			c.JSON(http.StatusInternalServerError, error)
+			tx.Rollback()
+			return
+		}
+	}
+
+	tx.Rollback()
+	c.JSON(http.StatusOK, gin.H{"message": "Solution created successfully"})
 }

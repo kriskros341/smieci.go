@@ -20,18 +20,17 @@ type ResolveMarkerEditorProps = {
 }
 
 function SolveMarkerEditor(props: ResolveMarkerEditorProps) {
-  const { PreviewImageModal, openPreviewImageModal } = usePreviewImageModal()
+  const { PreviewImageModal, openPreviewImageModal } = usePreviewImageModal();
   const insets = useSafeAreaInsets();
   const { data } = useMarkerQuery(props.markerId);
-
   const { control, formState: { errors } } = useFormContext<SolveMarkerEditorFormValues>();
 
-  const originalPhotos: { uri: string, blurhash: string }[] = []
+  const originalPhotos: { uri: string, blurhash: string }[] = [];
   data?.fileNamesString?.forEach((_, index) => {
     originalPhotos.push({
       uri: getUriByUploadId(data?.fileNamesString[index]),
       blurhash: '',
-    })
+    });
   });
 
   const contentInsets = {
@@ -79,6 +78,6 @@ function SolveMarkerEditor(props: ResolveMarkerEditorProps) {
       {PreviewImageModal}
     </ScrollView>
   );
-}
+};
 
 export default SolveMarkerEditor;
