@@ -7,9 +7,11 @@ import Button from "@ui/button";
 import { useAddParticipantsModal } from "./useAddParticipantsModal";
 
 const ParticipantsFormField = ({
-  control
+  control,
+  disabled,
 }: {
-  control: Control<SolveMarkerEditorFormValues>;
+  control: Control<SolveMarkerEditorFormValues>,
+  disabled?: boolean,
 }) => {
   const { AddParticipantsModal, openAddParticipantsModal } = useAddParticipantsModal();
   const { fields, replace } = useFieldArray({
@@ -39,15 +41,17 @@ const ParticipantsFormField = ({
           <Text>I {remainder.length} innych</Text>
         </View>
       ) : null}
-      <Button
-        title="Dodaj uczestników"
-        onPress={() =>
-          openAddParticipantsModal({
-            participantsIds: fields.map((d) => d.userId),
-            onCloseRequest: (newIds: string[]) => {replace(newIds.map(newId => ({ userId: newId }))); console.log(newIds) }
-          })
-        }
+      {!disabled && (
+        <Button
+          title="Dodaj uczestników"
+          onPress={() =>
+            openAddParticipantsModal({
+              participantsIds: fields.map((d) => d.userId),
+              onCloseRequest: (newIds: string[]) => {replace(newIds.map(newId => ({ userId: newId }))); console.log(newIds) }
+            })
+          }
         />
+      )}
       {AddParticipantsModal}
     </View>
   );

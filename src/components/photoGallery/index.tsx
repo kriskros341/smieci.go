@@ -54,6 +54,8 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
   }, []);
 
   const gesture = Gesture.Pan()
+    .activeOffsetX([-10, 10])
+    .failOffsetY([-10, 10])
     .onStart((event: any) => {
         tempTranslateX.value = event.translationX;
     })

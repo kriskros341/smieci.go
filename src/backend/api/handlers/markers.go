@@ -60,6 +60,12 @@ type GetMarkerPayload struct {
 	UserId                    int64    `json:"userId"`
 	Points                    int64    `json:"points"`
 	PendingVerificationsCount int64    `json:"pendingVerificationsCount"` // -1 if approved else ++
+	LatestSolutionId          int64    `json:"latestSolutionId"`
+}
+
+type VerificationStatus struct {
+	VerificationStatus string `db:"verificationstatus"`
+	Id                 int64  `db:"id"`
 }
 
 type GetMarkerRequestPayload struct {
@@ -101,10 +107,13 @@ func (e *Env) GetMarker(c *gin.Context) {
 		return
 	}
 
+	var latestSolutionId int64
 	var pendingVerificationsCount int64
 	{
-		query = fmt.Sprintf("SELECT verification_status FROM solutions WHERE markerid = %s", markerId)
-		verificationStatusRow, err := e.Db.Query(query)
+
+		var result []VerificationStatus
+		query = fmt.Sprintf("SELECT id, verificationstatus FROM solutions WHERE markerid = %s", markerId)
+		err := e.Db.Select(&result, query)
 		if err != nil {
 			var error = gin.H{"error": err.Error()}
 			fmt.Println(error)
@@ -112,14 +121,14 @@ func (e *Env) GetMarker(c *gin.Context) {
 			return
 		}
 
-		var currentVerificationStatus string
-		for verificationStatusRow.Next() {
-			uploadRow.Scan(&currentVerificationStatus)
-			if currentVerificationStatus == "approved" {
+		for _, currentSolution := range result {
+			fmt.Println(currentSolution)
+			if currentSolution.VerificationStatus == "approved" {
 				pendingVerificationsCount = -1
 				break
-			} else if currentVerificationStatus == "pending" {
+			} else if currentSolution.VerificationStatus == "pending" {
 				pendingVerificationsCount += 1
+				latestSolutionId = currentSolution.Id
 			}
 		}
 	}
@@ -137,6 +146,7 @@ func (e *Env) GetMarker(c *gin.Context) {
 
 	defer uploadRow.Close()
 
+	marker.LatestSolutionId = latestSolutionId
 	marker.PendingVerificationsCount = pendingVerificationsCount
 	marker.FileNamesString = filesIds
 	marker.BlurHashes = blurHashes
@@ -486,7 +496,7 @@ type Photo struct {
 
 // Define a struct for participants
 type Participant struct {
-	UserId string `json:"userId"`
+	UserId string `db:"clerkid" json:"userId"`
 }
 
 // Main struct that holds the payload
@@ -603,6 +613,7 @@ func (e *Env) PostMarkerSolution(c *gin.Context) {
 			if err != nil {
 				tx.Rollback()
 				log.Fatal(err)
+				return
 			}
 			primaryFileIds = append(primaryFileIds, fmt.Sprintf("%d", id))
 		}
@@ -631,6 +642,7 @@ func (e *Env) PostMarkerSolution(c *gin.Context) {
 			if err != nil {
 				tx.Rollback()
 				log.Fatal(err)
+				return
 			}
 			additionalFileIds = append(additionalFileIds, fmt.Sprintf("%d", id))
 		}
@@ -645,6 +657,7 @@ func (e *Env) PostMarkerSolution(c *gin.Context) {
 		tx.Rollback()
 		log.Fatalln("Error executing query:", err.Error())
 		c.JSON(http.StatusInternalServerError, err)
+		return
 	}
 
 	// STEP: POPULATE SOLUTIONS-USERS RELATION
@@ -688,6 +701,90 @@ func (e *Env) PostMarkerSolution(c *gin.Context) {
 		}
 	}
 
-	tx.Rollback()
+	tx.Commit()
+	if err != nil {
+		var error = gin.H{"error": err.Error()}
+		fmt.Println(error)
+		c.JSON(http.StatusInternalServerError, error)
+		tx.Rollback()
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"message": "Solution created successfully"})
+}
+
+// KCTODO move to solutions.go
+type GetSolutionRequestPayload struct {
+	SolutionId string `uri:"solutionId" binding:"required"`
+}
+
+type SolutionUpload struct {
+	Upload
+	UploadType string `db:"uploadtype"`
+}
+
+type GetSolutionResponsePayload struct {
+	Participants     []Participant    `json:"participants"`
+	Photos           []SolutionUpload `json:"photos"`
+	AdditionalPhotos []SolutionUpload `json:"additionalPhotos"`
+}
+
+func (e *Env) GetSolution(c *gin.Context) {
+
+	var solutionRequestPayload GetSolutionRequestPayload
+
+	if err := c.ShouldBindUri(&solutionRequestPayload); err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+	solutionId := solutionRequestPayload.SolutionId
+
+	var participants []Participant
+	// get associated users
+	{
+		query := fmt.Sprintf(`
+select users.clerkid FROM solutions_users_relation susr
+	join users on susr.clerkid = users.clerkid
+WHERE susr.solutionid = %s;
+			`, solutionId)
+		fmt.Printf("executing query: %s", query)
+		err := e.Db.Select(&participants, query)
+		if err != nil {
+			log.Fatalln("Error executing query:", err.Error())
+			c.JSON(http.StatusInternalServerError, err)
+			return
+		}
+	}
+	var uplodads []SolutionUpload
+	// get associated uploads
+	{
+		query := fmt.Sprintf(`
+select supr.id, filename, blurhash, uploadtype FROM solutions_uploads_relation supr
+	join uploads on supr.uploadid = uploads.id
+WHERE supr.solutionid = %s;
+			`, solutionId)
+		fmt.Printf("executing query: %s", query)
+		err := e.Db.Select(&uplodads, query)
+		if err != nil {
+			log.Fatalln("Error executing query:", err.Error())
+			c.JSON(http.StatusInternalServerError, err)
+			return
+		}
+	}
+
+	var additionalPhotos []SolutionUpload
+	var primaryPhotos []SolutionUpload
+	for _, upload := range uplodads {
+		if upload.UploadType == "additional" {
+			additionalPhotos = append(additionalPhotos, upload)
+		} else {
+			primaryPhotos = append(primaryPhotos, upload)
+		}
+	}
+	result := GetSolutionResponsePayload{
+		Participants:     participants,
+		Photos:           primaryPhotos,
+		AdditionalPhotos: additionalPhotos,
+	}
+	c.JSON(http.StatusOK, result)
 }

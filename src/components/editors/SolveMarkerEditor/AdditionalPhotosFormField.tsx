@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from "react-native";
-import { Control, useFieldArray } from "react-hook-form";
+import { Control, useFieldArray, useFormContext } from "react-hook-form";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from "react-native-reanimated";
 import * as ImagePicker from "expo-image-picker";
@@ -9,13 +9,15 @@ import clsx from "clsx";
 import AntDesign from "@expo/vector-icons/AntDesign";
 
 import { SolveMarkerEditorFormValues } from "./interfaces";
-
+// KCTODO nie ustawiają się zdjęcia? RESET
 const AdditionalPhotosFormField = ({
   control,
   openPreviewImageModal,
+  disabled,
 }: {
   control: Control<SolveMarkerEditorFormValues>;
   openPreviewImageModal: (uri: string) => void;
+  disabled?: boolean,
 }) => {
   const { fields, append } = useFieldArray({
     name: "additionalPhotos",
@@ -31,6 +33,7 @@ const AdditionalPhotosFormField = ({
       append({ uri: result.assets[0].uri });
     }
   };
+
   const displayFields = fields.map(({ uri }, idx) => {
     const dobuleTap = Gesture.Tap()
       .numberOfTaps(2)
@@ -58,6 +61,7 @@ const AdditionalPhotosFormField = ({
   displayFields.push(
     <Pressable
       onPress={onPhoto}
+      disabled={disabled}
       className="aspect-[0.6] basis-1/3 flex justify-center items-center"
     >
       {({ pressed }) => (

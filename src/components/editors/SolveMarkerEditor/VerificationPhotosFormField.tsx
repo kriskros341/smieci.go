@@ -13,7 +13,21 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SolveMarkerEditorFormValues } from "./interfaces";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui/tooltip";
 
-const VerificationPhotosFormField = ({ control, openPreviewImageModal, originalPhotos, errors }: { errors: any, originalPhotos: { uri: string, blurhash: string }[], control: Control<SolveMarkerEditorFormValues>, openPreviewImageModal: (uri: string) => void }) => {
+interface VerificationPhotoFormFieldProps {
+  errors: any,
+  originalPhotos: { uri: string, blurhash: string }[],
+  control: Control<SolveMarkerEditorFormValues>,
+  openPreviewImageModal: (uri: string) => void,
+  disabled?: boolean
+}
+
+const VerificationPhotosFormField = ({
+  control,
+  openPreviewImageModal,
+  originalPhotos,
+  errors,
+  disabled,
+ }: VerificationPhotoFormFieldProps) => {
   const {
     VerificationPhotoModal,
     openVerificationPhotoModal,
@@ -55,12 +69,12 @@ const VerificationPhotosFormField = ({ control, openPreviewImageModal, originalP
       <View className="relative flex basis-1/3 aspect-[0.6]">
         <Pressable
           key={`original-photo-${idx}`}
-          className={clsx("h-full p-1", isOriginalPhoto && "opacity-60")}
+          className={clsx("h-full p-1", !disabled && isOriginalPhoto && "opacity-60")}
           onPress={() => setActivePhotoIdx(idx)}
         >
           <GestureDetector gesture={dobuleTap}>
             <Image
-              className={clsx("flex-1", idx === activePhotoIdx && "border-4 border-green-600")}
+              className={clsx("flex-1", !disabled && idx === activePhotoIdx && "border-4 border-green-600")}
               source={{
                 uri: isOriginalPhoto ? uri : fields[idx].uri,
                 blurhash,
@@ -85,7 +99,8 @@ const VerificationPhotosFormField = ({ control, openPreviewImageModal, originalP
   });
 
   const buttons = [];
-  if (fields[activePhotoIdx]?.uri) {
+  if (disabled) {
+  } else if (fields[activePhotoIdx]?.uri) {
     buttons.push(
       <Button
         title="Podmień"

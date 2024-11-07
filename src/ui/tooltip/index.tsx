@@ -5,8 +5,7 @@ import { Platform, StyleSheet, Text as RNText } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import * as Slot from '@rn-primitives/slot';
 import { SlottableTextProps, TextRef } from '@rn-primitives/types';
-
-const TextClassContext = React.createContext<string | undefined>(undefined);
+import { TextClassContext } from '@ui/text';
 
 const Text = React.forwardRef<TextRef, SlottableTextProps>(
   ({ className, asChild = false, ...props }, ref) => {

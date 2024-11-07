@@ -17,6 +17,7 @@ import ParticipantsFormField from "./ParticipantsFormField";
 
 type ResolveMarkerEditorProps = {
   markerId: unknown,
+  disabled?: boolean
 }
 
 function SolveMarkerEditor(props: ResolveMarkerEditorProps) {
@@ -45,7 +46,7 @@ function SolveMarkerEditor(props: ResolveMarkerEditorProps) {
       <DividerWithText>
         <Text className="mr-2">Uczestnicy<Text className="text-red-800">*</Text></Text>
       </DividerWithText>
-      <ParticipantsFormField control={control} />
+      <ParticipantsFormField control={control} disabled />
       <DividerWithText>
         <Text className="mr-2">Zdjęcia ze zgłoszenia<Text className="text-red-800">*</Text></Text>
         <Tooltip delayDuration={150}>
@@ -62,6 +63,7 @@ function SolveMarkerEditor(props: ResolveMarkerEditorProps) {
         errors={errors.photos}
         openPreviewImageModal={openPreviewImageModal}
         originalPhotos={originalPhotos}
+        disabled={props.disabled}
       />
       <DividerWithText>
         <Text className="mr-2">Dodatkowe zdjęcia</Text>
@@ -74,7 +76,11 @@ function SolveMarkerEditor(props: ResolveMarkerEditorProps) {
           </TooltipContent>
         </Tooltip>
       </DividerWithText>
-      <AdditionalPhotosFormField control={control} openPreviewImageModal={openPreviewImageModal} />
+      <AdditionalPhotosFormField
+        control={control}
+        openPreviewImageModal={openPreviewImageModal}
+        disabled={props.disabled}
+      />
       {PreviewImageModal}
     </ScrollView>
   );
