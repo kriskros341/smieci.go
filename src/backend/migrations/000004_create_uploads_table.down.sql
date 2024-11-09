@@ -1,5 +1,0 @@
-DROP TABLE IF EXISTS uploads CASCADE;
-
-DROP TABLE IF EXISTS relation_marker_uploads CASCADE;
-
-ALTER TABLE markers ADD COLUMN base64Image TEXT NOT NULL;

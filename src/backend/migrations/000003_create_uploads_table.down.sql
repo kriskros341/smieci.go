@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS relation_marker_uploads CASCADE;
