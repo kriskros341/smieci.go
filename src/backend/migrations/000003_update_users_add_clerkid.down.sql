@@ -1,1 +1,1 @@
-ALTER TABLE Users DROP COLUMN clerkId;
+ALTER TABLE users DROP COLUMN clerkId;

@@ -1,1 +1,1 @@
-ALTER TABLE Users ADD COLUMN clerkId TEXT unique;
+ALTER TABLE users ADD COLUMN clerkId TEXT unique;

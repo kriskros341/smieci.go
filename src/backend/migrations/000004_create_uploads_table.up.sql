@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS uploads(
     blurHash VARCHAR(256)
 );
 
-create table if not exists RELATION_MARKER_UPLOADS (
+create table if not exists relation_marker_uploads (
 	id SERIAL primary key,
   	markerId INTEGER NOT NULL,
   	uploadId INTEGER NOT NULL,
@@ -12,4 +12,4 @@ create table if not exists RELATION_MARKER_UPLOADS (
 	foreign key (uploadId) references uploads(id)
 );
 
-ALTER TABLE MARKERS DROP COLUMN base64Image;
+ALTER TABLE markers DROP COLUMN base64Image;

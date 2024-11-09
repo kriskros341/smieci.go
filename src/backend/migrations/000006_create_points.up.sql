@@ -9,6 +9,6 @@ create table points_traces (
 
 alter table users add column points INTEGER NOT NULL DEFAULT 0;
 
-ALTER TABLE users add column profileImageURL Text default 'https://www.gravatar.com/avatar?d=mp'
+ALTER TABLE users add column profileImageURL Text default 'https://www.gravatar.com/avatar?d=mp';
 
 alter table markers add column points INTEGER NOT NULL DEFAULT 0;

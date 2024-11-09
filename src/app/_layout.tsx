@@ -1,12 +1,12 @@
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-expo";
+import { PortalHost } from "@rn-primitives/portal";
 import Constants from "expo-constants";
 import { Stack } from "expo-router/stack";
 import * as SecureStore from "expo-secure-store";
 import { useState } from "react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import Toast from 'react-native-toast-message';
-import { PortalHost } from '@rn-primitives/portal';
+import Toast from "react-native-toast-message";
 
 import CustomQueryClientProvider from "@components/queryClientProvider";
 import SignInScreen from "./clerk/signin";
@@ -54,17 +54,14 @@ function RootLayout() {
   const token = Constants?.expoConfig?.extra?.clerkPublishableKey;
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ClerkProvider
-        tokenCache={tokenCache}
-        publishableKey={token}
-      >
+      <ClerkProvider tokenCache={tokenCache} publishableKey={token}>
         <CustomQueryClientProvider>
-            <Guarded>
-              <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="markers/[id]" />
-              </Stack>
-            </Guarded>
+          <Guarded>
+            <Stack screenOptions={{ headerShown: false, animation: "fade" }}>
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="markers/[id]" />
+            </Stack>
+          </Guarded>
         </CustomQueryClientProvider>
       </ClerkProvider>
       <PortalHost />

@@ -4,5 +4,5 @@ CREATE table if not exists markers (
   lat DECIMAL(9,6) NOT NULL,
   long DECIMAL(9,6) NOT NULL,
   base64Image TEXT NOT NULL,
-  FOREIGN KEY (userId) REFERENCES Users(id)
+  FOREIGN KEY (userId) REFERENCES users(id)
 );

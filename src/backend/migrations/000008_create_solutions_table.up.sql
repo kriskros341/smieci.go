@@ -1,11 +1,11 @@
 -- Create the solutions_uploads_relation table (without foreign key constraints)
-create type upload_type AS ENUM (
+create type upload_type  AS ENUM (
     'primary',
     'additional'
 );
 
 -- Create the solutions_uploads_relation table (without foreign key constraints)
-create type verification_status AS ENUM (
+create type verification_status_enum AS ENUM (
     'pending',
     'denied',
     'approved'
@@ -29,7 +29,7 @@ CREATE TABLE solutions_users_relation (
 CREATE TABLE solutions (
     id SERIAL PRIMARY KEY,
     markerId INTEGER NOT NULL,
-    verification_status NOT NULL DEFAULT 'pending'
+    verification_status verification_status_enum NOT NULL DEFAULT 'pending'
 );
 
 ALTER TABLE solutions_users_relation ADD CONSTRAINT UQ_UserId_MarkerId UNIQUE(clerkId, solutionId);
