@@ -28,7 +28,7 @@ function Layout() {
       <Tabs.Screen
         name="account"
         options={{
-          title: user?.username ?? '',
+          title: user?.username ?? "",
         }}
       />
     </Tabs>

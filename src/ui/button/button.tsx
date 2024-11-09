@@ -7,7 +7,7 @@ interface Props {
   title: string;
   className?: string;
   textClassName?: string;
-  disabled?: boolean,
+  disabled?: boolean;
 }
 
 const Button: React.FC<Props> = ({
@@ -20,7 +20,10 @@ const Button: React.FC<Props> = ({
   return (
     <Pressable
       onPress={onPress}
-      className={cn(`bg-blue-500 p-2 ${disabled ? "opacity-40" : ''}`, className)}
+      className={cn(
+        `bg-blue-500 p-2 ${disabled ? "opacity-40" : ""}`,
+        className,
+      )}
       disabled={disabled}
     >
       <Text className={cn("text-white", textClassName)}>{title}</Text>

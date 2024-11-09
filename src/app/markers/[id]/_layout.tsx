@@ -1,11 +1,11 @@
 import { Stack, useRouter } from "expo-router";
-import Ionicons from '@expo/vector-icons/Ionicons';
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { TouchableOpacity } from "react-native-gesture-handler";
 
 const MapStack = () => {
   const router = useRouter();
   return (
-    <Stack screenOptions={{ animation: 'fade' }}>
+    <Stack screenOptions={{ animation: "fade" }}>
       <Stack.Screen
         name="index"
         options={{
@@ -21,9 +21,12 @@ const MapStack = () => {
       <Stack.Screen name="supporters" options={{ title: "Wspierający" }} />
       <Stack.Screen name="solvePreface" options={{ title: "Rozwiązywanie" }} />
       <Stack.Screen name="solve" options={{ title: "Rozwiązywanie" }} />
-      <Stack.Screen name="solution/[solutionId]" options={{ title: "Rozwiązanie" }} />
+      <Stack.Screen
+        name="solution/[solutionId]"
+        options={{ title: "Rozwiązanie" }}
+      />
     </Stack>
-  )
-}
+  );
+};
 
 export default MapStack;

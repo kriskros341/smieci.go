@@ -1,6 +1,6 @@
 import { useUsers } from "@hooks/useUsersQuery";
 import { Control, useFieldArray } from "react-hook-form";
-import { View, Text } from "react-native"
+import { View, Text } from "react-native";
 import { SolveMarkerEditorFormValues } from "./interfaces";
 import Avatar from "@ui/avatar";
 import Button from "@ui/button";
@@ -10,10 +10,11 @@ const ParticipantsFormField = ({
   control,
   disabled,
 }: {
-  control: Control<SolveMarkerEditorFormValues>,
-  disabled?: boolean,
+  control: Control<SolveMarkerEditorFormValues>;
+  disabled?: boolean;
 }) => {
-  const { AddParticipantsModal, openAddParticipantsModal } = useAddParticipantsModal();
+  const { AddParticipantsModal, openAddParticipantsModal } =
+    useAddParticipantsModal();
   const { fields, replace } = useFieldArray({
     name: "participants",
     control,
@@ -24,17 +25,17 @@ const ParticipantsFormField = ({
   return (
     <View>
       {fields.slice(0, 3).map(({ userId }) => {
-        const user = data?.find(({ clerkid }: { clerkid: string }) => clerkid === userId)
+        const user = data?.find(
+          ({ clerkid }: { clerkid: string }) => clerkid === userId,
+        );
         return (
           <View className="flex flex-row items-center p-2">
-            <Avatar
-              imageUrl={user?.profileImageURL}
-            />
+            <Avatar imageUrl={user?.profileImageURL} />
             <View className="mx-2">
               <Text>{user?.username}</Text>
             </View>
           </View>
-        )
+        );
       })}
       {remainder.length ? (
         <View>
@@ -47,7 +48,10 @@ const ParticipantsFormField = ({
           onPress={() =>
             openAddParticipantsModal({
               participantsIds: fields.map((d) => d.userId),
-              onCloseRequest: (newIds: string[]) => {replace(newIds.map(newId => ({ userId: newId }))); console.log(newIds) }
+              onCloseRequest: (newIds: string[]) => {
+                replace(newIds.map((newId) => ({ userId: newId })));
+                console.log(newIds);
+              },
             })
           }
         />

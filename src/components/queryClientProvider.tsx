@@ -5,27 +5,30 @@ import { ActivityIndicator, View } from "react-native";
 
 import { useAxios } from "@hooks/use-axios";
 
-const getDefaultFetcher = (axios: AxiosInstance) => async ({ queryKey }: { queryKey: unknown[] } & any) => {
-  return axios.get(queryKey[0])
-    .then((response) => response.data)
-    .catch(err => {
-      console.error(JSON.stringify(err, null, 2));
-      throw err;
-    });
-}
+const getDefaultFetcher =
+  (axios: AxiosInstance) =>
+  async ({ queryKey }: { queryKey: unknown[] } & any) => {
+    return axios
+      .get(queryKey[0])
+      .then((response) => response.data)
+      .catch((err) => {
+        console.error(JSON.stringify(err, null, 2));
+        throw err;
+      });
+  };
 
 const CustomQueryClientProvider = (props: any) => {
   // Komponent ten został wydzielony, ponieważ useAxios można wykorzystać jedynie wewnątrz ClerkProvidera
-  const axios = useAxios()
+  const axios = useAxios();
   const queryClientRef = useRef<QueryClient>();
 
   useEffect(() => {
     queryClientRef.current = new QueryClient({
       defaultOptions: {
         queries: {
-          queryFn: getDefaultFetcher(axios)
-        }
-      }
+          queryFn: getDefaultFetcher(axios),
+        },
+      },
     });
   }, [axios]);
 
@@ -41,7 +44,7 @@ const CustomQueryClientProvider = (props: any) => {
     <QueryClientProvider client={queryClientRef.current}>
       {props.children}
     </QueryClientProvider>
-  )
-}
+  );
+};
 
-export default CustomQueryClientProvider
+export default CustomQueryClientProvider;

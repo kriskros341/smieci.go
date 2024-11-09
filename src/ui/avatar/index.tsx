@@ -1,7 +1,7 @@
 import * as React from "react";
 import { View, Text } from "react-native";
 import { cn } from "@utils/cn";
-import { Image } from 'expo-image'
+import { Image } from "expo-image";
 
 interface AvatarProps {
   size?: number;
@@ -12,7 +12,7 @@ interface AvatarProps {
   initials?: string;
   backgroundColor?: string;
   textColor?: string;
-  className?: string,
+  className?: string;
 }
 
 const Avatar: React.FC<AvatarProps> = ({
@@ -37,7 +37,7 @@ const Avatar: React.FC<AvatarProps> = ({
       className={cn(
         `flex items-center justify-center ${backgroundColor}`,
         `border ${borderColor}`,
-        className && className
+        className && className,
       )}
       style={{ ...avatarSize, borderWidth }}
     >

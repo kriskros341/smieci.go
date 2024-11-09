@@ -3,5 +3,5 @@ export type FormData = {
   emailAddress: string;
   password: string;
   confirmPassword: string;
-  code: string,
+  code: string;
 };

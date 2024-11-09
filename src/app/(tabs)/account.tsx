@@ -15,11 +15,11 @@ const Account = () => {
   const { data: userData } = useQuery({
     queryFn: () => _getUserByClerkId(axios, user?.id),
     queryKey: [user?.id],
-    enabled: !!user?.id
+    enabled: !!user?.id,
   });
 
-  console.log({ id: user?.id })
-  console.log({ useruri: user?.imageUrl })
+  console.log({ id: user?.id });
+  console.log({ useruri: user?.imageUrl });
 
   return (
     <View className="flex-1 bg-#fff items-center p-8 gap-8">

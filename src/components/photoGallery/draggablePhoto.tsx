@@ -4,19 +4,25 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 
 import { cn } from "@utils/cn";
 
-export const DraggablePhoto = ({ item, drag, isActive, isDragDisabled }: any) => {
+export const DraggablePhoto = ({
+  item,
+  drag,
+  isActive,
+  isDragDisabled,
+}: any) => {
   if (isDragDisabled) {
     return (
-      <TouchableOpacity
-        onPress={item.onFocus}
-      >
+      <TouchableOpacity onPress={item.onFocus}>
         <Image
-            className={cn("aspect-square h-full bg-green-100", item.isFocused && "border-yellow-500 border-4")}
-            source={{ uri: item.uri }}
-            placeholder={{ blurhash: item.blurhash }}
-          />
+          className={cn(
+            "aspect-square h-full bg-green-100",
+            item.isFocused && "border-yellow-500 border-4",
+          )}
+          source={{ uri: item.uri }}
+          placeholder={{ blurhash: item.blurhash }}
+        />
       </TouchableOpacity>
-    )
+    );
   }
   return (
     <ScaleDecorator>
@@ -26,9 +32,13 @@ export const DraggablePhoto = ({ item, drag, isActive, isDragDisabled }: any) =>
         disabled={isActive}
       >
         <Image
-          className={cn("aspect-square h-full bg-green-100", item.isFocused && "border-yellow-500 border-4")}
+          className={cn(
+            "aspect-square h-full bg-green-100",
+            item.isFocused && "border-yellow-500 border-4",
+          )}
           source={{ uri: item.uri }}
-          placeholder={{ blurhash: item.blurhash }} />
+          placeholder={{ blurhash: item.blurhash }}
+        />
       </TouchableOpacity>
     </ScaleDecorator>
   );

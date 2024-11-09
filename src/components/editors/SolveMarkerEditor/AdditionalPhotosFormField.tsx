@@ -17,7 +17,7 @@ const AdditionalPhotosFormField = ({
 }: {
   control: Control<SolveMarkerEditorFormValues>;
   openPreviewImageModal: (uri: string) => void;
-  disabled?: boolean,
+  disabled?: boolean;
 }) => {
   const { fields, append } = useFieldArray({
     name: "additionalPhotos",
@@ -69,7 +69,7 @@ const AdditionalPhotosFormField = ({
           <View
             className={clsx(
               "flex justify-center items-center p-1 rounded-lg shadow-md shadow-black bg-blue-500",
-              pressed && "opacity-50"
+              pressed && "opacity-50",
             )}
           >
             <AntDesign
@@ -82,7 +82,7 @@ const AdditionalPhotosFormField = ({
           <Text className="mt-4">Dodaj zdjęcie</Text>
         </View>
       )}
-    </Pressable>
+    </Pressable>,
   );
 
   return (
