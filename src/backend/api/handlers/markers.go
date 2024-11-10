@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"backend/api/auth"
 	"bytes"
 	"image"
 	"io"
@@ -11,8 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-
-	"backend/api/auth"
 
 	"encoding/json"
 	"fmt"
@@ -57,7 +56,7 @@ type GetMarkerPayload struct {
 	Long                      float64  `json:"long"`
 	FileNamesString           []string `json:"fileNamesString"`
 	BlurHashes                []string `json:"blurHashes"`
-	UserId                    int64    `json:"userId"`
+	UserId                    string   `json:"userId"`
 	Points                    int64    `json:"points"`
 	PendingVerificationsCount int64    `json:"pendingVerificationsCount"` // -1 if approved else ++
 	LatestSolutionId          int64    `json:"latestSolutionId"`
@@ -351,7 +350,7 @@ func (e *Env) CreateMarker(c *gin.Context) {
 	query := `
 	INSERT INTO Markers (userId, lat, long, mainPhotoId)
 		VALUES (
-			(SELECT id FROM Users WHERE clerkId = :clerkId),
+			:clerkId,
 			:lat,
 			:long,
 			:mainPhotoId
@@ -406,9 +405,9 @@ func (e *Env) CreateMarker(c *gin.Context) {
 }
 
 type SupportMarkerBody struct {
-	UserId   int32 `json:"userId"`
-	MarkerId int32 `json:"markerId"`
-	Amount   int64 `json:"amount"`
+	UserId   string `json:"userId"`
+	MarkerId int32  `json:"markerId"`
+	Amount   int64  `json:"amount"`
 }
 
 func (e *Env) SupportMarker(c *gin.Context) {
@@ -420,9 +419,9 @@ func (e *Env) SupportMarker(c *gin.Context) {
 		return
 	}
 
-	usersQuery := fmt.Sprintf(`UPDATE users SET points = points - %d where id = %d`, body.Amount, body.UserId)
+	usersQuery := fmt.Sprintf(`UPDATE users SET points = points - %d where id = '%s'`, body.Amount, body.UserId)
 	markersQuery := fmt.Sprintf(`UPDATE markers SET points = points + %d WHERE id = %d`, body.Amount, body.MarkerId)
-	tracesQuery := fmt.Sprintf(`INSERT INTO points_traces (userId, markerId, amount) VALUES (%d, %d, %d)`, body.UserId, body.MarkerId, body.Amount)
+	tracesQuery := fmt.Sprintf(`INSERT INTO points_traces (userId, markerId, amount) VALUES ('%s', %d, %d)`, body.UserId, body.MarkerId, body.Amount)
 
 	tx, err := e.Db.Begin()
 	if err != nil {
@@ -461,10 +460,10 @@ func (e *Env) SupportMarker(c *gin.Context) {
 }
 
 type GetMarkerSupportersResult struct {
-	Id              int32  `json:"id"`
-	Username        string `json:"username"`
-	Total           int32  `json:"total"`
-	ProfileImageUrl *int32 `json:"profileImageUrl"`
+	Id              string  `json:"id"`
+	Username        string  `json:"username"`
+	Total           int32   `json:"total"`
+	ProfileImageUrl *string `json:"profileImageUrl"`
 }
 
 func (e *Env) GetMarkerSupporters(c *gin.Context) {
@@ -478,7 +477,7 @@ func (e *Env) GetMarkerSupporters(c *gin.Context) {
 		return
 	}
 
-	query := fmt.Sprintf(`select u.id, u.username, SUM(pt.amount) as total, u.profileImageUrl from points_traces pt join users u on pt.userId = u.id where pt.markerId = %s group by u.id`, getMarkerRequestPayload.MarkerId)
+	query := fmt.Sprintf(`select u.id as id, u.username, SUM(pt.amount) as total, u.profileImageUrl from points_traces pt join users u on pt.userId = u.id where pt.markerId = %s group by u.id`, getMarkerRequestPayload.MarkerId)
 	fmt.Printf("Executing query: %s\n", query)
 	if err := e.Db.Select(&results, query); err != nil {
 		fmt.Println(err.Error())
@@ -491,12 +490,12 @@ func (e *Env) GetMarkerSupporters(c *gin.Context) {
 
 // Define a struct for photos with an optional URI field
 type Photo struct {
-	Uri *string `json:"uri,omitempty"` // Pointer allows for null (optional) value
+	Uri *string `json:"uri"` // Pointer allows for null (optional) value
 }
 
 // Define a struct for participants
 type Participant struct {
-	UserId string `db:"clerkid" json:"userId"`
+	UserId string `db:"id" json:"userId"`
 }
 
 // Main struct that holds the payload
@@ -664,9 +663,9 @@ func (e *Env) PostMarkerSolution(c *gin.Context) {
 	{
 		values := []string{}
 		for _, participant := range payload.Participants {
-			values = append(values, fmt.Sprintf(`('%d', '%s')`, solutionId, participant.UserId))
+			values = append(values, fmt.Sprintf(`(%d, '%s')`, solutionId, participant.UserId))
 		}
-		insertSolutionUsersQuery := fmt.Sprintf(`INSERT INTO solutions_users_relation (solutionid, clerkid) VALUES %s`, strings.Join(values, ","))
+		insertSolutionUsersQuery := fmt.Sprintf(`INSERT INTO solutions_users_relation (solutionid, userId) VALUES %s`, strings.Join(values, ","))
 		fmt.Println("Executing query:", insertSolutionUsersQuery)
 		_, err := tx.Exec(insertSolutionUsersQuery)
 
@@ -743,8 +742,8 @@ func (e *Env) GetSolution(c *gin.Context) {
 	// get associated users
 	{
 		query := fmt.Sprintf(`
-select users.clerkid FROM solutions_users_relation susr
-	join users on susr.clerkid = users.clerkid
+select users.id FROM solutions_users_relation susr
+	join users on susr.userid = users.id
 WHERE susr.solutionid = %s;
 			`, solutionId)
 		fmt.Printf("executing query: %s", query)
