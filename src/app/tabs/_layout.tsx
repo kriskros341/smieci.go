@@ -14,9 +14,7 @@ export default function Layout() {
             display: "none",
           },
           href: "/tabs/map",
-          header() {
-            return null;
-          },
+          headerShown: false,
         }}
       />
       <Tabs.Screen

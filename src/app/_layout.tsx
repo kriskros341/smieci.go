@@ -2,7 +2,7 @@ import { ClerkProvider } from "@clerk/clerk-expo";
 import CustomQueryClientProvider from "@components/queryClientProvider";
 import { PortalHost } from "@rn-primitives/portal";
 import Constants from "expo-constants";
-import { Slot } from "expo-router";
+import { Stack } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
@@ -31,7 +31,11 @@ function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ClerkProvider tokenCache={tokenCache} publishableKey={token}>
         <CustomQueryClientProvider>
-          <Slot />
+          <Stack screenOptions={{ headerShown: false }}  >
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="markers/[id]" />
+            <Stack.Screen name="tabs" />
+          </Stack>
         </CustomQueryClientProvider>
         <PortalHost />
         <Toast />

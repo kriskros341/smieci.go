@@ -2,10 +2,10 @@ import { Stack, useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { TouchableOpacity } from "react-native-gesture-handler";
 
-const MapStack = () => {
+const MarkerStack = () => {
   const router = useRouter();
   return (
-    <Stack screenOptions={{ animation: "fade" }}>
+    <Stack>
       <Stack.Screen
         name="index"
         options={{
@@ -29,4 +29,4 @@ const MapStack = () => {
   );
 };
 
-export default MapStack;
+export default MarkerStack;

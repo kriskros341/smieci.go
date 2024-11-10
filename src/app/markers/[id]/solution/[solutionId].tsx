@@ -16,7 +16,6 @@ const PreivewMarkerSolution = () => {
   const { solutionId, id } = useLocalSearchParams();
   const { data } = useSolutionQuery(solutionId as string);
 
-  console.log({ data });
   const methods = useForm<SolveMarkerEditorFormValues>({});
   const { reset } = methods;
   useEffect(() => {
