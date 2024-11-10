@@ -146,7 +146,9 @@ func (e *Env) GetUserByClerkId(c *gin.Context) {
 	fmt.Println("Executing query:", query, "with userId:", ClerkId)
 	err := e.Db.Get(&user, query, ClerkId)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		var e = gin.H{"error": err.Error()}
+		fmt.Println(e)
+		c.JSON(http.StatusInternalServerError, e)
 		return
 	}
 

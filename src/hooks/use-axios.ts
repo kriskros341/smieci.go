@@ -5,7 +5,7 @@ export const useAxios = () => {
   const { getToken } = useAuth();
   const baseURL = process.env.EXPO_PUBLIC_API_URL;
   if (!baseURL) {
-    throw "missing apiURL configuration";
+    throw new Error("missing EXPO_PUBLIC_API_URL configuration");
   }
 
   const instance = axios.create({

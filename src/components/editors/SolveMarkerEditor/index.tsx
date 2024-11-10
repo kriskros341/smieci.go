@@ -33,7 +33,7 @@ function SolveMarkerEditor(props: ResolveMarkerEditorProps) {
   data?.fileNamesString?.forEach((_, index) => {
     originalPhotos.push({
       uri: getUriByUploadId(data?.fileNamesString[index]),
-      blurhash: "",
+      blurhash: data?.blurHashes[index],
     });
   });
 
@@ -51,7 +51,10 @@ function SolveMarkerEditor(props: ResolveMarkerEditorProps) {
           Uczestnicy<Text className="text-red-800">*</Text>
         </Text>
       </DividerWithText>
-      <ParticipantsFormField control={control} disabled />
+      <ParticipantsFormField
+        control={control}
+        disabled={props.disabled}
+      />
       <DividerWithText>
         <Text className="mr-2">
           Zdjęcia ze zgłoszenia<Text className="text-red-800">*</Text>

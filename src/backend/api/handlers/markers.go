@@ -64,7 +64,7 @@ type GetMarkerPayload struct {
 }
 
 type VerificationStatus struct {
-	VerificationStatus string `db:"verificationstatus"`
+	VerificationStatus string `db:"verification_status"`
 	Id                 int64  `db:"id"`
 }
 
@@ -112,7 +112,7 @@ func (e *Env) GetMarker(c *gin.Context) {
 	{
 
 		var result []VerificationStatus
-		query = fmt.Sprintf("SELECT id, verificationstatus FROM solutions WHERE markerid = %s", markerId)
+		query = fmt.Sprintf("SELECT id, verification_status FROM solutions WHERE markerid = %s", markerId)
 		err := e.Db.Select(&result, query)
 		if err != nil {
 			var error = gin.H{"error": err.Error()}

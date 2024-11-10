@@ -5,9 +5,11 @@ type MarkerResponse = {
   lat: number;
   long: number;
   fileNamesString: string[];
-  blurhashes: string[];
   userId: string;
   points: number;
+  blurHashes: string[];
+  pendingVerificationsCount: number,
+  latestSolutionId: number
 };
 
 export const useMarkerQuery = (key: unknown) => {

@@ -18,7 +18,7 @@ const SolvePreface = () => {
       <Button
         title="Podziel się rezultatem"
         onPress={() =>
-          router.replace({ pathname: `markers/${id}/solution/create` })
+          router.replace({ pathname: `markers/${id}/solve` })
         }
       />
     </View>

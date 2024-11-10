@@ -10,7 +10,7 @@ import { useYesNoModal } from "@hooks/modals/useYesNoModal";
 import { isEqual } from "lodash-es";
 import Toast from "react-native-toast-message";
 import { useUser } from "@clerk/clerk-expo";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAxios } from "@hooks/use-axios";
 import { AxiosInstance } from "axios";
 import { ActivityIndicator } from "react-native";
@@ -73,8 +73,10 @@ const SolveMarker = () => {
   const { data } = useMarkerQuery(id);
   const { YesNoModal, openYesNoModal } = useYesNoModal();
   const { user } = useUser();
+  const queryClient = useQueryClient();
   const solveMarkerMutation = useSolveMarkerMutation(id as string, {
     onSuccess: () => {
+      queryClient.refetchQueries({ queryKey: [`markers/${id}`] })
       navigation.removeListener("beforeRemove", onBeforeRemove);
       navigation.goBack();
       Toast.show({

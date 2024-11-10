@@ -34,9 +34,9 @@ module.exports = {
     plugins: ["expo-router", "expo-secure-store", "expo-image-picker"],
     extra: {
       clerkPublishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY,
-      eas: {
-        projectId: "84b4e448-a347-47ed-b16f-fd35172e9e44",
-      },
+      // eas: {
+      //   projectId: "84b4e448-a347-47ed-b16f-fd35172e9e44",
+      // },
     },
   },
 };

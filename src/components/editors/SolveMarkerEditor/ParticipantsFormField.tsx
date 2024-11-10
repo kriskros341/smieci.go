@@ -24,7 +24,7 @@ const ParticipantsFormField = ({
 
   return (
     <View>
-      {fields.slice(0, 3).map(({ userId }) => {
+      {fields.slice(0, 3)?.map(({ userId }) => {
         const user = data?.find(
           ({ clerkid }: { clerkid: string }) => clerkid === userId,
         );

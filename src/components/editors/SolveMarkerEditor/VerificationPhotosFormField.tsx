@@ -89,9 +89,9 @@ const VerificationPhotosFormField = ({
                   idx === activePhotoIdx &&
                   "border-4 border-green-600",
               )}
+              key={isOriginalPhoto ? uri : fields[idx].uri}
               source={{
                 uri: isOriginalPhoto ? uri : fields[idx].uri,
-                blurhash,
               }}
             />
           </GestureDetector>

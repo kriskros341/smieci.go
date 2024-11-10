@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from "react-native";
-import { Control, useFieldArray, useFormContext } from "react-hook-form";
+import { Control, useFieldArray } from "react-hook-form";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from "react-native-reanimated";
 import * as ImagePicker from "expo-image-picker";

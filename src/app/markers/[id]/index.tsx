@@ -1,4 +1,5 @@
 import PhotoGallery from "@components/photoGallery";
+import { useMarkerQuery } from "@hooks/useMarkerQuery";
 import { useQuery } from "@tanstack/react-query";
 import Avatar from "@ui/avatar";
 import { Badge } from "@ui/badge";
@@ -19,18 +20,12 @@ const mapStyle = [
   },
 ];
 
-const useMarkerQuery = (key: unknown) => {
-  const data = useQuery<any>({
-    queryKey: [`/markers/${key}`],
-  });
-  return data;
-};
-
 const MarkerPreview = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const { data } = useMarkerQuery(id);
 
+  console.log({ data })
   const photos =
     data?.fileNamesString?.map((uri: string, idx: number) => ({
       uri: process.env.EXPO_PUBLIC_API_URL + "/uploads/" + uri,
@@ -53,7 +48,7 @@ const MarkerPreview = () => {
             <Text>Zaakcpetowany</Text>
           </Badge>
         )}
-        {data?.pendingVerificationsCount > 0 && (
+        {data && data?.pendingVerificationsCount > 0 && (
           <Badge className="bg-yellow-600">
             <Text>Oczekuje weryfikacji</Text>
           </Badge>
@@ -135,7 +130,7 @@ const MarkerPreview = () => {
                 <Button
                   title="Więcej"
                   onPress={() =>
-                    router.push({ pathname: `markers/${data.id}/supporters` })
+                    router.push({ pathname: `markers/${data?.id}/supporters` })
                   }
                 />
               )}
@@ -148,7 +143,7 @@ const MarkerPreview = () => {
           <Button
             title="Wesprzyj"
             onPress={() =>
-              router.push({ pathname: `markers/${data.id}/support` })
+              router.push({ pathname: `markers/${data?.id}/support` })
             }
           />
         </View>
