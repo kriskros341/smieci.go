@@ -1,15 +1,25 @@
 -- Create the solutions_uploads_relation table (without foreign key constraints)
-create type upload_type AS ENUM (
-    'primary',
-    'additional'
-);
+DO $$ BEGIN
+    PERFORM 'public.upload_type'::regtype;
+EXCEPTION
+    WHEN undefined_object THEN
+        create type upload_type  AS ENUM (
+            'primary',
+            'additional'
+        );
+END $$;
 
 -- Create the solutions_uploads_relation table (without foreign key constraints)
-create type verification_status AS ENUM (
-    'pending',
-    'denied',
-    'approved'
-);
+DO $$ BEGIN
+    PERFORM 'public.verification_status_enum'::regtype;
+EXCEPTION
+    WHEN undefined_object THEN
+        create type verification_status_enum AS ENUM (
+            'pending',
+            'denied',
+            'approved'
+        );
+END $$;
 
 CREATE TABLE solutions_uploads_relation (
     id SERIAL PRIMARY KEY,
@@ -29,7 +39,7 @@ CREATE TABLE solutions_users_relation (
 CREATE TABLE solutions (
     id SERIAL PRIMARY KEY,
     markerId INTEGER NOT NULL,
-    verification_status NOT NULL DEFAULT 'pending'
+    verification_status verification_status_enum NOT NULL DEFAULT 'pending'
 );
 
 ALTER TABLE solutions_users_relation ADD CONSTRAINT UQ_UserId_MarkerId UNIQUE(clerkId, solutionId);

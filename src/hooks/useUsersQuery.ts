@@ -1,8 +1,8 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query";
 
 export const useUsers = () => {
   return useQuery({
-    queryKey: ['/users/getUsers'],
+    queryKey: ["/users/getUsers"],
     select: (data: any) => data.data,
-  })
-}
+  });
+};

@@ -1,11 +1,11 @@
 import { useUser } from "@clerk/clerk-expo";
 import { Tabs } from "expo-router";
-import React from "react";
 
-function Layout() {
+export default function Layout() {
   const { user } = useUser();
+
   return (
-    <Tabs>
+    <Tabs initialRouteName="map">
       <Tabs.Screen
         name="map"
         options={{
@@ -13,7 +13,7 @@ function Layout() {
           headerTitleContainerStyle: {
             display: "none",
           },
-          href: "map",
+          href: "/tabs/map",
           header() {
             return null;
           },
@@ -28,11 +28,10 @@ function Layout() {
       <Tabs.Screen
         name="account"
         options={{
-          title: user?.username ?? '',
+          title: user?.username ?? "",
         }}
       />
+      <Tabs.Screen redirect name="index" />
     </Tabs>
   );
 }
-
-export default Layout;

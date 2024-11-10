@@ -1,1 +1,2 @@
 DROP TABLE IF EXISTS markers;
+DROP TABLE IF EXISTS uploads;

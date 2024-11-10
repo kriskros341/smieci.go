@@ -8,17 +8,17 @@ import clsx from "clsx";
 
 import Button from "@ui/button";
 import { useCreateVerificationPhotoModal } from "@hooks/modals/useVerificationPhotoEditorModal";
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 import { SolveMarkerEditorFormValues } from "./interfaces";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui/tooltip";
 
 interface VerificationPhotoFormFieldProps {
-  errors: any,
-  originalPhotos: { uri: string, blurhash: string }[],
-  control: Control<SolveMarkerEditorFormValues>,
-  openPreviewImageModal: (uri: string) => void,
-  disabled?: boolean
+  errors: any;
+  originalPhotos: { uri: string; blurhash: string }[];
+  control: Control<SolveMarkerEditorFormValues>;
+  openPreviewImageModal: (uri: string) => void;
+  disabled?: boolean;
 }
 
 const VerificationPhotosFormField = ({
@@ -27,11 +27,9 @@ const VerificationPhotosFormField = ({
   originalPhotos,
   errors,
   disabled,
- }: VerificationPhotoFormFieldProps) => {
-  const {
-    VerificationPhotoModal,
-    openVerificationPhotoModal,
-  } = useCreateVerificationPhotoModal()
+}: VerificationPhotoFormFieldProps) => {
+  const { VerificationPhotoModal, openVerificationPhotoModal } =
+    useCreateVerificationPhotoModal();
   const { fields, update } = useFieldArray({
     name: "photos",
     control,
@@ -39,15 +37,21 @@ const VerificationPhotosFormField = ({
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
   const { clearErrors } = useFormContext();
 
-  const onUpdatePhoto = (activePhotoIdx: number, uri: string, openNext?: boolean) => {
+  const onUpdatePhoto = (
+    activePhotoIdx: number,
+    uri: string,
+    openNext?: boolean,
+  ) => {
     update(activePhotoIdx, { uri });
     clearErrors(`photos.${activePhotoIdx}`);
     if (!openNext) {
       return;
     }
 
-    const nextIndex = originalPhotos.slice(activePhotoIdx).findIndex(({ uri }) => !uri);
-    
+    const nextIndex = originalPhotos
+      .slice(activePhotoIdx)
+      .findIndex(({ uri }) => !uri);
+
     if (nextIndex !== -1) {
       setActivePhotoIdx(nextIndex);
       openVerificationPhotoModal({
@@ -63,18 +67,28 @@ const VerificationPhotosFormField = ({
     const dobuleTap = Gesture.Tap()
       .numberOfTaps(2)
       .onStart(() => {
-        runOnJS(openPreviewImageModal)(isOriginalPhoto ? uri : fields[idx].uri ?? '')
+        runOnJS(openPreviewImageModal)(
+          isOriginalPhoto ? uri : fields[idx].uri ?? "",
+        );
       });
     return (
       <View className="relative flex basis-1/3 aspect-[0.6]">
         <Pressable
           key={`original-photo-${idx}`}
-          className={clsx("h-full p-1", !disabled && isOriginalPhoto && "opacity-60")}
+          className={clsx(
+            "h-full p-1",
+            !disabled && isOriginalPhoto && "opacity-60",
+          )}
           onPress={() => setActivePhotoIdx(idx)}
         >
           <GestureDetector gesture={dobuleTap}>
             <Image
-              className={clsx("flex-1", !disabled && idx === activePhotoIdx && "border-4 border-green-600")}
+              className={clsx(
+                "flex-1",
+                !disabled &&
+                  idx === activePhotoIdx &&
+                  "border-4 border-green-600",
+              )}
               source={{
                 uri: isOriginalPhoto ? uri : fields[idx].uri,
                 blurhash,
@@ -89,7 +103,7 @@ const VerificationPhotosFormField = ({
                 <MaterialIcons name="error-outline" size={24} color="red" />
               </TooltipTrigger>
               <TooltipContent className="bg-white">
-                <Text className='native:text-lg'>{errors?.[idx]?.message}</Text>
+                <Text className="native:text-lg">{errors?.[idx]?.message}</Text>
               </TooltipContent>
             </Tooltip>
           </View>
@@ -109,9 +123,9 @@ const VerificationPhotosFormField = ({
             newPhotoUri: undefined,
             originalPhotoUri: originalPhotos[activePhotoIdx]?.uri,
             commit: (uri: string) => {
-              onUpdatePhoto(activePhotoIdx, uri)
-            }
-          })
+              onUpdatePhoto(activePhotoIdx, uri);
+            },
+          });
         }}
       />,
     );
@@ -123,8 +137,8 @@ const VerificationPhotosFormField = ({
           openVerificationPhotoModal({
             newPhotoUri: fields[activePhotoIdx]?.uri,
             originalPhotoUri: originalPhotos[activePhotoIdx]?.uri,
-            commit: (uri: string) => onUpdatePhoto(activePhotoIdx, uri, true)
-          })
+            commit: (uri: string) => onUpdatePhoto(activePhotoIdx, uri, true),
+          });
         }}
       />,
     );

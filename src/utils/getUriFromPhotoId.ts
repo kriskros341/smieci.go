@@ -1,8 +1,6 @@
-import Constants from "expo-constants";
-
 export const getUriByUploadId = (uploadId: unknown) => {
   if (!uploadId) {
-    return 'jdjd'
+    return "jdjd";
   }
-  return Constants?.expoConfig?.extra?.apiUrl + "/uploads/" + uploadId;
-}
+  return process.env.API_URL + "/uploads/" + uploadId;
+};

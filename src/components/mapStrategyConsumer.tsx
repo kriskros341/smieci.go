@@ -1,31 +1,49 @@
-import Constants from "expo-constants";
 import { Image } from "expo-image";
 import { styled } from "nativewind";
 import { useRef } from "react";
-import { ActivityIndicator, Animated, Pressable, Text, TouchableWithoutFeedback, View } from "react-native";
-import MapView, { Callout, MapMarkerProps, Marker, Region } from "react-native-maps";
+import {
+  ActivityIndicator,
+  Animated,
+  Pressable,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
+import MapView, {
+  Callout,
+  MapMarkerProps,
+  Marker,
+  Region,
+} from "react-native-maps";
 
 import useLocation from "@hooks/useLocation";
 import { MapStrategies } from "@hooks/useMapStrategy.interfaces";
 import { useMapFocusPoint } from "@stores/useMapFocusPoint";
-import { hasCoords, isMoveMarkerMapStrategy, isViewMarkersMapStrategy } from "@utils/hasCoords";
+import {
+  hasCoords,
+  isMoveMarkerMapStrategy,
+  isViewMarkersMapStrategy,
+} from "@utils/hasCoords";
 
-const CustomCallout = styled(View, "bg-white p-3 rounded-lg shadow-md border border-gray-300 w-auto h-auto");
+const CustomCallout = styled(
+  View,
+  "bg-white p-3 rounded-lg shadow-md border border-gray-300 w-auto h-auto",
+);
 
 interface CustomMarkerProps extends MapMarkerProps {
-  isFocused: boolean,
-  mainPhotoId: number,
-  mainPhotoBlurHash: string,
-  onDispayPreviewPress: () => void,
+  isFocused: boolean;
+  mainPhotoId: number;
+  mainPhotoBlurHash: string;
+  onDispayPreviewPress: () => void;
 }
 
-const AnimatedImage = Animated.createAnimatedComponent(Image)
+const AnimatedImage = Animated.createAnimatedComponent(Image);
 
 const CustomMarker = (props: CustomMarkerProps) => {
   return (
     <Marker
       {...props}
-      pinColor={props.isFocused ? 'blue' : 'red'}
+      pinColor={props.isFocused ? "blue" : "red"}
       description="jdjdjdj"
       className="flex flex-row w-auto"
     >
@@ -35,13 +53,15 @@ const CustomMarker = (props: CustomMarkerProps) => {
             className="w-40 h-40"
             contentFit="contain"
             sharedTransitionTag="preview"
-            source={Constants?.expoConfig?.extra?.apiUrl + "/uploads/" + props.mainPhotoId}
+            source={process.env.EXPO_PUBLIC + "/uploads/" + props.mainPhotoId}
             placeholder={{ blurhash: props.mainPhotoBlurHash }}
             cachePolicy="memory"
           />
           <Pressable>
             {({ pressed }) => (
-              <View className={`flex-1 bg-indigo-500 p-4 ${pressed ? 'opacity-50' : ''}`}>
+              <View
+                className={`flex-1 bg-indigo-500 p-4 ${pressed ? "opacity-50" : ""}`}
+              >
                 <Text>{">"}</Text>
               </View>
             )}
@@ -49,30 +69,32 @@ const CustomMarker = (props: CustomMarkerProps) => {
         </CustomCallout>
       </Callout>
     </Marker>
-  )
-}
+  );
+};
 
-const mapStyle =
-  [
-    {
-      "featureType": "poi",
-      "elementType": "labels",
-      "stylers": [
-        {
-          "visibility": "off"
-        }
-      ]
-    },
-  ]
+const mapStyle = [
+  {
+    featureType: "poi",
+    elementType: "labels",
+    stylers: [
+      {
+        visibility: "off",
+      },
+    ],
+  },
+];
 
 type MapStrategyConsumerProps = {
-  strategy: MapStrategies,
-  onMarkerPreviewClick: (s: string) => void,
-}
+  strategy: MapStrategies;
+  onMarkerPreviewClick: (s: string) => void;
+};
 
-const MapStrategyConsumer = ({ strategy, onMarkerPreviewClick }: MapStrategyConsumerProps) => {
-  const { mapFocusPoint, changeMapFocusPoint } = useMapFocusPoint()
-  const mapRef = useRef<MapView>(null)
+const MapStrategyConsumer = ({
+  strategy,
+  onMarkerPreviewClick,
+}: MapStrategyConsumerProps) => {
+  const { mapFocusPoint, changeMapFocusPoint } = useMapFocusPoint();
+  const mapRef = useRef<MapView>(null);
   const { location, isPending, error } = useLocation();
 
   if (!location || isPending || error) {
@@ -84,29 +106,27 @@ const MapStrategyConsumer = ({ strategy, onMarkerPreviewClick }: MapStrategyCons
   }
 
   const onRegionChange = async (region: Region) => {
-    const screenuseMapFocusPoint = await mapRef.current?.pointForCoordinate(region)!
-    screenuseMapFocusPoint.y -= 100
-    const mapTransformedCenter = await mapRef.current?.coordinateForPoint(screenuseMapFocusPoint)!
-    changeMapFocusPoint(mapTransformedCenter)
-  }
+    const screenuseMapFocusPoint =
+      await mapRef.current?.pointForCoordinate(region)!;
+    screenuseMapFocusPoint.y -= 100;
+    const mapTransformedCenter = await mapRef.current?.coordinateForPoint(
+      screenuseMapFocusPoint,
+    )!;
+    changeMapFocusPoint(mapTransformedCenter);
+  };
 
   let customMarker = null;
   if (isMoveMarkerMapStrategy(strategy) && hasCoords(mapFocusPoint)) {
     customMarker = (
-      <Marker
-        key="jdjd"
-        pinColor={'green'}
-        coordinate={mapFocusPoint}
-      />
-    )
+      <Marker key="jdjd" pinColor={"green"} coordinate={mapFocusPoint} />
+    );
   }
 
-  const focusedMarkerKey = isViewMarkersMapStrategy(strategy) && strategy.focusedMarker?.key;
+  const focusedMarkerKey =
+    isViewMarkersMapStrategy(strategy) && strategy.focusedMarker?.key;
 
   return (
-    <TouchableWithoutFeedback
-      onPressIn={strategy.onPressOutsideMarker}
-    >
+    <TouchableWithoutFeedback onPressIn={strategy.onPressOutsideMarker}>
       <MapView
         ref={mapRef}
         customMapStyle={mapStyle}
@@ -129,19 +149,17 @@ const MapStrategyConsumer = ({ strategy, onMarkerPreviewClick }: MapStrategyCons
             key={marker.key}
             coordinate={marker.coordinate}
             onPress={(event) => {
-              strategy.onPressInsideMarker?.(event, index)
+              strategy.onPressInsideMarker?.(event, index);
             }}
             onDispayPreviewPress={() => {
-              onMarkerPreviewClick?.(marker.key)
+              onMarkerPreviewClick?.(marker.key);
             }}
-          >
-
-          </CustomMarker>
+          ></CustomMarker>
         ))}
         {customMarker}
       </MapView>
     </TouchableWithoutFeedback>
-  )
+  );
 };
 
 export default MapStrategyConsumer;

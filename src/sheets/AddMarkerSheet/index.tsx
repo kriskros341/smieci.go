@@ -11,19 +11,19 @@ import { useCreateMarkerMutation, useEditorState } from "./helper";
 const SHEET_STATES = {
   EDITOR: 0,
   MOVE_MARKER: 1,
-} as const
+} as const;
 
 interface AddMarkerSheetProps {
-  hide: () => void,
-  onMoveMarkerPress: () => void,
-  onMoveMarkerConfirm: () => void,
-  onSubmit: () => void,
+  hide: () => void;
+  onMoveMarkerPress: () => void;
+  onMoveMarkerConfirm: () => void;
+  onSubmit: () => void;
 }
 
 export const AddMarkerSheet = (props: AddMarkerSheetProps) => {
   const editorState = useEditorState();
   const createMarkersMutation = useCreateMarkerMutation({
-    onSettled: props.onSubmit
+    onSettled: props.onSubmit,
   });
 
   const { mapFocusPoint, changeMapFocusPoint } = useMapFocusPoint();
@@ -34,19 +34,19 @@ export const AddMarkerSheet = (props: AddMarkerSheetProps) => {
     changeMapFocusPoint(currentCoordinates);
     setCurrentBottomSheetIndex(SHEET_STATES.MOVE_MARKER);
     props.onMoveMarkerPress();
-  }
+  };
 
   const onMoveMarkerConfirm = () => {
-    editorState.changeEditorState({ ...mapFocusPoint })
+    editorState.changeEditorState({ ...mapFocusPoint });
     setCurrentBottomSheetIndex(SHEET_STATES.EDITOR);
     props.onMoveMarkerConfirm();
-  }
+  };
 
   const isBackdrop = currentBottomSheetIndex === SHEET_STATES.EDITOR;
 
   const onSubmit = () => {
     createMarkersMutation.mutate(editorState);
-  }
+  };
 
   return (
     <BottomSheet
@@ -55,8 +55,12 @@ export const AddMarkerSheet = (props: AddMarkerSheetProps) => {
       enableContentPanningGesture={false}
       handleComponent={null}
       onChange={setCurrentBottomSheetIndex}
-      snapPoints={['100%', 200]}
-      backdropComponent={(ownProps: any) => isBackdrop ? <Backdrop {...ownProps} hideBottomSheet={props.hide} /> : null}
+      snapPoints={["100%", 200]}
+      backdropComponent={(ownProps: any) =>
+        isBackdrop ? (
+          <Backdrop {...ownProps} hideBottomSheet={props.hide} />
+        ) : null
+      }
     >
       <BottomSheetView className="flex items-center">
         {currentBottomSheetIndex === SHEET_STATES.MOVE_MARKER ? (
@@ -74,5 +78,5 @@ export const AddMarkerSheet = (props: AddMarkerSheetProps) => {
         )}
       </BottomSheetView>
     </BottomSheet>
-  )
-}
+  );
+};

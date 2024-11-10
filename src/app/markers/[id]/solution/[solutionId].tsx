@@ -9,7 +9,7 @@ import { useEffect } from "react";
 
 const useSolutionQuery = (solutionId: string) => {
   return useQuery<any>({
-    queryKey: [`/solutions/${solutionId}`]
+    queryKey: [`/solutions/${solutionId}`],
   });
 };
 
@@ -18,24 +18,29 @@ const PreivewMarkerSolution = () => {
   const { data } = useSolutionQuery(solutionId as string);
   const { user } = useUser();
 
-  console.log({ data })
+  console.log({ data });
   const methods = useForm<SolveMarkerEditorFormValues>({});
-  const { reset } = methods
+  const { reset } = methods;
   useEffect(() => {
     if (data) {
       reset({
-        photos: data?.photos.map(({ id }: { id: string }) => ({ uri: getUriByUploadId(id) })) ?? [],
-        additionalPhotos: data?.additionalPhotos.map(({ id }: { id: string }) => ({ uri: getUriByUploadId(id) })),
-        participants: data.participants
-      })
+        photos:
+          data?.photos.map(({ id }: { id: string }) => ({
+            uri: getUriByUploadId(id),
+          })) ?? [],
+        additionalPhotos: data?.additionalPhotos.map(
+          ({ id }: { id: string }) => ({ uri: getUriByUploadId(id) }),
+        ),
+        participants: data.participants,
+      });
     }
-  }, [data])
+  }, [data]);
 
   return (
     <FormProvider {...methods}>
       <SolveMarkerEditor markerId={id} disabled />
     </FormProvider>
-  )
-}
+  );
+};
 
 export default PreivewMarkerSolution;

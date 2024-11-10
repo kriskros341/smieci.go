@@ -1,22 +1,20 @@
 import { useSignUp } from "@clerk/clerk-expo";
+import OauthSignUp from "@components/social-authentication/oauth-sign-up";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import Button from "@ui/button";
+import { Link, router } from "expo-router";
+import * as React from "react";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Text, TextInput, View } from "react-native";
-
-import Button from "@ui/button";
 import { schema } from "./schema";
 import type { FormData } from "./types";
-import { useMutation } from "@tanstack/react-query";
 
-interface Props {
-  switchToSignIn: () => void;
-}
-
-const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
+const SignUp: React.FC = () => {
   const { isLoaded, signUp, setActive } = useSignUp();
   const [pendingVerification, setPendingVerification] = useState(false);
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState("");
   const codeVerificationCallback = useRef<(code: string) => void>();
 
   const {
@@ -36,17 +34,25 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
   const handleCodeVerification = () => {
     if (!isLoaded) {
       return;
-    }  
+    }
     setPendingVerification(true);
     return new Promise<string>((resolve) => {
       codeVerificationCallback.current = (code: string) => {
         resolve(code);
-      }
-    })
-  }
+      };
+    });
+  };
 
   const { mutateAsync: createUser } = useMutation({
-    mutationFn: async ({ emailAddress, username, password }: { emailAddress: string; username: string, password: string }) => {
+    mutationFn: async ({
+      emailAddress,
+      username,
+      password,
+    }: {
+      emailAddress: string;
+      username: string;
+      password: string;
+    }) => {
       if (!isLoaded) {
         throw new Error("Clerk failed to load");
       }
@@ -54,7 +60,7 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
         username,
         emailAddress,
         password,
-      })
+      });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       const session = await handleCodeVerification();
       await setActive({ session });
@@ -65,11 +71,15 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
       console.log("successfuly created user");
     },
     onError: (error) => {
-      console.warn(`error occured ${error}`)
+      console.warn(`error occured ${error}`);
     },
   });
 
-  const onSignUpPress = async ({ username, emailAddress, password }: FormData) => {
+  const onSignUpPress = async ({
+    username,
+    emailAddress,
+    password,
+  }: FormData) => {
     if (!isLoaded) {
       return;
     }
@@ -88,116 +98,119 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
         return;
       }
       codeVerificationCallback.current?.(completeSignUp.createdSessionId);
+      router.replace("/tabs");
     } catch (error) {
-      console.warn(`error occured ${error}`)
+      console.warn(`error occured ${error}`);
     }
-  }
+  };
 
   const goBack = () => {
-    setCode('');
+    setCode("");
     setPendingVerification(false);
-  }
+  };
 
   if (!pendingVerification) {
     return (
-      <View>
-        <Controller
-          control={control}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              onChangeText={onChange}
-              onBlur={onBlur}
-              value={value}
-              autoCapitalize="none"
-              placeholder="Username..."
-              className="px-4 py-2"
-            />
-          )}
-          name="username"
-        />
-        {errors.username && (
-          <Text className="text-xs text-red-500">
-            {errors.username.message}
+      <>
+        <View>
+          <Text className="text-xl font-semibold text-center">
+            Stwórz konto
           </Text>
-        )}
-        <View className="w-full h-px bg-gray-300" />
-        <Controller
-          control={control}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              onChangeText={onChange}
-              onBlur={onBlur}
-              value={value}
-              autoCapitalize="none"
-              placeholder="Email..."
-              className="px-4 py-2"
-            />
-          )}
-          name="emailAddress"
-        />
-        {errors.emailAddress && (
-          <Text className="text-xs text-red-500">
-            {errors.emailAddress.message}
-          </Text>
-        )}
-        <View className="w-full h-px bg-gray-300" />
-        <Controller
-          control={control}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              onChangeText={onChange}
-              onBlur={onBlur}
-              value={value}
-              placeholder="Password..."
-              placeholderTextColor="#000"
-              secureTextEntry={true}
-              className="px-4 py-2"
-            />
-          )}
-          name="password"
-        />
-        {errors.password && (
-          <Text className="text-xs text-red-500">
-            {errors.password.message}
-          </Text>
-        )}
-        <View className="w-full h-px bg-gray-300" />
-        <Controller
-          control={control}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              onChangeText={onChange}
-              onBlur={onBlur}
-              value={value}
-              placeholder="Confirm password..."
-              placeholderTextColor="#000"
-              secureTextEntry
-              className="px-4 py-2"
-            />
-          )}
-          name="confirmPassword"
-        />
-        {errors.confirmPassword && (
-          <Text className="text-xs text-red-500">
-            {errors.confirmPassword.message}
-          </Text>
-        )}
-        <View className="w-full h-px bg-gray-300" />
-        <View className="flex flex-row items-center justify-center my-4">
-          <Button
-            title="Sign up"
-            onPress={handleSubmit(onSignUpPress)}
-            className="mr-2 "
+          <Controller
+            control={control}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                autoCapitalize="none"
+                placeholder="Username..."
+                className="px-4 py-2"
+              />
+            )}
+            name="username"
           />
-          <Button title="Sign in instead" onPress={switchToSignIn} />
+          {errors.username && (
+            <Text className="text-xs text-red-500">
+              {errors.username.message}
+            </Text>
+          )}
+          <View className="w-full h-px bg-gray-300" />
+          <Controller
+            control={control}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                autoCapitalize="none"
+                placeholder="Email..."
+                className="px-4 py-2"
+              />
+            )}
+            name="emailAddress"
+          />
+          {errors.emailAddress && (
+            <Text className="text-xs text-red-500">
+              {errors.emailAddress.message}
+            </Text>
+          )}
+          <View className="w-full h-px bg-gray-300" />
+          <Controller
+            control={control}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                placeholder="Password..."
+                placeholderTextColor="#000"
+                secureTextEntry={true}
+                className="px-4 py-2"
+              />
+            )}
+            name="password"
+          />
+          {errors.password && (
+            <Text className="text-xs text-red-500">
+              {errors.password.message}
+            </Text>
+          )}
+          <View className="w-full h-px bg-gray-300" />
+          <Controller
+            control={control}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                placeholder="Confirm password..."
+                placeholderTextColor="#000"
+                secureTextEntry
+                className="px-4 py-2"
+              />
+            )}
+            name="confirmPassword"
+          />
+          {errors.confirmPassword && (
+            <Text className="text-xs text-red-500">
+              {errors.confirmPassword.message}
+            </Text>
+          )}
+          <View className="w-full h-px bg-gray-300" />
+          <View className="flex flex-row items-center justify-center my-4">
+            <Button title="Sign up" onPress={handleSubmit(onSignUpPress)} />
+            <Link href="/(auth)/sign-in">Sign in instead</Link>
+          </View>
         </View>
-      </View>
-    )
+        <OauthSignUp />
+      </>
+    );
   }
 
   return (
     <>
-      <View className="p-4 flex gap-y-4">
+      <View className="flex p-4 gap-y-4">
         <View className="border">
           <TextInput
             value={code}
@@ -206,16 +219,10 @@ const SignUp: React.FC<Props> = ({ switchToSignIn }) => {
           />
         </View>
         <View>
-          <Button
-            title="Verify Email"
-            onPress={verifyCode}
-          />
+          <Button title="Verify Email" onPress={verifyCode} />
         </View>
         <View>
-          <Button
-            title="back"
-            onPress={goBack}
-          />
+          <Button title="back" onPress={goBack} />
         </View>
       </View>
     </>

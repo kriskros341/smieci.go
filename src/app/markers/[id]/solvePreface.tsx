@@ -7,17 +7,22 @@ const SolvePreface = () => {
   return (
     <View className="flex gap-2">
       <Text>
-        1. Zrób zdjęcia obszaru po posprzątaniu - Posłużą one do weryfiacji zgłoszenia. Postaraj się aby odwzorowywały oryginalne zdjęcia.
+        1. Zrób zdjęcia obszaru po posprzątaniu - Posłużą one do weryfiacji
+        zgłoszenia. Postaraj się aby odwzorowywały oryginalne zdjęcia.
       </Text>
       <Text>
-        2. Zrób dodatkowe zdjęcia - Zostaną wykorzystane w przypadku problemów z automatyczną weryfikacją realizacji zgłoszenia.
+        2. Zrób dodatkowe zdjęcia - Zostaną wykorzystane w przypadku problemów z
+        automatyczną weryfikacją realizacji zgłoszenia.
       </Text>
-      <Text>
-        3. Profit
-      </Text>
-      <Button title="Podziel się rezultatem" onPress={() => router.replace({ pathname: `markers/${id}/solution/create` })} />
+      <Text>3. Profit</Text>
+      <Button
+        title="Podziel się rezultatem"
+        onPress={() =>
+          router.replace({ pathname: `markers/${id}/solution/create` })
+        }
+      />
     </View>
-  )
-}
+  );
+};
 
 export default SolvePreface;

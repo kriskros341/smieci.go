@@ -5,6 +5,7 @@ import { _getUserByClerkId } from "@api/users";
 import { useAxios } from "@hooks/use-axios";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 
 const Account = () => {
   const { user } = useUser();
@@ -15,16 +16,16 @@ const Account = () => {
   const { data: userData } = useQuery({
     queryFn: () => _getUserByClerkId(axios, user?.id),
     queryKey: [user?.id],
-    enabled: !!user?.id
+    enabled: !!user?.id,
   });
 
-  console.log({ id: user?.id })
-  console.log({ useruri: user?.imageUrl })
+  console.log({ id: user?.id });
+  console.log({ useruri: user?.imageUrl });
 
   return (
     <View className="flex-1 bg-#fff items-center p-8 gap-8">
       <View>
-        <View className="flex items-center justify-center w-64 h-64 border rounded-full overflow-hidden">
+        <View className="flex items-center justify-center w-64 h-64 overflow-hidden border rounded-full">
           <Image className="w-full h-full" source={{ uri: user?.imageUrl }} />
         </View>
       </View>
@@ -36,6 +37,7 @@ const Account = () => {
           title="Log out"
           onPress={() => {
             signOut();
+            router.replace("/");
           }}
         />
       </View>

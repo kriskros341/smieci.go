@@ -1,15 +1,15 @@
 import { useAuth } from "@clerk/clerk-expo";
 import axios from "axios";
-import Constants from "expo-constants";
 
 export const useAxios = () => {
   const { getToken } = useAuth();
-  const baseURL = Constants?.expoConfig?.extra?.apiUrl;
+  const baseURL = process.env.EXPO_PUBLIC_API_URL;
   if (!baseURL) {
-    throw 'missing apiURL configuration';
+    throw "missing apiURL configuration";
   }
+
   const instance = axios.create({
-    baseURL, 
+    baseURL,
   });
 
   instance.interceptors.request.use(async (req) => {

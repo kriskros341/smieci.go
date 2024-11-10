@@ -1,7 +1,10 @@
-import { BottomSheetBackdrop, BottomSheetBackdropProps } from "@gorhom/bottom-sheet";
+import {
+  BottomSheetBackdrop,
+  BottomSheetBackdropProps,
+} from "@gorhom/bottom-sheet";
 
 interface BackdropProps extends BottomSheetBackdropProps {
-  hideBottomSheet: () => void,
+  hideBottomSheet: () => void;
 }
 // Create a memoized callback to handle the backdrop press
 const Backdrop = (props: BackdropProps) => (
@@ -11,7 +14,7 @@ const Backdrop = (props: BackdropProps) => (
     appearsOnIndex={0}
     pressBehavior="close"
     onPress={() => {
-      props.hideBottomSheet()
+      props.hideBottomSheet();
     }}
   />
 );

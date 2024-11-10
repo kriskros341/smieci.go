@@ -14,28 +14,28 @@ const Map = () => {
   const actions = [];
 
   const onAddMarkerClick = () => {
-    setIsAddMarkerSheetOpen(true)
-  }
+    setIsAddMarkerSheetOpen(true);
+  };
 
   if (!isAddMarkerSheetOpen) {
-    actions.push((
+    actions.push(
       <Pressable className="z-10" onPressOut={onAddMarkerClick}>
         {({ pressed }) => (
           <View
             style={{ opacity: pressed ? 0.5 : 1 }}
             className="w-16 h-16 bg-white rounded-full"
           >
-            <Text className="text-center">Dodaj znacznik</Text>  
+            <Text className="text-center">Dodaj znacznik</Text>
           </View>
         )}
-      </Pressable>
-    ));
+      </Pressable>,
+    );
   }
 
   const router = useRouter();
   const onMarkerPreviewClick = (key: string) => {
-    router.push(`/markers/${key}`)
-  }
+    router.push(`/tabs/markers/${key}`);
+  };
 
   return (
     <>
@@ -46,7 +46,10 @@ const Map = () => {
         translucent={false}
       />
       <View className="relative flex flex-row flex-1">
-        <MapStrategyConsumer strategy={mapStrategy} onMarkerPreviewClick={onMarkerPreviewClick} />
+        <MapStrategyConsumer
+          strategy={mapStrategy}
+          onMarkerPreviewClick={onMarkerPreviewClick}
+        />
         <View className="absolute items-center justify-center bottom-4 right-4">
           {actions}
         </View>
@@ -54,14 +57,14 @@ const Map = () => {
       {isAddMarkerSheetOpen && (
         <AddMarkerSheet
           hide={() => setIsAddMarkerSheetOpen(false)}
-          key={isAddMarkerSheetOpen ? 'j' : 'd'}
+          key={isAddMarkerSheetOpen ? "j" : "d"}
           onMoveMarkerPress={() => changeMapStrategy("moveMarkerStrategy")}
           onMoveMarkerConfirm={() => changeMapStrategy("idle")}
           onSubmit={() => {
-            setIsAddMarkerSheetOpen(false)
-            console.log("onSubmit!")
-            changeMapStrategy("viewMarkersStrategy")
-            refetch()
+            setIsAddMarkerSheetOpen(false);
+            console.log("onSubmit!");
+            changeMapStrategy("viewMarkersStrategy");
+            refetch();
           }}
         />
       )}
