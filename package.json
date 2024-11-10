@@ -21,6 +21,7 @@
     "@gorhom/bottom-sheet": "^4.6.4",
     "@hookform/resolvers": "^3.3.4",
     "@openspacelabs/react-native-zoomable-view": "^2.1.6",
+    "@react-navigation/native": "^6.1.18",
     "@rn-primitives/checkbox": "^1.1.0",
     "@rn-primitives/portal": "^1.0.4",
     "@rn-primitives/slider": "^1.0.4",
@@ -34,12 +35,14 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "expo": "~51.0.39",
+    "expo-auth-session": "~5.5.2",
     "expo-camera": "~15.0.16",
     "expo-constants": "~16.0.2",
     "expo-image": "~1.13.0",
     "expo-image-picker": "~15.0.7",
     "expo-linking": "~6.3.1",
     "expo-location": "~17.0.1",
+    "expo-random": "~14.0.1",
     "expo-router": "~3.5.24",
     "expo-secure-store": "~13.0.2",
     "expo-status-bar": "~1.12.1",
@@ -63,9 +66,7 @@
     "react-native-web": "~0.19.6",
     "tailwind-merge": "^2.2.2",
     "zod": "^3.23.4",
-    "zustand": "^4.5.5",
-    "expo-auth-session": "~5.5.2",
-    "expo-random": "~14.0.1"
+    "zustand": "^4.5.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

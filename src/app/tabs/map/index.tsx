@@ -34,7 +34,7 @@ const Map = () => {
 
   const router = useRouter();
   const onMarkerPreviewClick = (key: string) => {
-    router.push(`/markers/${key}`);
+    router.push(`/tabs/markers/${key}`);
   };
 
   return (

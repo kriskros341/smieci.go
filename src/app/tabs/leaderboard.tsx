@@ -1,11 +1,11 @@
-import { FlashList } from "@shopify/flash-list";
-import { useQuery } from "@tanstack/react-query";
-import { Text, View } from "react-native";
-
 import { _getUsers } from "@api/users";
 import LeaderboardEntry from "@components/leaderboard-entry";
 import { useAxios } from "@hooks/use-axios";
+import { FlashList } from "@shopify/flash-list";
+import { useQuery } from "@tanstack/react-query";
 import Button from "@ui/button";
+import * as React from "react";
+import { Text, View } from "react-native";
 
 const Leaderboard = () => {
   const axios = useAxios();
