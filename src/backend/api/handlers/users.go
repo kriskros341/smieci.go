@@ -9,50 +9,17 @@ import (
 	"github.com/guregu/null/v5"
 )
 
-type InsertUserBody struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-}
-
-func (e *Env) InsertUser(c *gin.Context) { // DEPRECATED
-	var body InsertUserBody
-
-	if err := c.BindJSON(&body); err != nil {
-		fmt.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON body"})
-		return
-	}
-	fmt.Println(body)
-
-	_, err := e.Db.NamedExec(`INSERT INTO users (email, username)
-        VALUES (:email, :username)`,
-		map[string]interface{}{
-			"email":    body.Email,
-			"username": body.Username,
-		},
-	)
-
-	if err != nil {
-		fmt.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "Person inserted successfully"})
-}
-
 type User struct {
-	Id              int32       `json:"id"`
+	Id              string      `json:"id"`
 	Username        string      `json:"username"`
 	Points          int32       `json:"points"`
-	Clerkid         string      `json:"clerkid"`
 	ProfileImageURL null.String `json:"profileImageURL"`
 }
 
 func (e *Env) GetUsers(c *gin.Context) {
 	var users []User
 
-	err := e.Db.Select(&users, "SELECT id, username, points, clerkid, profileImageURL FROM users")
+	err := e.Db.Select(&users, "SELECT id, username, points, profileImageURL FROM users")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -142,7 +109,7 @@ func (e *Env) GetUserByClerkId(c *gin.Context) {
 	}
 
 	ClerkId := getUserPayload.ClerkId
-	query := "SELECT id, username, points FROM users WHERE clerkid = $1"
+	query := "SELECT id, username, points FROM users WHERE id = $1"
 	fmt.Println("Executing query:", query, "with userId:", ClerkId)
 	err := e.Db.Get(&user, query, ClerkId)
 	if err != nil {

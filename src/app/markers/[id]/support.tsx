@@ -35,9 +35,13 @@ const Support = () => {
 
   const useSupportMutation = useMutation({
     mutationFn: () => {
+      if (!user?.id || !markerData?.id) {
+        throw new Error("Wystąpił błąd");
+      }
+
       return _supportMarker(axios, {
-        userId: userData?.id,
-        markerId: markerData?.id,
+        userId: user.id,
+        markerId: markerData.id,
         amount: finalDelta,
       });
     },

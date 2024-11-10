@@ -31,7 +31,7 @@ CREATE TABLE solutions_uploads_relation (
 -- Create the users_solutions_relation table (without foreign key constraints)
 CREATE TABLE solutions_users_relation (
     id SERIAL PRIMARY KEY,
-    clerkId VARCHAR(64) NOT NULL,
+    userId VARCHAR(256) NOT NULL,
     solutionId INTEGER NOT NULL
 );
 
@@ -42,11 +42,11 @@ CREATE TABLE solutions (
     verification_status verification_status_enum NOT NULL DEFAULT 'pending'
 );
 
-ALTER TABLE solutions_users_relation ADD CONSTRAINT UQ_UserId_MarkerId UNIQUE(clerkId, solutionId);
+ALTER TABLE solutions_users_relation ADD CONSTRAINT UQ_UserId_MarkerId UNIQUE(userId, solutionId);
 
 -- Add the foreign key constraints after the tables are created
 ALTER TABLE solutions_users_relation
-    ADD CONSTRAINT fk_user_solution_userId FOREIGN KEY (clerkId) REFERENCES users(clerkId),
+    ADD CONSTRAINT fk_user_solution_userId FOREIGN KEY (userId) REFERENCES users(id),
     ADD CONSTRAINT fk_user_solution_solutionId FOREIGN KEY (solutionId) REFERENCES solutions(id) ON DELETE CASCADE ;
 
 ALTER TABLE solutions_uploads_relation

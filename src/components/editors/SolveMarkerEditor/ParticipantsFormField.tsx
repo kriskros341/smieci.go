@@ -19,18 +19,20 @@ const ParticipantsFormField = ({
     name: "participants",
     control,
   });
-  const { data } = useUsers() as { data: any };
+  const { data } = useUsers();
   const remainder = fields.slice(3);
 
+  console.log({ data })
   return (
     <View>
       {fields.slice(0, 3)?.map(({ userId }) => {
         const user = data?.find(
-          ({ clerkid }: { clerkid: string }) => clerkid === userId,
+          ({ id }: { id: string }) => id === userId,
         );
+        console.log({ user })
         return (
           <View className="flex flex-row items-center p-2">
-            <Avatar imageUrl={user?.profileImageURL} />
+            <Avatar key={user?.id} imageUrl={user?.profileImageURL} />
             <View className="mx-2">
               <Text>{user?.username}</Text>
             </View>

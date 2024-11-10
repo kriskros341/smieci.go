@@ -49,12 +49,12 @@ const AddParticipantsEditor = (props: ModalProps) => {
     }
   };
 
-  const displayData = data.map(
-    ({ clerkid, username, profileImageURL }: any) => ({
-      clerkid,
+  const displayData = data?.map(
+    ({ id, username, profileImageURL }: any) => ({
+      id,
       username,
       profileImageURL,
-      isActive: !!users[clerkid],
+      isActive: !!users[id],
     }),
   );
 
@@ -65,17 +65,17 @@ const AddParticipantsEditor = (props: ModalProps) => {
       <FlashList
         data={displayData}
         renderItem={({ item }: any) => (
-          <View className="p-2 flex flex-row items-center" key={item.clerkid}>
+          <View className="p-2 flex flex-row items-center" key={item.id}>
             <Avatar imageUrl={item.profileImageURL} />
             <View className="mx-2">
               <Text>{item.username}</Text>
             </View>
             <View>
               <Checkbox
-                disabled={item.clerkid === user?.id}
+                disabled={item.id === user?.id}
                 checked={item.isActive}
                 onCheckedChange={(newValue) =>
-                  toggleUser(item.clerkid, newValue)
+                  toggleUser(item.id, newValue)
                 }
               />
             </View>
