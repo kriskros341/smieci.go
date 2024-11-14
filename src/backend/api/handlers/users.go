@@ -121,3 +121,26 @@ func (e *Env) GetUserByClerkId(c *gin.Context) {
 
 	c.JSON(http.StatusOK, user)
 }
+
+func (e *Env) GetCurrentUserPermissions(c *gin.Context) {
+
+	claims, exists := c.Get("authorizerClaims")
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No claim"})
+		return
+	}
+
+	userId := claims.(*auth.AuthorizerClaims).UserId
+	var permissions []string
+	query := fmt.Sprintf("SELECT p.pname FROM permissions p JOIN users_permissions_relation upr on p.id = upr.permissionId where upr.userId = '%s'", userId)
+	fmt.Println("Executing query:", query)
+	err := e.Db.Select(&permissions, query)
+	if err != nil {
+		var e = gin.H{"error": err.Error()}
+		fmt.Println(e)
+		c.JSON(http.StatusInternalServerError, e)
+		return
+	}
+	c.JSON(http.StatusOK, permissions)
+}

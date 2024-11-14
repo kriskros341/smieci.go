@@ -76,7 +76,7 @@ const SolveMarker = () => {
   const queryClient = useQueryClient();
   const solveMarkerMutation = useSolveMarkerMutation(id as string, {
     onSuccess: () => {
-      queryClient.refetchQueries({ queryKey: [`markers/${id}`] })
+      queryClient.refetchQueries({ queryKey: [`/markers/${id}`] })
       navigation.removeListener("beforeRemove", onBeforeRemove);
       navigation.goBack();
       Toast.show({
@@ -118,7 +118,6 @@ const SolveMarker = () => {
   };
 
   const onSubmit = (data: SolveMarkerEditorFormValues) => {
-    console.log("Submitted data:", data);
     // Clear previous errors
     clearErrors();
 
@@ -158,7 +157,6 @@ const SolveMarker = () => {
   };
 
   useLayoutEffect(() => {
-    console.log(solveMarkerMutation.isPending);
     if (solveMarkerMutation.isPending) {
       navigation.setOptions({
         headerRight: () => <ActivityIndicator />,

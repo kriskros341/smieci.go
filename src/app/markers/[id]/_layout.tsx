@@ -4,6 +4,7 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 
 const MarkerStack = () => {
   const router = useRouter();
+
   return (
     <Stack>
       <Stack.Screen

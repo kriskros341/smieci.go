@@ -15,6 +15,7 @@ type MarkerResponse = {
 export const useMarkerQuery = (key: unknown) => {
   const data = useQuery<MarkerResponse>({
     queryKey: [`/markers/${key}`],
+    refetchOnWindowFocus: true,
   });
   return data;
 };

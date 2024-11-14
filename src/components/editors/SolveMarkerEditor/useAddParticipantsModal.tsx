@@ -58,8 +58,6 @@ const AddParticipantsEditor = (props: ModalProps) => {
     }),
   );
 
-  console.log({ displayData })
-
   return (
     <View className="flex-1">
       <FlashList

@@ -23,6 +23,7 @@
     "@openspacelabs/react-native-zoomable-view": "^2.1.6",
     "@react-navigation/native": "^6.1.18",
     "@rn-primitives/checkbox": "^1.1.0",
+    "@rn-primitives/dropdown-menu": "^1.1.0",
     "@rn-primitives/portal": "^1.0.4",
     "@rn-primitives/slider": "^1.0.4",
     "@rn-primitives/slot": "^1.1.0",

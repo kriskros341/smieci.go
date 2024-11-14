@@ -19,9 +19,6 @@ const Account = () => {
     enabled: !!user?.id,
   });
 
-  console.log({ id: user?.id });
-  console.log({ useruri: user?.imageUrl });
-
   return (
     <View className="flex-1 bg-#fff items-center p-8 gap-8">
       <View>

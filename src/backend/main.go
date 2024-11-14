@@ -132,17 +132,28 @@ func main() {
 	}
 	router.GET("/users/getUsers", env.GetUsers)
 	router.GET("/users/:userId", env.GetUser)
+	router.GET("/users/current/permissions", env.GetCurrentUserPermissions)
 	router.GET("/users/clerk/:clerkId", env.GetUserByClerkId)
 	router.POST("/users/deleteUser", env.DeleteUser)
 	router.POST("/markers", env.CreateMarker)
 	router.GET("/markers/:markerId", env.GetMarker)
-	router.POST("/markers/:markerId/solve", env.PostMarkerSolution)
+	router.POST("/markers/:markerId/solve", env.PostMarkerSolution) // do przeniesienia jako solutions/create
 	router.GET("/markers/:markerId/supporters", env.GetMarkerSupporters)
 	router.GET("/markers", env.GetMarkersCoordinates)
 	router.PUT("/markers/support", env.SupportMarker)
 	router.GET("/solutions/:solutionId", env.GetSolution)
+	router.PATCH("/solutions/:solutionId/status", env.SetSolutionStatus)
 	router.GET("/uploads/:uploadId", env.GetFile)
 	router.POST("/webhook", env.HandleEvent)
 
 	router.Run("0.0.0.0:8080")
 }
+
+/*
+POST /solutions/:solutionId/approve
+	I want to award points and create traces
+POST /solutions/:solutionId/deny
+	I want to set status to denied.
+POST /solutions/:solutionId/reopen
+	I want to retrive awarded points and also create counter traces.
+*/
