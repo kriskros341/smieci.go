@@ -25,9 +25,7 @@ const ParticipantsFormField = ({
   return (
     <View>
       {fields.slice(0, 3)?.map(({ userId }) => {
-        const user = data?.find(
-          ({ id }: { id: string }) => id === userId,
-        );
+        const user = data?.find(({ id }: { id: string }) => id === userId);
         return (
           <View className="flex flex-row items-center p-2">
             <Avatar key={user?.id} imageUrl={user?.profileImageURL} />

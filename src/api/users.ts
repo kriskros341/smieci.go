@@ -18,7 +18,15 @@ export const _createUser = async (
   return response.data;
 };
 
-interface GetUsersResponse extends BaseDataResponse<{ id: string, username: string, profilePictureUrl: string, points: number }[]> {}
+interface GetUsersResponse
+  extends BaseDataResponse<
+    {
+      id: string;
+      username: string;
+      profilePictureUrl: string;
+      points: number;
+    }[]
+  > {}
 
 export const _getUsers = async (
   axios: AxiosInstance,
@@ -32,4 +40,4 @@ export const _getUserByClerkId = async (axios: AxiosInstance, id: unknown) => {
   const response = await axios.get(`/users/${id}`);
 
   return response.data;
-}
+};

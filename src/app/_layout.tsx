@@ -31,7 +31,7 @@ function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ClerkProvider tokenCache={tokenCache} publishableKey={token}>
         <CustomQueryClientProvider>
-          <Stack screenOptions={{ headerShown: false }}  >
+          <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(auth)" />
             <Stack.Screen name="markers/[id]" />
             <Stack.Screen name="tabs" />

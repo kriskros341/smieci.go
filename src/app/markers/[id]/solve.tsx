@@ -76,7 +76,7 @@ const SolveMarker = () => {
   const queryClient = useQueryClient();
   const solveMarkerMutation = useSolveMarkerMutation(id as string, {
     onSuccess: () => {
-      queryClient.refetchQueries({ queryKey: [`/markers/${id}`] })
+      queryClient.refetchQueries({ queryKey: [`/markers/${id}`] });
       navigation.removeListener("beforeRemove", onBeforeRemove);
       navigation.goBack();
       Toast.show({

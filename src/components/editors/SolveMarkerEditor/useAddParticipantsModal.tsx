@@ -49,14 +49,12 @@ const AddParticipantsEditor = (props: ModalProps) => {
     }
   };
 
-  const displayData = data?.map(
-    ({ id, username, profileImageURL }: any) => ({
-      id,
-      username,
-      profileImageURL,
-      isActive: !!users[id],
-    }),
-  );
+  const displayData = data?.map(({ id, username, profileImageURL }: any) => ({
+    id,
+    username,
+    profileImageURL,
+    isActive: !!users[id],
+  }));
 
   return (
     <View className="flex-1">
@@ -72,9 +70,7 @@ const AddParticipantsEditor = (props: ModalProps) => {
               <Checkbox
                 disabled={item.id === user?.id}
                 checked={item.isActive}
-                onCheckedChange={(newValue) =>
-                  toggleUser(item.id, newValue)
-                }
+                onCheckedChange={(newValue) => toggleUser(item.id, newValue)}
               />
             </View>
           </View>

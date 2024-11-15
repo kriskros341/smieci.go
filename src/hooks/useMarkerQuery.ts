@@ -8,8 +8,8 @@ type MarkerResponse = {
   userId: string;
   points: number;
   blurHashes: string[];
-  pendingVerificationsCount: number,
-  latestSolutionId: number
+  pendingVerificationsCount: number;
+  latestSolutionId: number;
 };
 
 export const useMarkerQuery = (key: unknown) => {

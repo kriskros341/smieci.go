@@ -42,7 +42,9 @@ const MarkerPreview = () => {
     <View className="flex-col p-4">
       <View className="flex-row gap-4 ">
         <Text>Status weryfikacji:</Text>
-        <StatusBadge pendingVerificationsCount={data?.pendingVerificationsCount || 0} />
+        <StatusBadge
+          pendingVerificationsCount={data?.pendingVerificationsCount || 0}
+        />
       </View>
       <View className="pt-4">
         {data?.pendingVerificationsCount === 0 ? (
@@ -104,19 +106,26 @@ const MarkerPreview = () => {
           <View className="p-4">
             {markerSupportersData && markerSupportersData?.length !== 0 ? (
               <View className="flex flex-row py-4">
-                {markerSupportersData?.splice(0, 3).map((item, index: number) => (
-                  <View className="relative pr-4">
-                    <Avatar imageUrl={item.profileImageUrl} className="mr-4" />
-                    <View className="absolute bottom-0 right-0">
-                      <Text>{item.total}</Text>
+                {markerSupportersData
+                  ?.splice(0, 3)
+                  .map((item, index: number) => (
+                    <View className="relative pr-4">
+                      <Avatar
+                        imageUrl={item.profileImageUrl}
+                        className="mr-4"
+                      />
+                      <View className="absolute bottom-0 right-0">
+                        <Text>{item.total}</Text>
+                      </View>
                     </View>
-                  </View>
-                ))}
+                  ))}
                 {markerSupportersData?.length > 3 && (
                   <Button
                     title="Więcej"
                     onPress={() =>
-                      router.push({ pathname: `markers/${data?.id}/supporters` })
+                      router.push({
+                        pathname: `markers/${data?.id}/supporters`,
+                      })
                     }
                   />
                 )}
