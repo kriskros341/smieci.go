@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"backend/api/auth"
+	"backend/models"
 	"encoding/json"
 	"fmt"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"slices"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,22 +18,18 @@ type Photo struct {
 	Uri *string `json:"uri"` // Pointer allows for null (optional) value
 }
 
-// Define a struct for participants
-type Participant struct {
-	UserId string `db:"id" json:"userId"`
-}
-
-// Main struct that holds the payload
-type PostMarkerSolutionPayload struct {
-	Participants []Participant `json:"participants"` // Array of participants
-}
-
 // Main struct that holds the payload
 type PostMarkerSolutionUriPayload struct {
 	MarkerId string `json:"markerId"` // Marker id
 }
 
+// Main struct that holds the payload
+type PostMarkerSolutionPayload struct {
+	Participants []models.Participant `json:"participants"` // Array of participants
+}
+
 func (e *Env) PostMarkerSolution(c *gin.Context) {
+	// Get markerId from uri
 	var getMarkerRequestPayload GetMarkerRequestPayload
 	if err := c.ShouldBindUri(&getMarkerRequestPayload); err != nil {
 		var error = gin.H{"error": err.Error()}
@@ -49,15 +45,6 @@ func (e *Env) PostMarkerSolution(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Payload too large"})
 		return
 	}
-
-	// Authorize user
-	claims, exists := c.Get("authorizerClaims")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-	// KCTODO
-	var _ = claims.(*auth.AuthorizerClaims).UserId
 
 	var primaryFiles []*multipart.FileHeader
 	var additionalFiles []*multipart.FileHeader
@@ -76,24 +63,19 @@ func (e *Env) PostMarkerSolution(c *gin.Context) {
 		}
 	}
 
-	primaryFileNames, primaryBlurHashes, fileProcessingErrors := processFiles(primaryFiles)
-
-	for err := range fileProcessingErrors {
-		if err != nil {
-			fmt.Println("File processing error:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+	// Save files
+	primaryFilesIds, err := e.Uploads.CreateUploadsFromHeaders(primaryFiles)
+	if err != nil {
+		fmt.Println("File processing error:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
-	additionalFileNames, additionalBlurHashes, fileProcessingErrors := processFiles(additionalFiles)
-
-	for err := range fileProcessingErrors {
-		if err != nil {
-			fmt.Println("File processing error:", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+	additionalFilesIds, err := e.Uploads.CreateUploadsFromHeaders(primaryFiles)
+	if err != nil {
+		fmt.Println("File processing error:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	// 2. Extract JSON data (as string) from the form
@@ -110,148 +92,29 @@ func (e *Env) PostMarkerSolution(c *gin.Context) {
 		return
 	}
 
-	tx, err := e.Db.Begin()
-
-	var primaryFileIds []string
-	// STEP: Insert primary upload records into database
-	{
-		rows := []string{}
-		for i := 0; i < len(primaryFileNames); i++ {
-			rows = append(rows, fmt.Sprintf(`('%s', '%s')`, primaryFileNames[i], primaryBlurHashes[i]))
-		}
-		filesQuery := fmt.Sprintf(`INSERT INTO uploads (filename, blurHash) VALUES %s RETURNING id`, strings.Join(rows, ","))
-		fmt.Println("Executing query:", filesQuery)
-		fileIdentifiersResult, err := tx.Query(filesQuery)
-		if err != nil {
-			var error = gin.H{"error": err.Error()}
-			fmt.Println(error)
-			c.JSON(http.StatusInternalServerError, error)
-			tx.Rollback()
-			return
-		}
-
-		for fileIdentifiersResult.Next() {
-			var id int
-			err := fileIdentifiersResult.Scan(&id)
-			if err != nil {
-				tx.Rollback()
-				log.Fatal(err)
-				return
-			}
-			primaryFileIds = append(primaryFileIds, fmt.Sprintf("%d", id))
-		}
-		defer fileIdentifiersResult.Close()
-	}
-	// STEP: Insert additional upload records into database
-	var additionalFileIds []string
-	{
-		rows := []string{}
-		for i := 0; i < len(additionalFileNames); i++ {
-			rows = append(rows, fmt.Sprintf(`('%s', '%s')`, additionalFileNames[i], additionalBlurHashes[i]))
-		}
-		filesQuery := fmt.Sprintf(`INSERT INTO uploads (filename, blurHash) VALUES %s RETURNING id`, strings.Join(rows, ","))
-		if len(rows) != 0 {
-			fmt.Println("Executing query:", filesQuery)
-			fileIdentifiersResult, err := tx.Query(filesQuery)
-			if err != nil {
-				var error = gin.H{"error": err.Error()}
-				fmt.Println(error)
-				c.JSON(http.StatusInternalServerError, error)
-				tx.Rollback()
-				return
-			}
-
-			for fileIdentifiersResult.Next() {
-				var id int
-				err := fileIdentifiersResult.Scan(&id)
-				if err != nil {
-					tx.Rollback()
-					log.Fatal(err)
-					return
-				}
-				additionalFileIds = append(additionalFileIds, fmt.Sprintf("%d", id))
-			}
-			defer fileIdentifiersResult.Close()
-		}
-	}
-	// STEP: Create solution
-	var solutionId int
-	insertSolutionQuery := fmt.Sprintf(`INSERT INTO solutions (markerid) VALUES (%s) RETURNING id`, getMarkerRequestPayload.MarkerId)
-	fmt.Println("Executing query: %s", insertSolutionQuery)
-	err = tx.QueryRow(insertSolutionQuery).Scan(&solutionId)
-	if err != nil {
-		tx.Rollback()
-		log.Fatalln("Error executing query:", err.Error())
-		c.JSON(http.StatusInternalServerError, err)
-		return
+	var participantsIds []string
+	for _, participant := range payload.Participants {
+		participantsIds = append(participantsIds, participant.UserId)
 	}
 
-	// STEP: POPULATE SOLUTIONS-USERS RELATION
-	{
-		values := []string{}
-		for _, participant := range payload.Participants {
-			values = append(values, fmt.Sprintf(`(%d, '%s')`, solutionId, participant.UserId))
-		}
-		insertSolutionUsersQuery := fmt.Sprintf(`INSERT INTO solutions_users_relation (solutionid, userId) VALUES %s`, strings.Join(values, ","))
-		fmt.Println("Executing query:", insertSolutionUsersQuery)
-		_, err := tx.Exec(insertSolutionUsersQuery)
-
-		if err != nil {
-			var error = gin.H{"error": err.Error()}
-			fmt.Println(error)
-			c.JSON(http.StatusInternalServerError, error)
-			tx.Rollback()
-			return
-		}
-	}
-
-	// STEP: POPULATE SOLUTION-UPLOADS RELATION
-	{
-		values := []string{}
-		for _, uploadId := range primaryFileIds {
-			values = append(values, fmt.Sprintf(`('%d', '%s', 'primary')`, solutionId, uploadId))
-		}
-		for _, uploadId := range additionalFileIds {
-			values = append(values, fmt.Sprintf(`('%d', '%s', 'additional')`, solutionId, uploadId))
-		}
-		insertSolutionUsersQuery := fmt.Sprintf(`INSERT INTO solutions_uploads_relation (solutionid, uploadid, uploadtype) VALUES %s`, strings.Join(values, ","))
-		fmt.Println("Executing query:", insertSolutionUsersQuery)
-		_, err := tx.Exec(insertSolutionUsersQuery)
-
-		if err != nil {
-			var error = gin.H{"error": err.Error()}
-			fmt.Println(error)
-			c.JSON(http.StatusInternalServerError, error)
-			tx.Rollback()
-			return
-		}
-	}
-
-	tx.Commit()
+	err = e.Solutions.CreateSolution(getMarkerRequestPayload.MarkerId, participantsIds, primaryFilesIds, additionalFilesIds)
 	if err != nil {
 		var error = gin.H{"error": err.Error()}
 		fmt.Println(error)
 		c.JSON(http.StatusInternalServerError, error)
-		tx.Rollback()
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Solution created successfully"})
 }
 
-// KCTODO move to solutions.go
 type GetSolutionRequestPayload struct {
 	SolutionId string `uri:"solutionId" binding:"required"`
 }
 
-type SolutionUpload struct {
-	Upload
-	UploadType string `db:"uploadtype"`
-}
-
-type GetSolutionResponsePayload struct {
-	Participants     []Participant    `json:"participants"`
-	Photos           []SolutionUpload `json:"photos"`
-	AdditionalPhotos []SolutionUpload `json:"additionalPhotos"`
+type GetSolutionResponseDto struct {
+	Participants     []models.Participant    `json:"participants"`
+	Photos           []models.SolutionUpload `json:"photos"`
+	AdditionalPhotos []models.SolutionUpload `json:"additionalPhotos"`
 }
 
 func (e *Env) GetSolution(c *gin.Context) {
@@ -283,49 +146,30 @@ func (e *Env) GetSolution(c *gin.Context) {
 		}
 	}
 
-	var participants []Participant
-	// get associated users
-	{
-		query := fmt.Sprintf(`
-select users.id FROM solutions_users_relation susr
-	join users on susr.userid = users.id
-WHERE susr.solutionid = %s;
-			`, solutionId)
-		fmt.Printf("executing query: %s", query)
-		err := e.Db.Select(&participants, query)
-		if err != nil {
-			log.Fatalln("Error executing query:", err.Error())
-			c.JSON(http.StatusInternalServerError, err)
-			return
-		}
-	}
-	var uplodads []SolutionUpload
-	// get associated uploads
-	{
-		query := fmt.Sprintf(`
-select uploads.id, filename, blurhash, uploadtype FROM solutions_uploads_relation supr
-	join uploads on supr.uploadid = uploads.id
-WHERE supr.solutionid = %s;
-			`, solutionId)
-		fmt.Printf("executing query: %s", query)
-		err := e.Db.Select(&uplodads, query)
-		if err != nil {
-			log.Fatalln("Error executing query:", err.Error())
-			c.JSON(http.StatusInternalServerError, err)
-			return
-		}
+	participants, err := e.Users.GetParticipantsBySolutionId(solutionId)
+	if err != nil {
+		log.Fatalln("Error executing query:", err.Error())
+		c.JSON(http.StatusInternalServerError, err)
+		return
 	}
 
-	var additionalPhotos []SolutionUpload
-	var primaryPhotos []SolutionUpload
-	for _, upload := range uplodads {
+	uploads, err := e.Uploads.GetUploadsBySolutionId(solutionId)
+	if err != nil {
+		log.Fatalln("Error executing query:", err.Error())
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	var additionalPhotos []models.SolutionUpload
+	var primaryPhotos []models.SolutionUpload
+	for _, upload := range uploads {
 		if upload.UploadType == "additional" {
 			additionalPhotos = append(additionalPhotos, upload)
 		} else {
 			primaryPhotos = append(primaryPhotos, upload)
 		}
 	}
-	result := GetSolutionResponsePayload{
+	result := GetSolutionResponseDto{
 		Participants:     participants,
 		Photos:           primaryPhotos,
 		AdditionalPhotos: additionalPhotos,
@@ -380,7 +224,7 @@ func (e *Env) SetSolutionStatus(c *gin.Context) {
 		return
 	}
 
-	Status := setSolutionStatusPayload.Status
+	Status := "denied"
 	query = fmt.Sprintf("UPDATE solutions set verification_status = '%s' WHERE id = %s", Status, solutionId)
 	_, err = e.Db.Exec(query)
 	if err != nil {

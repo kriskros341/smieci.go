@@ -28,16 +28,8 @@ export const _getUsers = async (
   return response?.data;
 };
 
-export const _deleteUser = async (axios: AxiosInstance, email: string) => {
-  const response = await axios.post("/users/deleteUser", {
-    email,
-  });
-
-  return response.data;
-};
-
 export const _getUserByClerkId = async (axios: AxiosInstance, id: unknown) => {
-  const response = await axios.get(`/users/clerk/${id}`);
+  const response = await axios.get(`/users/${id}`);
 
   return response.data;
 }

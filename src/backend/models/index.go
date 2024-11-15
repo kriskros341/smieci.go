@@ -1,0 +1,61 @@
+package models
+
+type Upload struct {
+	Id       int64  `json:"id"`
+	Filename string `json:"filename"`
+	BlurHash string `json:"blurHash"`
+}
+
+type SolutionUpload struct {
+	Upload
+	UploadType string `db:"uploadtype"`
+}
+
+type MarkerCoordinates struct {
+	Id          int64   `json:"id"`
+	Lat         float64 `json:"lat"`
+	Long        float64 `json:"long"`
+	MainPhotoId int64   `json:"mainPhotoId"`
+	Blurhash    string  `json:"blurhash"`
+}
+
+type GetMarkerPayload struct {
+	Id                        int64    `json:"id"`
+	Lat                       float64  `json:"lat"`
+	Long                      float64  `json:"long"`
+	FileNamesString           []string `json:"fileNamesString"`
+	BlurHashes                []string `json:"blurHashes"`
+	UserId                    string   `json:"userId"`
+	Points                    int64    `json:"points"`
+	PendingVerificationsCount int64    `json:"pendingVerificationsCount"` // -1 if approved else ++
+	LatestSolutionId          int64    `json:"latestSolutionId"`
+}
+
+type CreateMarkerBody struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
+type GetMarkerSupportersResult struct {
+	Id              string  `json:"id"`
+	Username        string  `json:"username"`
+	Total           int32   `json:"total"`
+	ProfileImageUrl *string `json:"profileImageUrl"`
+}
+
+type LatestSolutionPayload struct {
+	PendingVerificationsCount int64 `json:"pendingVerificationsCount"` // -1 if approved else ++
+	LatestSolutionId          int64 `json:"latestSolutionId"`
+}
+
+// Define a struct for participants
+type Participant struct {
+	UserId string `db:"id" json:"userId"`
+}
+
+type User struct {
+	Id              string `json:"id"`
+	Username        string `json:"username"`
+	Points          int32  `json:"points"`
+	ProfileImageURL string `json:"profileImageURL"`
+}

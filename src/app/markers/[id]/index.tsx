@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import Avatar from "@ui/avatar";
 import Button from "@ui/button";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
 import { ScrollView, Text, TextInput, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 
@@ -62,13 +61,9 @@ const MarkerPreview = () => {
     </View>
   );
 
-  const [r, setR] = useState(false);
-
   return (
     <>
       <ScrollView>
-        <Button title="rerender" onPress={() => setR(!r)} />
-          <Text>{r ? '1' : '0'}</Text>
         <View className="flex-1 w-full h-full bg-transparent">
           <PhotoGallery photos={[...photos]} isDragDisabled />
           <View className="flex flex-row gap-8 p-4">

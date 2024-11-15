@@ -2,24 +2,15 @@ package handlers
 
 import (
 	"backend/api/auth"
+	"backend/models"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/guregu/null/v5"
 )
 
-type User struct {
-	Id              string      `json:"id"`
-	Username        string      `json:"username"`
-	Points          int32       `json:"points"`
-	ProfileImageURL null.String `json:"profileImageURL"`
-}
-
 func (e *Env) GetUsers(c *gin.Context) {
-	var users []User
-
-	err := e.Db.Select(&users, "SELECT id, username, points, profileImageURL FROM users")
+	users, err := e.Users.GetAll()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -28,76 +19,12 @@ func (e *Env) GetUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": users})
 }
 
-type DeleteUserBody struct {
-	Email string `json:"email"`
-}
-
-func (e *Env) DeleteUser(c *gin.Context) {
-	var body DeleteUserBody
-
-	if err := c.BindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON body"})
-		return
-	}
-
-	claims, exists := c.Get("authorizerClaims")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	email := claims.(*auth.AuthorizerClaims).Email
-	if email != body.Email {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	_, err := e.Db.NamedExec(`DELETE FROM users WHERE email = :email`, map[string]interface{}{
-		"email": body.Email,
-	})
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
-}
-
-type GetUserPayload struct {
+type GetUserByClerIdPayload struct {
 	UserId string `uri:"userId" binding:"required"`
 }
 
-func (e *Env) GetUser(c *gin.Context) {
-	var user User
-
-	var getUserPayload GetUserPayload
-
-	if err := c.ShouldBindUri(&getUserPayload); err != nil {
-		var error = gin.H{"error": err.Error()}
-		fmt.Println(error)
-		c.JSON(http.StatusBadRequest, error)
-		return
-	}
-
-	userId := getUserPayload.UserId
-	query := "SELECT username FROM users WHERE id = $1"
-	fmt.Println("Executing query:", query, "with userId:", userId)
-	err := e.Db.Get(&user, query, userId)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, user)
-}
-
-type GetUserByClerIdPayload struct {
-	ClerkId string `uri:"clerkId" binding:"required"`
-}
-
-func (e *Env) GetUserByClerkId(c *gin.Context) {
-	var user User
+func (e *Env) GetUserById(c *gin.Context) {
+	var user *models.User
 
 	var getUserPayload GetUserByClerIdPayload
 
@@ -108,14 +35,11 @@ func (e *Env) GetUserByClerkId(c *gin.Context) {
 		return
 	}
 
-	ClerkId := getUserPayload.ClerkId
-	query := "SELECT id, username, points FROM users WHERE id = $1"
-	fmt.Println("Executing query:", query, "with userId:", ClerkId)
-	err := e.Db.Get(&user, query, ClerkId)
+	user, err := e.Users.GetUserById(getUserPayload.UserId)
 	if err != nil {
 		var e = gin.H{"error": err.Error()}
 		fmt.Println(e)
-		c.JSON(http.StatusInternalServerError, e)
+		c.JSON(http.StatusNotFound, e)
 		return
 	}
 
@@ -132,10 +56,7 @@ func (e *Env) GetCurrentUserPermissions(c *gin.Context) {
 	}
 
 	userId := claims.(*auth.AuthorizerClaims).UserId
-	var permissions []string
-	query := fmt.Sprintf("SELECT p.pname FROM permissions p JOIN users_permissions_relation upr on p.id = upr.permissionId where upr.userId = '%s'", userId)
-	fmt.Println("Executing query:", query)
-	err := e.Db.Select(&permissions, query)
+	permissions, err := e.Users.GetPermissionsByUserId(userId)
 	if err != nil {
 		var e = gin.H{"error": err.Error()}
 		fmt.Println(e)

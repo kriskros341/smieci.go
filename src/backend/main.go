@@ -4,6 +4,7 @@ import (
 	"backend/api/auth"
 	"backend/api/handlers"
 	"backend/database"
+	repositories "backend/repository"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -125,24 +126,35 @@ func main() {
 	router.Use(cors.Default())
 	router.Use(auth.AuthMiddleware())
 
-	env := &handlers.Env{Db: db, Wh: wh}
+	Markers := repositories.NewMarkerRepository(db)
+	Solutions := repositories.NewSolutionsRepository(db)
+	Uploads := repositories.NewUploadsRepository(db)
+	Users := repositories.NewUsersRepository(db)
+
+	env := &handlers.Env{
+		Db:        db,
+		Wh:        wh,
+		Markers:   Markers,
+		Solutions: Solutions,
+		Uploads:   Uploads,
+		Users:     Users,
+	}
+
 	err = SyncUsers(env)
 	if err != nil {
 		return
 	}
 	router.GET("/users/getUsers", env.GetUsers)
-	router.GET("/users/:userId", env.GetUser)
 	router.GET("/users/current/permissions", env.GetCurrentUserPermissions)
-	router.GET("/users/clerk/:clerkId", env.GetUserByClerkId)
-	router.POST("/users/deleteUser", env.DeleteUser)
+	router.GET("/users/:userId", env.GetUserById)
 	router.POST("/markers", env.CreateMarker)
-	router.GET("/markers/:markerId", env.GetMarker)
+	router.GET("/markers/:markerId", env.GetMarkerById)
 	router.POST("/markers/:markerId/solve", env.PostMarkerSolution) // do przeniesienia jako solutions/create
 	router.GET("/markers/:markerId/supporters", env.GetMarkerSupporters)
 	router.GET("/markers", env.GetMarkersCoordinates)
 	router.PUT("/markers/support", env.SupportMarker)
 	router.GET("/solutions/:solutionId", env.GetSolution)
-	router.PATCH("/solutions/:solutionId/status", env.SetSolutionStatus)
+	router.PATCH("/solutions/:solutionId/status", env.SetSolutionStatus) // DEPRECATED
 	router.GET("/uploads/:uploadId", env.GetFile)
 	router.POST("/webhook", env.HandleEvent)
 
@@ -152,8 +164,8 @@ func main() {
 /*
 POST /solutions/:solutionId/approve
 	I want to award points and create traces
-POST /solutions/:solutionId/deny
+PATCH /solutions/:solutionId/deny
 	I want to set status to denied.
-POST /solutions/:solutionId/reopen
-	I want to retrive awarded points and also create counter traces.
+??? /solutions/:solutionId/unapprove? (czy potrzeby?)
+	I want to set status, potentially retrive awarded points and also create counter traces.
 */
