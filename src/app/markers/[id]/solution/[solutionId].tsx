@@ -124,7 +124,7 @@ const PreivewMarkerSolution = () => {
   const option = (result: string, goBackOnSuccess?: boolean) => {
     mutateAsync(result).then(() => {
       goBackOnSuccess && navigation.goBack();
-      queryClient.refetchQueries({ queryKey: [`/markers/${id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/markers/${id}`, '/users/getUsers', '/users/current'] });
     });
   };
 

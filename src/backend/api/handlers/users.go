@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"backend/api/auth"
-	"backend/models"
 	"fmt"
 	"net/http"
 
@@ -24,8 +23,6 @@ type GetUserByClerIdPayload struct {
 }
 
 func (e *Env) GetUserById(c *gin.Context) {
-	var user *models.User
-
 	var getUserPayload GetUserByClerIdPayload
 
 	if err := c.ShouldBindUri(&getUserPayload); err != nil {

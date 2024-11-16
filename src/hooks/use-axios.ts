@@ -5,6 +5,7 @@ export const useAxios = () => {
   const { getToken } = useAuth();
   const baseURL = process.env.EXPO_PUBLIC_API_URL;
   if (!baseURL) {
+    console.warn("missing EXPO_PUBLIC_API_URL configuration")
     throw new Error("missing EXPO_PUBLIC_API_URL configuration");
   }
 
@@ -14,6 +15,10 @@ export const useAxios = () => {
 
   instance.interceptors.request.use(async (req) => {
     const token = await getToken({ template: "JWT" });
+    if (!token) {
+      console.error("missing Bearer token")
+      throw new Error("missing Bearer token")
+    }
     req.headers.Authorization = `Bearer ${token}`;
     return req;
   });

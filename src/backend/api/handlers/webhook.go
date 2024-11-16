@@ -72,23 +72,18 @@ func (e *Env) HandleEvent(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user.created data"})
 			return
 		}
-		query := fmt.Sprintf(`INSERT INTO users (clerkId, email, username, points) VALUES ('%s', '%s', '%v', %d`,
-			userData.ID,
-			userData.EmailAddresses[0].EmailAddress,
-			nullToSQLString(userData.Username),
-			0,
-		)
 
-		println("executing query:", query)
-		_, err := e.Db.NamedExec(`INSERT INTO users (clerkId, email, username, points, profileImageURL) VALUES (:clerkId, :email, :username, :points, :profileImageURL)`,
-			map[string]interface{}{
-				"clerkId":         userData.ID,
-				"email":           userData.EmailAddresses[0].EmailAddress,
-				"username":        userData.Username,
-				"points":          0,
-				"profileImageURL": userData.ProfileImageURL,
-			},
-		)
+		query := `INSERT INTO users (clerkId, email, username, points, supportPoints, profileImageURL) VALUES (:clerkId, :email, :username, :points, :supportPoints, :profileImageURL)`
+		data := map[string]interface{}{
+			"clerkId":         userData.ID,
+			"email":           userData.EmailAddresses[0].EmailAddress,
+			"username":        userData.Username,
+			"points":          0,
+			"supportPoints":   0,
+			"profileImageURL": userData.ProfileImageURL,
+		}
+		println("Executing query: ", query, " with struct", data)
+		_, err := e.Db.NamedExec(query, data)
 
 		if err != nil {
 			fmt.Println(err)

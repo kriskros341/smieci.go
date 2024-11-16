@@ -1,5 +1,5 @@
 import { _supportMarker } from "@api/markers";
-import { _getUserByClerkId } from "@api/users";
+import { _getUserById } from "@api/users";
 import { useUser } from "@clerk/clerk-expo";
 import { useAxios } from "@hooks/use-axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -19,7 +19,7 @@ const Support = () => {
   const axios = useAxios();
 
   const { data: userData } = useQuery({
-    queryFn: () => _getUserByClerkId(axios, user?.id),
+    queryFn: () => _getUserById(axios, user?.id),
     queryKey: [user?.id],
     enabled: !!user?.id,
   });
@@ -57,7 +57,7 @@ const Support = () => {
   const isCommitDisabled = markerData?.points + finalDelta < 0;
   return (
     <View className="flex gap-2">
-      <Text>Dostępne punkty {userData?.points}</Text>
+      <Text>Dostępne punkty {userData?.supportPoints}</Text>
       <View className="flex flex-row w-full">
         <View className="flex-1">
           <Button

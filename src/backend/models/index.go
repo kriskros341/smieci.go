@@ -39,7 +39,7 @@ type CreateMarkerBody struct {
 type GetMarkerSupportersResult struct {
 	Id              string  `json:"id"`
 	Username        string  `json:"username"`
-	Total           int32   `json:"total"`
+	Total           int64   `json:"total"`
 	ProfileImageUrl *string `json:"profileImageUrl"`
 }
 
@@ -56,6 +56,7 @@ type Participant struct {
 type User struct {
 	Id              string `json:"id"`
 	Username        string `json:"username"`
-	Points          int32  `json:"points"`
+	Points          int64  `json:"points"`
+	SupportPoints   int64  `json:"supportPoints"`
 	ProfileImageURL string `json:"profileImageURL"`
 }

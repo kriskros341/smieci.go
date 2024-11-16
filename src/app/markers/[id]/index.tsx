@@ -63,6 +63,7 @@ const MarkerPreview = () => {
     </View>
   );
 
+  console.log({ markerSupportersData })
   return (
     <>
       <ScrollView>

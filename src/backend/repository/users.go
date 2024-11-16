@@ -26,7 +26,7 @@ func NewUsersRepository(db *sqlx.DB) UsersRepository {
 func (r *usersRepository) GetAll() ([]models.User, error) {
 	var users []models.User
 
-	err := r.db.Select(&users, "SELECT id, username, points, profileImageURL FROM users")
+	err := r.db.Select(&users, "SELECT id, username, points, supportPoints, profileImageURL FROM users")
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (r *usersRepository) GetAll() ([]models.User, error) {
 func (r *usersRepository) GetUserById(userId string) (*models.User, error) {
 	var user models.User
 
-	query := "SELECT id, username, points FROM users WHERE id = $1"
+	query := "SELECT id, username, points, supportPoints FROM users WHERE id = $1"
 	fmt.Println("Executing query:", query, "with userId:", userId)
 	err := r.db.Get(&user, query, userId)
 	if err != nil {

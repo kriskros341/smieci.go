@@ -24,3 +24,12 @@ type Permission string
 const (
 	PermissionReviewing Permission = "reviewing"
 )
+
+type PointTraceType string
+
+const (
+	PointTraceTypeMarkerSupport    PointTraceType = "markerSupport"
+	PointTraceTypeMarkerReward     PointTraceType = "markerReward"
+	PointTraceTypeMarkerRewardUndo PointTraceType = "markerRewardUndo"
+	PointTraceTypeSystem           PointTraceType = "system"
+)

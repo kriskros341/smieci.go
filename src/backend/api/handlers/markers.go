@@ -97,11 +97,16 @@ func (e *Env) CreateMarker(c *gin.Context) {
 
 	userId, err := helpers.GetUserIdFromSession(c)
 	if err != nil {
+		println(err.Error())
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing JSON data"})
 		return
 	}
-	e.Markers.CreateMarker(payload, userId, filesIds)
-
+	err = e.Markers.CreateMarker(payload, userId, filesIds)
+	if err != nil {
+		println(err.Error())
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
 	// time.Sleep(time.Second * 64)
 	c.JSON(http.StatusOK, gin.H{"message": "Marker created successfully"})
 }

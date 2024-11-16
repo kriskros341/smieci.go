@@ -170,7 +170,7 @@ func (r *solutionsRepository) ApproveMarkerSolution(solutionId string) error {
 		}
 	}
 
-	// Update points of participants
+	// Increment points of participants
 	{
 		var query = `
 			UPDATE users
@@ -238,7 +238,7 @@ func (r *solutionsRepository) ReopenMarkerSolution(solutionId string) error {
 		}
 	}
 
-	// Update points of participants
+	// Revoke points of participants
 	{
 		var query = `
 			UPDATE users
