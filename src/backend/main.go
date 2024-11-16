@@ -4,6 +4,7 @@ import (
 	"backend/api/auth"
 	"backend/api/handlers"
 	"backend/database"
+	repositories "backend/repository"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -125,22 +126,35 @@ func main() {
 	router.Use(cors.Default())
 	router.Use(auth.AuthMiddleware())
 
-	env := &handlers.Env{Db: db, Wh: wh}
+	Markers := repositories.NewMarkerRepository(db)
+	Solutions := repositories.NewSolutionsRepository(db)
+	Uploads := repositories.NewUploadsRepository(db)
+	Users := repositories.NewUsersRepository(db)
+
+	env := &handlers.Env{
+		Db:        db,
+		Wh:        wh,
+		Markers:   Markers,
+		Solutions: Solutions,
+		Uploads:   Uploads,
+		Users:     Users,
+	}
+
 	err = SyncUsers(env)
 	if err != nil {
 		return
 	}
 	router.GET("/users/getUsers", env.GetUsers)
-	router.GET("/users/:userId", env.GetUser)
-	router.GET("/users/clerk/:clerkId", env.GetUserByClerkId)
-	router.POST("/users/deleteUser", env.DeleteUser)
+	router.GET("/users/current/permissions", env.GetCurrentUserPermissions)
+	router.GET("/users/:userId", env.GetUserById)
 	router.POST("/markers", env.CreateMarker)
-	router.GET("/markers/:markerId", env.GetMarker)
-	router.POST("/markers/:markerId/solve", env.PostMarkerSolution)
+	router.GET("/markers/:markerId", env.GetMarkerById)
+	router.POST("/markers/:markerId/solve", env.PostMarkerSolution) // do przeniesienia jako solutions/create
 	router.GET("/markers/:markerId/supporters", env.GetMarkerSupporters)
 	router.GET("/markers", env.GetMarkersCoordinates)
 	router.PUT("/markers/support", env.SupportMarker)
 	router.GET("/solutions/:solutionId", env.GetSolution)
+	router.POST("/solutions/:solutionId/status", env.SetSolutionStatus)
 	router.GET("/uploads/:uploadId", env.GetFile)
 	router.POST("/webhook", env.HandleEvent)
 

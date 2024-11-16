@@ -32,6 +32,11 @@ function RootLayout() {
       <ClerkProvider tokenCache={tokenCache} publishableKey={token}>
         <CustomQueryClientProvider>
           <Slot />
+          {/* <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="markers/[id]" />
+            <Stack.Screen name="tabs" />
+          </Stack> */}
         </CustomQueryClientProvider>
         <PortalHost />
         <Toast />

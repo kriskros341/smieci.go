@@ -48,6 +48,7 @@ const AdditionalPhotosFormField = ({
       >
         <GestureDetector gesture={dobuleTap}>
           <Image
+            key={uri}
             className={clsx("flex-1")}
             source={{
               uri,

@@ -18,7 +18,16 @@ export const _createUser = async (
   return response.data;
 };
 
-interface GetUsersResponse extends BaseDataResponse<{ id: string, username: string, profilePictureUrl: string, points: number }[]> {}
+interface GetUsersResponse
+  extends BaseDataResponse<
+    {
+      id: string;
+      username: string;
+      profilePictureUrl: string;
+      points: number;
+      supportPoints: number;
+    }[]
+  > {}
 
 export const _getUsers = async (
   axios: AxiosInstance,
@@ -28,16 +37,8 @@ export const _getUsers = async (
   return response?.data;
 };
 
-export const _deleteUser = async (axios: AxiosInstance, email: string) => {
-  const response = await axios.post("/users/deleteUser", {
-    email,
-  });
+export const _getUserById = async (axios: AxiosInstance, id: unknown) => {
+  const response = await axios.get(`/users/${id}`);
 
   return response.data;
 };
-
-export const _getUserByClerkId = async (axios: AxiosInstance, id: unknown) => {
-  const response = await axios.get(`/users/clerk/${id}`);
-
-  return response.data;
-}

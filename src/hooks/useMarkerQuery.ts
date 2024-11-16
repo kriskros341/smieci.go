@@ -8,13 +8,14 @@ type MarkerResponse = {
   userId: string;
   points: number;
   blurHashes: string[];
-  pendingVerificationsCount: number,
-  latestSolutionId: number
+  pendingVerificationsCount: number;
+  latestSolutionId: number;
 };
 
 export const useMarkerQuery = (key: unknown) => {
   const data = useQuery<MarkerResponse>({
     queryKey: [`/markers/${key}`],
+    refetchOnWindowFocus: true,
   });
   return data;
 };

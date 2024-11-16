@@ -82,7 +82,7 @@ export const useCreateMarkerMutation = (
       return _createMarker(axios, payload);
     },
     onSettled() {
-      queryClient.invalidateQueries({ queryKey: ["markers"] });
+      queryClient.invalidateQueries({ queryKey: ["/markers"] });
       options.onSettled();
     },
   });

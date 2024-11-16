@@ -1,9 +1,10 @@
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Tabs } from "expo-router";
 
 export default function Layout() {
-  const { user } = useUser();
-
+  const { user } = useUser();  
+  const { sessionId } = useAuth();
+  console.log({ sessionId })
   return (
     <Tabs initialRouteName="map">
       <Tabs.Screen
@@ -14,9 +15,7 @@ export default function Layout() {
             display: "none",
           },
           href: "/tabs/map",
-          header() {
-            return null;
-          },
+          headerShown: false,
         }}
       />
       <Tabs.Screen

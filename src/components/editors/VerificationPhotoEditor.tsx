@@ -46,7 +46,6 @@ const VerificationPhotoEditor = ({
   }, []);
 
   const pan = Gesture.Pan().onChange((value) => {
-    console.log({ value, a: tempPhotoWidth.value, b: totalScreenWidth.value });
     const newValue = tempPhotoWidth.value + value.changeX;
     if (
       newValue < totalScreenWidth.value &&
@@ -79,8 +78,8 @@ const VerificationPhotoEditor = ({
     fabButtons.push(<Button title="Zrób zdjęcie" onPress={onPhoto} />);
   } else {
     fabButtons.push(
-      <Button title="Akceptuj" onPress={() => onCommitPress(tempPhotoUri)} />,
       <Button title="Powtórz" onPress={onPhoto} />,
+      <Button title="Akceptuj" onPress={() => onCommitPress(tempPhotoUri)} />,
     );
   }
 

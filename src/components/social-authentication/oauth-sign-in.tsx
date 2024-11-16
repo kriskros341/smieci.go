@@ -54,6 +54,7 @@ const OauthSignIn: React.FC = () => {
       const { createdSessionId, setActive } = await startOAuthFlow({
         redirectUrl: Linking.createURL("/tabs"),
       });
+      console.log(createdSessionId, setActive)
       if (createdSessionId) {
         setActive!({ session: createdSessionId });
       } else {
@@ -61,6 +62,7 @@ const OauthSignIn: React.FC = () => {
         const response = await signUp.update({
           username: signUp.emailAddress!.split("@")[0],
         });
+        console.log({ response })
         if (response.status === "complete") {
           setActive!({ session: signUp.createdSessionId });
         }

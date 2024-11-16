@@ -22,14 +22,10 @@ const ParticipantsFormField = ({
   const { data } = useUsers();
   const remainder = fields.slice(3);
 
-  console.log({ data })
   return (
     <View>
       {fields.slice(0, 3)?.map(({ userId }) => {
-        const user = data?.find(
-          ({ id }: { id: string }) => id === userId,
-        );
-        console.log({ user })
+        const user = data?.find(({ id }: { id: string }) => id === userId);
         return (
           <View className="flex flex-row items-center p-2">
             <Avatar key={user?.id} imageUrl={user?.profileImageURL} />
@@ -52,7 +48,6 @@ const ParticipantsFormField = ({
               participantsIds: fields.map((d) => d.userId),
               onCloseRequest: (newIds: string[]) => {
                 replace(newIds.map((newId) => ({ userId: newId })));
-                console.log(newIds);
               },
             })
           }

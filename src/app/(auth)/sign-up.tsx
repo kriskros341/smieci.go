@@ -4,7 +4,7 @@ import { View } from "react-native";
 
 const SignUpScreen: React.FC = () => {
   return (
-    <View className="flex items-center justify-center w-screen h-screen bg-white">
+    <View className="flex items-center justify-center flex-1 bg-white">
       <SignUp />
     </View>
   );
