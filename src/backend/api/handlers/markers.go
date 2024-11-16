@@ -45,7 +45,7 @@ func (e *Env) GetMarkerById(c *gin.Context) {
 		return
 	}
 
-	solutionPayload, err := e.Solutions.GetLatestSolutionForMarker(markerRequestPayload.MarkerId)
+	solutionPayload, err := e.Solutions.GetSolutionsInfoForMarker(markerRequestPayload.MarkerId)
 	if err != nil {
 		fmt.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, err)
@@ -123,8 +123,8 @@ func (e *Env) SupportMarker(c *gin.Context) {
 
 	err := e.Markers.SupportMarker(body.UserId, body.MarkerId, body.Amount)
 	if err != nil {
-		fmt.Println(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": "transaction failed"})
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, "")

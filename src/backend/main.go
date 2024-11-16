@@ -154,18 +154,9 @@ func main() {
 	router.GET("/markers", env.GetMarkersCoordinates)
 	router.PUT("/markers/support", env.SupportMarker)
 	router.GET("/solutions/:solutionId", env.GetSolution)
-	router.PATCH("/solutions/:solutionId/status", env.SetSolutionStatus) // DEPRECATED
+	router.POST("/solutions/:solutionId/status", env.SetSolutionStatus)
 	router.GET("/uploads/:uploadId", env.GetFile)
 	router.POST("/webhook", env.HandleEvent)
 
 	router.Run("0.0.0.0:8080")
 }
-
-/*
-POST /solutions/:solutionId/approve
-	I want to award points and create traces
-PATCH /solutions/:solutionId/deny
-	I want to set status to denied.
-??? /solutions/:solutionId/unapprove? (czy potrzeby?)
-	I want to set status, potentially retrive awarded points and also create counter traces.
-*/

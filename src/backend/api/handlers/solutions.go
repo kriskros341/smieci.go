@@ -2,13 +2,14 @@ package handlers
 
 import (
 	"backend/api/auth"
+	"backend/database"
+	"backend/helpers"
 	"backend/models"
 	"encoding/json"
 	"fmt"
 	"log"
 	"mime/multipart"
 	"net/http"
-	"slices"
 
 	"github.com/gin-gonic/gin"
 )
@@ -127,23 +128,17 @@ func (e *Env) GetSolution(c *gin.Context) {
 		return
 	}
 	solutionId := solutionRequestPayload.SolutionId
+	exists, err := e.Solutions.DoesExistById(solutionId)
 
-	{
-		query := fmt.Sprintf(`select id from solutions where id = $1`)
-		fmt.Printf("executing query: %s, with parameter %s", query, solutionId)
-		rows, err := e.Db.Query(query, solutionId)
-		if err != nil {
-			log.Fatalln("Error executing query:", err.Error())
-			c.JSON(http.StatusInternalServerError, err)
-			return
-		}
-		defer rows.Close()
+	if err != nil {
+		log.Fatalln("Error executing query:", err.Error())
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
 
-		if !rows.Next() {
-			log.Println("No solution found with the provided ID.")
-			c.JSON(http.StatusNotFound, gin.H{"error": "Solution not found"})
-			return
-		}
+	if !exists {
+		c.JSON(http.StatusNotFound, err)
+		return
 	}
 
 	participants, err := e.Users.GetParticipantsBySolutionId(solutionId)
@@ -178,36 +173,23 @@ func (e *Env) GetSolution(c *gin.Context) {
 }
 
 type SetSolutionStatusPayload struct {
-	Status string `json:"status"`
+	Status database.SolutionStatus `json:"status"`
 }
 
 func (e *Env) SetSolutionStatus(c *gin.Context) {
-
 	claims, exists := c.Get("authorizerClaims")
-
 	if !exists {
 		c.JSON(http.StatusNotFound, gin.H{"error": "No claim"})
 		return
 	}
-	userId := claims.(*auth.AuthorizerClaims).UserId
-	var permissions []string
-	query := fmt.Sprintf("SELECT p.pname FROM permissions p JOIN users_permissions_relation upr on p.id = upr.permissionId where upr.userId = '%s'", userId)
-	fmt.Println("Executing query:", query)
-	err := e.Db.Select(&permissions, query)
-	if err != nil {
-		var e = gin.H{"error": err.Error()}
-		fmt.Println(e)
-		c.JSON(http.StatusInternalServerError, e)
-		return
-	}
 
-	if !slices.Contains(permissions, "reviewing") {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "No permissions"})
+	if err := helpers.Authorize(e.Db, claims.(*auth.AuthorizerClaims), database.PermissionReviewing); err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusUnauthorized, err.Error())
 		return
 	}
 
 	var solutionRequestPayload GetSolutionRequestPayload
-
 	if err := c.ShouldBindUri(&solutionRequestPayload); err != nil {
 		fmt.Println(err.Error())
 		c.JSON(http.StatusBadRequest, err)
@@ -216,7 +198,6 @@ func (e *Env) SetSolutionStatus(c *gin.Context) {
 
 	solutionId := solutionRequestPayload.SolutionId
 	var setSolutionStatusPayload SetSolutionStatusPayload
-	println("teset")
 
 	if err := c.BindJSON(&setSolutionStatusPayload); err != nil {
 		fmt.Println(err)
@@ -224,9 +205,38 @@ func (e *Env) SetSolutionStatus(c *gin.Context) {
 		return
 	}
 
-	Status := "denied"
-	query = fmt.Sprintf("UPDATE solutions set verification_status = '%s' WHERE id = %s", Status, solutionId)
-	_, err = e.Db.Exec(query)
+	var err error = nil
+	// Act on solution
+	{
+		status := setSolutionStatusPayload.Status
+		solutionStatus, err := e.Solutions.GetSolutionStatus(solutionId)
+		if err != nil {
+			var e = gin.H{"error": err.Error()}
+			fmt.Println(e)
+			c.JSON(http.StatusInternalServerError, e)
+			return
+		}
+
+		switch {
+		case status == database.SolutionStatusApproved && solutionStatus == database.SolutionStatusPending:
+			{
+				err = e.Solutions.ApproveMarkerSolution(solutionId)
+			}
+		case status == database.SolutionStatusDenied && solutionStatus == database.SolutionStatusPending:
+			{
+				err = e.Solutions.DenyMarkerSolution(solutionId)
+			}
+		case status == database.SolutionStatusPending && solutionStatus != database.SolutionStatusPending:
+			{
+				err = e.Solutions.ReopenMarkerSolution(solutionId)
+			}
+		default:
+			{
+				err = fmt.Errorf("Invalid operation %s -> %s", solutionStatus, status)
+			}
+		}
+	}
+
 	if err != nil {
 		var e = gin.H{"error": err.Error()}
 		fmt.Println(e)

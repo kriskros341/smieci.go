@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"backend/api/auth"
+	"backend/database"
 	"errors"
 	"fmt"
 	"slices"
@@ -10,9 +11,9 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func Authorize(db *sqlx.DB, claims *auth.AuthorizerClaims, permission string) error {
+func Authorize(db *sqlx.DB, claims *auth.AuthorizerClaims, permission database.Permission) error {
 	userId := claims.UserId
-	var permissions []string
+	var permissions []database.Permission
 	query := fmt.Sprintf("SELECT p.pname FROM permissions p JOIN users_permissions_relation upr on p.id = upr.permissionId where upr.userId = '%s'", userId)
 	fmt.Println("Executing query:", query)
 	err := db.Select(&permissions, query)

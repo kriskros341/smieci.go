@@ -10,3 +10,17 @@ func Connect() (db *sqlx.DB) {
 
 	return db
 }
+
+type SolutionStatus string
+
+const (
+	SolutionStatusApproved SolutionStatus = "approved"
+	SolutionStatusDenied   SolutionStatus = "denied"
+	SolutionStatusPending  SolutionStatus = "pending"
+)
+
+type Permission string
+
+const (
+	PermissionReviewing Permission = "reviewing"
+)

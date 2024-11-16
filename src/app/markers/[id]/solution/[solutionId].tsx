@@ -20,6 +20,7 @@ import { useAxios } from "@hooks/use-axios";
 import Toast from "react-native-toast-message";
 import { useMarkerQuery } from "@hooks/useMarkerQuery";
 import StatusBadge from "@components/statusBadge";
+import { SolutionStatus } from "@utils/databaseConstants";
 
 const useSolutionQuery = (solutionId: string) => {
   return useQuery<any>({
@@ -101,7 +102,7 @@ const useSolutionStatusMutation = (solutionId: unknown) => {
   const axios = useAxios();
   return useMutation({
     mutationFn: (payload: string) =>
-      axios.patch(`/solutions/${solutionId}/status`, { status: payload }),
+      axios.post(`/solutions/${solutionId}/status`, { status: payload }),
     onError: (e: any) => {
       Toast.show({
         type: "error",
@@ -132,12 +133,12 @@ const PreivewMarkerSolution = () => {
     // Rozwiązany
     contextMenuItems.push({
       text: "Otwórz ponownie",
-      callback: () => option("pending"),
+      callback: () => option(SolutionStatus.Pending),
     });
   } else {
     contextMenuItems.push(
-      { text: "Zatwierdź", callback: () => option("approved", true) },
-      { text: "Odrzuć", callback: () => option("denied", true) },
+      { text: "Zatwierdź", callback: () => option(SolutionStatus.Approved, true) },
+      { text: "Odrzuć", callback: () => option(SolutionStatus.Denied, true) },
     );
   }
 

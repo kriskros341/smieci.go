@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"backend/database"
 	"backend/models"
 	"fmt"
 	"strings"
@@ -10,8 +11,13 @@ import (
 )
 
 type SolutionsRepository interface {
-	GetLatestSolutionForMarker(markerId string) (*models.LatestSolutionPayload, error)
+	GetSolutionsInfoForMarker(markerId string) (*models.LatestSolutionPayload, error)
 	CreateSolution(markerId string, participantsIds []string, primaryFilesIds []int64, additionalFilesIds []int64) error
+	DoesExistById(solutionId string) (bool, error)
+	ApproveMarkerSolution(solutionId string) error
+	DenyMarkerSolution(solutionId string) error
+	ReopenMarkerSolution(solutionId string) error
+	GetSolutionStatus(solutionId string) (database.SolutionStatus, error)
 }
 
 type solutionsRepository struct {
@@ -27,7 +33,7 @@ type VerificationStatus struct {
 	Id                 int64  `db:"id"`
 }
 
-func (r *solutionsRepository) GetLatestSolutionForMarker(markerId string) (*models.LatestSolutionPayload, error) {
+func (r *solutionsRepository) GetSolutionsInfoForMarker(markerId string) (*models.LatestSolutionPayload, error) {
 
 	var latestSolutionId int64
 	var pendingVerificationsCount int64
@@ -113,6 +119,152 @@ func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []
 	return nil
 }
 
-func (r *solutionsRepository) GetSolution(solutionId string) {
+func (r *solutionsRepository) DoesExistById(solutionId string) (bool, error) {
+	query := fmt.Sprintf(`select id from solutions where id = $1`)
+	fmt.Printf("executing query: %s, with parameter %s", query, solutionId)
+	rows, err := r.db.Queryx(query, solutionId)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		return false, nil
+	}
 
+	return true, nil
+}
+
+func (r *solutionsRepository) ApproveMarkerSolution(solutionId string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return err
+	}
+	// update solution status and return marker points
+	var totalPoints int64
+	{
+		status := "approved"
+		query := `UPDATE solutions s set verification_status = $1 from markers m WHERE s.id = $2 and markerid = m.id RETURNING m.points`
+		println("Executing ", query, status, solutionId)
+		err := tx.Get(&totalPoints, query, status, solutionId)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to update solution status: %w", err)
+		}
+	}
+
+	// Get count of participants
+	var participantsCount int64
+	{
+		// Get participants count
+		query := "SELECT COUNT(id) FROM solutions_users_relation WHERE solutionId = $1"
+		println("Executing ", query)
+		err := tx.Get(&participantsCount, query, solutionId)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to fetch participants count: %w", err)
+		}
+
+		if participantsCount == 0 {
+			tx.Rollback()
+			return fmt.Errorf("no participants found for solution ID %s", solutionId)
+		}
+	}
+
+	// Update points of participants
+	{
+		var query = `
+			UPDATE users
+				SET points = points + $1
+				FROM solutions_users_relation sur
+			WHERE sur.solutionId = $2;
+		`
+		println("Executing ", query, totalPoints/participantsCount, solutionId)
+		_, err := tx.Exec(query, totalPoints/participantsCount, solutionId)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to update user points: %w", err)
+		}
+	}
+
+	// KCTODO: CREATE POINTS TRACES??
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *solutionsRepository) DenyMarkerSolution(solutionId string) error {
+	Status := "denied"
+	query := fmt.Sprintf("UPDATE solutions set verification_status = '%s' WHERE id = %s RETURNING markerId", Status, solutionId)
+	_, err := r.db.Exec(query)
+	return err
+}
+
+func (r *solutionsRepository) ReopenMarkerSolution(solutionId string) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return err
+	}
+	// update solution status and return marker points
+	var totalPoints int64
+	{
+		status := "pending"
+		query := `UPDATE solutions s set verification_status = $1 from markers m WHERE s.id = $2 and markerid = m.id RETURNING m.points`
+		println("Executing ", query, status, solutionId)
+		err := tx.Get(&totalPoints, query, status, solutionId)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to update solution status: %w", err)
+		}
+	}
+
+	// Get count of participants
+	var participantsCount int64
+	{
+		// Get participants count
+		query := "SELECT COUNT(id) FROM solutions_users_relation WHERE solutionId = $1"
+		println("Executing ", query)
+		err := tx.Get(&participantsCount, query, solutionId)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to fetch participants count: %w", err)
+		}
+
+		if participantsCount == 0 {
+			tx.Rollback()
+			return fmt.Errorf("no participants found for solution ID %s", solutionId)
+		}
+	}
+
+	// Update points of participants
+	{
+		var query = `
+			UPDATE users
+				SET points = points - $1
+				FROM solutions_users_relation sur
+			WHERE sur.solutionId = $2;
+		`
+		println("Executing ", query, totalPoints/participantsCount, solutionId)
+		_, err := tx.Exec(query, totalPoints/participantsCount, solutionId)
+		if err != nil {
+			tx.Rollback()
+			return fmt.Errorf("failed to update user points: %w", err)
+		}
+	}
+
+	// KCTODO: CREATE POINTS TRACES??
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *solutionsRepository) GetSolutionStatus(solutionId string) (database.SolutionStatus, error) {
+	var solutionStatus database.SolutionStatus
+	err := r.db.Get(&solutionStatus, "SELECT verification_status FROM solutions WHERE id = $1", solutionId)
+	return solutionStatus, err
 }
