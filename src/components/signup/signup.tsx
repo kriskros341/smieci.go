@@ -111,11 +111,10 @@ const SignUp: React.FC = () => {
 
   if (!pendingVerification) {
     return (
-      <>
-        <View>
-          <Text className="text-xl font-semibold text-center">
-            Stwórz konto
-          </Text>
+      <View className="w-2/3">
+        <Text className="mb-2 text-xl font-semibold">Stwórz konto</Text>
+        <View className="flex my-2">
+          <Text className="mb-2 text-xs text-slate-400">Email</Text>
           <Controller
             control={control}
             render={({ field: { onChange, onBlur, value } }) => (
@@ -124,38 +123,40 @@ const SignUp: React.FC = () => {
                 onBlur={onBlur}
                 value={value}
                 autoCapitalize="none"
-                placeholder="Username..."
-                className="px-4 py-2"
-              />
-            )}
-            name="username"
-          />
-          {errors.username && (
-            <Text className="text-xs text-red-500">
-              {errors.username.message}
-            </Text>
-          )}
-          <View className="w-full h-px bg-gray-300" />
-          <Controller
-            control={control}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                onChangeText={onChange}
-                onBlur={onBlur}
-                value={value}
-                autoCapitalize="none"
-                placeholder="Email..."
-                className="px-4 py-2"
+                className="px-3 py-2.5 border border-solid rounded-lg border-slate-300"
               />
             )}
             name="emailAddress"
           />
           {errors.emailAddress && (
-            <Text className="text-xs text-red-500">
+            <Text className="mt-2 text-xs text-red-500">
               {errors.emailAddress.message}
             </Text>
           )}
-          <View className="w-full h-px bg-gray-300" />
+        </View>
+        <View className="flex my-2">
+          <Text className="mb-2 text-xs text-slate-400">Login</Text>
+          <Controller
+            control={control}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                onChangeText={onChange}
+                onBlur={onBlur}
+                value={value}
+                autoCapitalize="none"
+                className="px-3 py-2.5 border border-solid rounded-lg border-slate-300"
+              />
+            )}
+            name="username"
+          />
+          {errors.username && (
+            <Text className="mt-2 text-xs text-red-500">
+              {errors.username.message}
+            </Text>
+          )}
+        </View>
+        <View className="flex my-2">
+          <Text className="mb-2 text-xs text-slate-400">Hasło</Text>
           <Controller
             control={control}
             render={({ field: { onChange, onBlur, value } }) => (
@@ -166,17 +167,19 @@ const SignUp: React.FC = () => {
                 placeholder="Password..."
                 placeholderTextColor="#000"
                 secureTextEntry={true}
-                className="px-4 py-2"
+                className="px-3 py-2.5 border border-solid rounded-lg border-slate-300"
               />
             )}
             name="password"
           />
           {errors.password && (
-            <Text className="text-xs text-red-500">
+            <Text className="mt-2 text-xs text-red-500">
               {errors.password.message}
             </Text>
           )}
-          <View className="w-full h-px bg-gray-300" />
+        </View>
+        <View className="flex my-2">
+          <Text className="mb-2 text-xs text-slate-400">Potwierdź hasło</Text>
           <Controller
             control={control}
             render={({ field: { onChange, onBlur, value } }) => (
@@ -187,24 +190,37 @@ const SignUp: React.FC = () => {
                 placeholder="Confirm password..."
                 placeholderTextColor="#000"
                 secureTextEntry
-                className="px-4 py-2"
+                className="px-3 py-2.5 border border-solid rounded-lg border-slate-300"
               />
             )}
             name="confirmPassword"
           />
           {errors.confirmPassword && (
-            <Text className="text-xs text-red-500">
+            <Text className="mt-2 text-xs text-red-500">
               {errors.confirmPassword.message}
             </Text>
           )}
-          <View className="w-full h-px bg-gray-300" />
-          <View className="flex flex-row items-center justify-center my-4">
-            <Button title="Sign up" onPress={handleSubmit(onSignUpPress)} />
-            <Link href="/(auth)/sign-in">Sign in instead</Link>
-          </View>
+        </View>
+        <View className="my-2">
+          <Button
+            title="Zarejestruj się"
+            onPress={handleSubmit(onSignUpPress)}
+            buttonClassName="px-3 py-2.5 rounded-lg bg-green"
+          />
+        </View>
+        <View className="flex flex-row items-center justify-center">
+          <Text className="mr-1 text-slate-400">Masz już konto?</Text>
+          <Link href="/(auth)/sign-in" className="text-green">
+            Zaloguj się
+          </Link>
+        </View>
+        <View className="flex flex-row my-2">
+          <Text className="flex-1 h-px my-2 bg-slate-300" />
+          <Text className="px-1 text-slate-400">lub</Text>
+          <View className="flex-1 h-px my-2 bg-slate-300" />
         </View>
         <OauthSignUp />
-      </>
+      </View>
     );
   }
 

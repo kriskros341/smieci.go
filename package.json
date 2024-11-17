@@ -11,7 +11,8 @@
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "tunnel": "ssh -R youruniquesubdomain:80:localhost:8080 serveo.net",
     "tunnel-ngrok": "ngrok http 8080 --url=tapir-enjoyed-sawfly.ngrok-free.app",
-    "tunnel-lt": "lt --port 8080 --subdomain yourpreferredname"
+    "tunnel-lt": "lt --port 8080 --subdomain yourpreferredname",
+    "clean": "rm -rf node_modules && npm cache clean --force"
   },
   "dependencies": {
     "@babel/runtime": "^7.26.0",

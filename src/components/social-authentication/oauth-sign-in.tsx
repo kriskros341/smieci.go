@@ -3,6 +3,8 @@ import Button from "@ui/button";
 import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import * as React from "react";
+import { View } from "react-native";
+import GoogleIcon from "./google-icon";
 
 const OauthSignIn: React.FC = () => {
   const { signIn } = useSignIn();
@@ -54,7 +56,7 @@ const OauthSignIn: React.FC = () => {
       const { createdSessionId, setActive } = await startOAuthFlow({
         redirectUrl: Linking.createURL("/tabs"),
       });
-      console.log(createdSessionId, setActive)
+      console.log(createdSessionId, setActive);
       if (createdSessionId) {
         setActive!({ session: createdSessionId });
       } else {
@@ -62,7 +64,7 @@ const OauthSignIn: React.FC = () => {
         const response = await signUp.update({
           username: signUp.emailAddress!.split("@")[0],
         });
-        console.log({ response })
+        console.log({ response });
         if (response.status === "complete") {
           setActive!({ session: signUp.createdSessionId });
         }
@@ -72,12 +74,16 @@ const OauthSignIn: React.FC = () => {
   }
 
   return (
-    <Button
-      title="Koontynuuj z Google"
-      onPress={handleSignIn}
-      buttonClassName="px-3 py-2.5 border border-solid border-slate-300 rounded-lg bg-white outline-none"
-      textClassName="text-white-300 text-center"
-    />
+    <View className="flex flex-row">
+      <Button
+        title="Koontynuuj z Google"
+        onPress={handleSignIn}
+        buttonClassName="px-3 py-2.5 border border-solid border-slate-300 rounded-lg bg-white outline-none w-full"
+        textClassName="text-white-300 text-center ml-2"
+      >
+        <GoogleIcon />
+      </Button>
+    </View>
   );
 };
 
