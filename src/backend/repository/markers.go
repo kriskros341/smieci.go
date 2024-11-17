@@ -105,10 +105,6 @@ func (r *markerRepository) CreateMarker(marker models.CreateMarkerBody, userId s
 		return err
 	}
 
-	if err != nil {
-		return err
-	}
-
 	return err
 }
 

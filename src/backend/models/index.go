@@ -60,3 +60,18 @@ type User struct {
 	SupportPoints   int64  `json:"supportPoints"`
 	ProfileImageURL string `json:"profileImageURL"`
 }
+
+type LeaderboardEntry struct {
+	UserId         string `json:"userId"`
+	Username       string `json:"username"`
+	NumberOfPoints int64  `json:"numberOfPoints"`
+	ImageUrl       string `json:"imageUrl"`
+}
+
+type LeaderboardType string
+
+const (
+	Daily   LeaderboardType = "daily"
+	Weekly  LeaderboardType = "weekly"
+	Monthly LeaderboardType = "monthly"
+)

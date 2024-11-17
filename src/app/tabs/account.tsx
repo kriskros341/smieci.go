@@ -1,23 +1,24 @@
 import { useAuth, useUser } from "@clerk/clerk-expo";
-import { Button, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { _getUserById } from "@api/users";
+import { AntDesign } from "@expo/vector-icons";
 import { useAxios } from "@hooks/use-axios";
 import { useQuery } from "@tanstack/react-query";
+import Button from "@ui/button";
+import DividerWithText from "@ui/DividerWithText";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui/tooltip";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import DividerWithText from "@ui/DividerWithText";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@ui/tooltip";
-import { AntDesign } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const maxSupportPointsCount = 500
+const maxSupportPointsCount = 500;
 
 function timeUntilMidnight(): number {
   const now = new Date();
   const midnight = new Date(now);
-  
+
   // Set the time to midnight of the next day
   midnight.setHours(24, 0, 0, 0);
 
@@ -27,11 +28,9 @@ function timeUntilMidnight(): number {
   // Convert milliseconds to seconds
   const totalSeconds = timeDifference / 1000;
 
-
   // Format the result as "HH:MM:SS"
-  return totalSeconds
+  return totalSeconds;
 }
-
 
 const Account = () => {
   const { user } = useUser();
@@ -46,16 +45,17 @@ const Account = () => {
     enabled: !!user?.id,
   });
 
-  const [secondsUntilMidnight, setSecondsUnitlMidnight] = useState(timeUntilMidnight());
+  const [secondsUntilMidnight, setSecondsUnitlMidnight] =
+    useState(timeUntilMidnight());
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setSecondsUnitlMidnight((current) => current - 1)
-    }, 1000)
+      setSecondsUnitlMidnight((current) => current - 1);
+    }, 1000);
     return () => {
-      clearInterval(interval)
-    }
-  })
+      clearInterval(interval);
+    };
+  });
 
   const contentInsets = {
     top: insets.top,
@@ -68,23 +68,22 @@ const Account = () => {
   const hours = Math.floor(secondsUntilMidnight / 3600);
   const minutes = Math.floor((secondsUntilMidnight % 3600) / 60);
   const seconds = Math.floor(secondsUntilMidnight % 60);
-  const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  const timeString = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   return (
-    <View className="flex-1 bg-#fff items-center p-8 gap-8">
+    <View className="flex-1 bg-#fff items-center p-8 gap-8 h-full">
       <View>
         <View className="flex items-center justify-center w-64 h-64 overflow-hidden border rounded-full">
           <Image className="w-full h-full" source={{ uri: user?.imageUrl }} />
         </View>
       </View>
-      <View className="w-full gap-y-4">
+      <View className="w-full h-full gap-y-4">
         <DividerWithText>
-          <Text>
-            Dane ogólne
-          </Text>
+          <Text>Dane ogólne</Text>
         </DividerWithText>
         <View className="flex-row">
           <Text>
-            Dostępne punkty: {userData?.supportPoints} z maksymalnych {maxSupportPointsCount}
+            Dostępne punkty: {userData?.supportPoints} z maksymalnych{" "}
+            {maxSupportPointsCount}
           </Text>
           <Tooltip delayDuration={150} className="ml-2">
             <TooltipTrigger>
@@ -94,7 +93,9 @@ const Account = () => {
               <View className="gap-2">
                 <View className="flex-row items-center gap-2">
                   <AntDesign name="doubleright" size={20} color="black" />
-                  <Text>Pula dostępnych punktów zwiększa się codziennie o północy.</Text>
+                  <Text>
+                    Pula dostępnych punktów zwiększa się codziennie o północy.
+                  </Text>
                 </View>
                 <View className="flex-row items-center gap-2">
                   <AntDesign name="doubleright" size={20} color="black" />
@@ -105,19 +106,23 @@ const Account = () => {
                 </View>
                 <View className="flex-row items-center gap-2">
                   <AntDesign name="warning" size={20} color="red" />
-                  <Text>Nadmiarowe punkty są automatycznie rozdzielane pomiędzy pobliskie zgłoszenia</Text>
+                  <Text>
+                    Nadmiarowe punkty są automatycznie rozdzielane pomiędzy
+                    pobliskie zgłoszenia
+                  </Text>
                 </View>
               </View>
             </TooltipContent>
-          </Tooltip> 
+          </Tooltip>
         </View>
         <Text>Zebrane punkty: {userData?.points}</Text>
         <Button
-          title="Log out"
+          title="Wyloguj się"
           onPress={() => {
             signOut();
             router.replace("/");
           }}
+          buttonClassName="bg-green mt-4"
         />
       </View>
     </View>

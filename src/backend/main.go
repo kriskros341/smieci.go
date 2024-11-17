@@ -130,14 +130,16 @@ func main() {
 	Solutions := repositories.NewSolutionsRepository(db)
 	Uploads := repositories.NewUploadsRepository(db)
 	Users := repositories.NewUsersRepository(db)
+	Leaderboard := repositories.NewLeaderboardRepository(db)
 
 	env := &handlers.Env{
-		Db:        db,
-		Wh:        wh,
-		Markers:   Markers,
-		Solutions: Solutions,
-		Uploads:   Uploads,
-		Users:     Users,
+		Db:          db,
+		Wh:          wh,
+		Markers:     Markers,
+		Solutions:   Solutions,
+		Uploads:     Uploads,
+		Users:       Users,
+		Leaderboard: Leaderboard,
 	}
 
 	err = SyncUsers(env)
@@ -157,6 +159,8 @@ func main() {
 	router.POST("/solutions/:solutionId/status", env.SetSolutionStatus)
 	router.GET("/uploads/:uploadId", env.GetFile)
 	router.POST("/webhook", env.HandleEvent)
+
+	router.GET("/leaderboard", env.GetLeaderboardByType)
 
 	router.Run("0.0.0.0:8080")
 }

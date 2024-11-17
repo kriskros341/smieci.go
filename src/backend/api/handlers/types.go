@@ -8,10 +8,11 @@ import (
 )
 
 type Env struct {
-	Db        *sqlx.DB
-	Wh        *svix.Webhook
-	Markers   repositories.MarkerRepository
-	Uploads   repositories.UploadsRepository
-	Solutions repositories.SolutionsRepository
-	Users     repositories.UsersRepository
+	Db          *sqlx.DB
+	Wh          *svix.Webhook
+	Markers     repositories.MarkerRepository
+	Uploads     repositories.UploadsRepository
+	Solutions   repositories.SolutionsRepository
+	Users       repositories.UsersRepository
+	Leaderboard repositories.LeaderboardRepository
 }
