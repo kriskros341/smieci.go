@@ -26,12 +26,12 @@ func (r *leaderboardRepository) GetLeaderboardByType(leaderboard models.Leaderbo
 
 	var startDate time.Time
 	switch leaderboard {
-	case models.Daily:
-		startDate = startOfDay()
 	case models.Weekly:
 		startDate = startOfWeek()
 	case models.Monthly:
 		startDate = startOfMonth()
+	case models.AllTime:
+		startDate = allTime()
 	default:
 		return nil, errors.New("invalid leaderboard type")
 	}
@@ -73,8 +73,6 @@ func startOfMonth() time.Time {
 	return startOfMonth
 }
 
-func startOfDay() time.Time {
-	now := time.Now()
-	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	return startOfDay
+func allTime() time.Time {
+	return time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC)
 }

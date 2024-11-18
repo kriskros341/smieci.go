@@ -71,7 +71,7 @@ type LeaderboardEntry struct {
 type LeaderboardType string
 
 const (
-	Daily   LeaderboardType = "daily"
 	Weekly  LeaderboardType = "weekly"
 	Monthly LeaderboardType = "monthly"
+	AllTime LeaderboardType = "alltime"
 )

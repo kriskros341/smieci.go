@@ -9,16 +9,18 @@ const Leaderboard: React.FC = () => {
   const [index, setIndex] = React.useState(0);
 
   const routes = [
-    { key: "daily", title: "Dzienne" },
     { key: "weekly", title: "Tygodniowe" },
     { key: "monthly", title: "Miesięczne" }, // TODO: change to all-time??
+    { key: "alltime", title: "Ogólne" },
   ];
 
   const renderScene = SceneMap({
-    daily: () => <LeaderboardView leaderboardType={leaderboardTypes.DAILY} />,
     weekly: () => <LeaderboardView leaderboardType={leaderboardTypes.WEEKLY} />,
     monthly: () => (
       <LeaderboardView leaderboardType={leaderboardTypes.MONTHLY} />
+    ),
+    alltime: () => (
+      <LeaderboardView leaderboardType={leaderboardTypes.ALL_TIME} />
     ),
   });
 

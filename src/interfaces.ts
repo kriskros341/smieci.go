@@ -13,9 +13,9 @@ export type LeaderboardEntry = {
 };
 
 export const leaderboardTypes = {
-  DAILY: "daily",
   WEEKLY: "weekly",
   MONTHLY: "monthly",
+  ALL_TIME: "alltime",
 } as const;
 
 export type LeaderboardType =
