@@ -13,6 +13,7 @@ type UsersRepository interface {
 	GetUserById(userId string) (*models.User, error)
 	GetPermissionsByUserId(userId string) ([]string, error)
 	GetParticipantsBySolutionId(solutionId string) ([]models.Participant, error)
+	UpdateAvailablePoints(increment int) (int64, error)
 }
 
 type usersRepository struct {
@@ -73,4 +74,22 @@ WHERE susr.solutionid = %s;
 	}
 
 	return participants, nil
+}
+
+func (r *usersRepository) UpdateAvailablePoints(increment int) (int64, error) {
+	query := `UPDATE users SET supportPoints = supportPoints + $1;` // TODO: rename to availablePoints
+
+	res, err := r.db.Exec(query, increment)
+	if err != nil {
+		log.Fatalln("Error executing query:", err.Error())
+		return 0, err
+	}
+
+	affectedRows, err := res.RowsAffected()
+	if err != nil {
+		log.Fatalln("Error getting affected rows:", err.Error())
+		return 0, err
+	}
+
+	return affectedRows, nil
 }

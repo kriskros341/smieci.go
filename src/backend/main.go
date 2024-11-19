@@ -106,7 +106,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	db := database.Connect()
+	db := database.Connect("localhost")
 	defer db.Close()
 
 	cwd, err := os.Getwd()
