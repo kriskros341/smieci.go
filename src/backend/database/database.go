@@ -1,9 +1,14 @@
 package database
 
-import "github.com/jmoiron/sqlx"
+import (
+	"fmt"
 
-func Connect() (db *sqlx.DB) {
-	db, err := sqlx.Connect("postgres", "host=localhost port=5433 user=postgres password=dbpass sslmode=disable")
+	"github.com/jmoiron/sqlx"
+)
+
+func Connect(host string) (db *sqlx.DB) {
+	datasource := fmt.Sprintf("host=%s port=5432 user=postgres password=dbpass sslmode=disable", host)
+	db, err := sqlx.Connect("postgres", datasource)
 	if err != nil {
 		panic(err)
 	}

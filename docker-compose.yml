@@ -3,8 +3,9 @@ services:
   postgres:
     image: postgres:16.2
     restart: unless-stopped
-    ports: 
-      - "5433:5432"
+    container_name: db
+    ports:
+      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/pgdata
     environment:
@@ -18,10 +19,21 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - my-network
 
+  cron:
+    build:
+      context: ./src/backend
+      dockerfile: ./cron/Dockerfile
+    container_name: cron
+    networks:
+      - my-network
+    depends_on:
+      - postgres
+
+networks:
+  my-network:
+    driver: bridge
 volumes:
   db_data:
-
-
-
-

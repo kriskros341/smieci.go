@@ -39,7 +39,8 @@ CREATE TABLE solutions_users_relation (
 CREATE TABLE solutions (
     id SERIAL PRIMARY KEY,
     markerId INTEGER NOT NULL,
-    verification_status verification_status_enum NOT NULL DEFAULT 'pending'
+    verification_status verification_status_enum NOT NULL DEFAULT 'pending',
+    approved_at timestamptz
 );
 
 ALTER TABLE solutions_users_relation ADD CONSTRAINT UQ_UserId_MarkerId UNIQUE(userId, solutionId);

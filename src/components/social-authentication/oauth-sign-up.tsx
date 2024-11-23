@@ -3,6 +3,8 @@ import Button from "@ui/button";
 import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import * as React from "react";
+import { View } from "react-native";
+import GoogleIcon from "./google-icon";
 
 const OauthSignUp: React.FC = () => {
   const { signIn } = useSignIn();
@@ -69,7 +71,18 @@ const OauthSignUp: React.FC = () => {
     }
   }
 
-  return <Button title="Kontynuuj z Google" onPress={handleSignIn} />;
+  return (
+    <View className="flex flex-row">
+      <Button
+        title="Koontynuuj z Google"
+        onPress={handleSignIn}
+        buttonClassName="px-3 py-2.5 border border-solid border-slate-300 rounded-lg bg-white outline-none w-full"
+        textClassName="text-white-300 text-center ml-2"
+      >
+        <GoogleIcon />
+      </Button>
+    </View>
+  );
 };
 
 export default OauthSignUp;

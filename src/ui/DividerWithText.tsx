@@ -1,11 +1,15 @@
 import { View } from "react-native";
 
-const DividerWithText = (props: React.PropsWithChildren<unknown>) => {
+import * as React from "react";
+
+interface Props extends React.PropsWithChildren {}
+
+const DividerWithText: React.FC<Props> = ({ children }) => {
   return (
     <View className="flex flex-row items-center px-2 py-4">
-      <View className="flex-1 h-1 bg-[#ccc]" />
-      <View className="mx-2 flex flex-row">{props.children}</View>
-      <View className="flex-1 h-1 bg-[#ccc]" />
+      <View className="flex-1 h-px bg-slate-300" />
+      <View className="flex flex-row mx-2">{children}</View>
+      <View className="flex-1 h-px bg-slate-300" />
     </View>
   );
 };
