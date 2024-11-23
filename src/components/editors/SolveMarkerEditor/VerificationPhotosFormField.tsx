@@ -87,7 +87,7 @@ const VerificationPhotosFormField = ({
                 "flex-1",
                 !disabled &&
                   idx === activePhotoIdx &&
-                  "border-4 border-green-600",
+                  "border-4 border-green",
               )}
               key={isOriginalPhoto ? uri : fields[idx].uri}
               source={{

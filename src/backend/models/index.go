@@ -12,11 +12,13 @@ type SolutionUpload struct {
 }
 
 type MarkerCoordinates struct {
-	Id          int64   `json:"id"`
-	Lat         float64 `json:"lat"`
-	Long        float64 `json:"long"`
-	MainPhotoId int64   `json:"mainPhotoId"`
-	Blurhash    string  `json:"blurhash"`
+	Id                 int64   `json:"id"`
+	Lat                float64 `json:"lat"`
+	Long               float64 `json:"long"`
+	MainPhotoId        *int64  `json:"mainPhotoId"`
+	Blurhash           *string `json:"blurhash"`
+	VerificationStatus *string `json:"verificationStatus" db:"verification_status"`
+	ExternalObjectId   *int64  `json:"externalObjectId" db:"externalobjectid""`
 }
 
 type GetMarkerPayload struct {
@@ -32,8 +34,9 @@ type GetMarkerPayload struct {
 }
 
 type CreateMarkerBody struct {
-	Latitude  float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
+	Latitude         float64 `json:"latitude"`
+	Longitude        float64 `json:"longitude"`
+	ExternalObjectId *int64  `json:"ObjectId"`
 }
 
 type GetMarkerSupportersResult struct {

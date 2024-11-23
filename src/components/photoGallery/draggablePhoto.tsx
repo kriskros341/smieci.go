@@ -15,7 +15,7 @@ export const DraggablePhoto = ({
       <TouchableOpacity onPress={item.onFocus}>
         <Image
           className={cn(
-            "aspect-square h-full bg-green-100",
+            "aspect-square h-full bg-green",
             item.isFocused && "border-yellow-500 border-4",
           )}
           source={{ uri: item.uri }}
@@ -33,7 +33,7 @@ export const DraggablePhoto = ({
       >
         <Image
           className={cn(
-            "aspect-square h-full bg-green-100",
+            "aspect-square h-full bg-green",
             item.isFocused && "border-yellow-500 border-4",
           )}
           source={{ uri: item.uri }}

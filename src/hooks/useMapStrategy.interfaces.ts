@@ -14,9 +14,11 @@ export type MarkerState = {
   text: string;
   mainPhotoId: number;
   mainPhotoBlurhash: string;
+  verificationStatus?: string,
 };
 
 export type MapStrategyBase = {
+  // eslint-disable-next-line @typescript-eslint/ban-types
   strategyName: string & {};
   markers?: MarkerState[];
   onPressOutsideMarker?: () => void;

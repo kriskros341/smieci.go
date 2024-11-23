@@ -15,6 +15,7 @@ type MarkerRepository interface {
 	CreateMarker(marker models.CreateMarkerBody, userId string, uploadsIds []int64) error
 	SupportMarker(userId string, markerId int64, amount int64) error
 	GetMarkerSupporters(markerId string) ([]models.GetMarkerSupportersResult, error)
+	UpsertExternalMarkers(markers []models.CreateMarkerBody) (int64, error)
 }
 
 type markerRepository struct {
@@ -28,9 +29,26 @@ func NewMarkerRepository(db *sqlx.DB) MarkerRepository {
 func (r *markerRepository) GetMarkersCoordinates() ([]models.MarkerCoordinates, error) {
 	var markers []models.MarkerCoordinates
 	query := `
-		SELECT m.id, m.lat, m.long, m.mainPhotoId, u.blurhash 
-		FROM markers m 
-		JOIN uploads u ON u.id = m.mainPhotoId`
+		WITH latest_solutions AS (
+    SELECT 
+        s.markerid, 
+        s.verification_status, 
+        ROW_NUMBER() OVER (PARTITION BY s.markerid ORDER BY s.approved_at DESC) AS row_num
+    FROM 
+        solutions s
+		)
+
+		SELECT 
+				m.id,
+				m.lat, 
+				m.long, 
+				m.mainPhotoId, 
+				u.blurhash,
+				ls.verification_status
+		FROM 
+				markers m
+		LEFT JOIN latest_solutions ls ON m.id = ls.markerid AND ls.row_num = 1
+		left JOIN uploads u ON u.id = m.mainPhotoId;`
 	println("Executing queyr", query)
 	err := r.db.Select(&markers, query)
 	return markers, err
@@ -147,4 +165,71 @@ func (r *markerRepository) GetMarkerSupporters(markerId string) ([]models.GetMar
 	fmt.Printf("Executing query: %s\n", query)
 	err := r.db.Select(&supporters, query, markerId)
 	return supporters, err
+}
+
+const BATCH_SIZE = 30
+
+func (r *markerRepository) UpsertExternalMarkers(markers []models.CreateMarkerBody) (int64, error) {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return -1, err
+	}
+
+	rows := []string{}
+	var rowsTotal int64 = 0
+	for idx, marker := range markers {
+		rows = append(rows, fmt.Sprintf(`(%f, %f, %d)`, marker.Latitude, marker.Longitude, *marker.ExternalObjectId))
+		if idx%BATCH_SIZE == 0 {
+			res, err := tx.Exec(fmt.Sprintf(`INSERT INTO markers (lat, long, externalobjectid)
+				VALUES %s
+				ON CONFLICT (externalobjectid)
+				DO UPDATE SET
+					lat = EXCLUDED.lat,
+					long = EXCLUDED.long
+				RETURNING id;`, strings.Join(rows, ",")))
+
+			if err != nil {
+				tx.Rollback()
+				return -1, err
+			}
+			rowCount, err := res.RowsAffected()
+
+			if err != nil {
+				tx.Rollback()
+				return -1, err
+			}
+
+			rows = []string{}
+			rowsTotal += rowCount
+		}
+	}
+
+	res, err := tx.Exec(fmt.Sprintf(`INSERT INTO markers (lat, long, externalobjectid)
+		VALUES %s
+		ON CONFLICT (externalobjectid)
+		DO UPDATE SET
+			lat = EXCLUDED.lat,
+			long = EXCLUDED.long
+		RETURNING id;`, strings.Join(rows, ",")))
+
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+	rowCount, err := res.RowsAffected()
+
+	if err != nil {
+		tx.Rollback()
+		return -1, err
+	}
+
+	rows = []string{}
+	rowsTotal += rowCount
+
+	err = tx.Commit()
+	if err != nil {
+		return -1, err
+	}
+
+	return rowsTotal, nil
 }

@@ -12,6 +12,7 @@ import (
 	"os"
 	"strings"
 
+	"backend/integrations"
 	"log"
 
 	"github.com/gin-contrib/cors"
@@ -105,6 +106,7 @@ func main() {
 	WEBHOOK_SECRET := os.Getenv("WEBHOOK_SECRET")
 	if err != nil {
 		log.Fatal("Error loading .env file")
+		return
 	}
 	db := database.Connect("localhost")
 	defer db.Close()
@@ -146,6 +148,19 @@ func main() {
 	if err != nil {
 		return
 	}
+	markers, err := integrations.GetAllGovMarkers()
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	count, err := env.Markers.UpsertExternalMarkers(markers)
+	if err != nil {
+		fmt.Println(fmt.Errorf("Failed to fetch markers from .gov integration %w", err))
+	} else {
+		fmt.Printf("%d markers upserted from .gov datasources\n\n", count)
+	}
+
 	router.GET("/users/getUsers", env.GetUsers)
 	router.GET("/users/current/permissions", env.GetCurrentUserPermissions)
 	router.GET("/users/:userId", env.GetUserById)

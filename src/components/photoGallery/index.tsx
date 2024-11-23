@@ -143,7 +143,7 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
             <AnimatedImage
               style={style}
               key={item.uri}
-              className={cn("aspect-square h-full bg-green-100")}
+              className={cn("aspect-square h-full bg-green")}
               source={{ uri: item.uri }}
               placeholder={{ blurhash: item.blurhash }}
             />

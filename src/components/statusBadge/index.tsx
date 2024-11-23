@@ -9,7 +9,7 @@ const StatusBadge = (props: StatusBadgeProps) => {
   let component;
   if (props?.pendingVerificationsCount === -1) {
     component = (
-      <Badge className="bg-green-600">
+      <Badge className="bg-green">
         <Text>Zaakcpetowany</Text>
       </Badge>
     );

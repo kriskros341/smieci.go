@@ -33,10 +33,6 @@ export const _createMarker = (
     .catch((e) => console.warn("blad", JSON.stringify(e)));
 };
 
-export const _getAllMarkersCoordinates = async (axios: AxiosInstance) => {
-  return (await axios.get("/markers")).data; // ?!?!?!
-};
-
 type SupoortMarkerPayload = {
   userId: string;
   markerId: string;

@@ -1,7 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { _getAllMarkersCoordinates } from "@api/markers";
-
 type MarkerCoordinates = {
   id: string;
   lat: number;
@@ -9,6 +7,8 @@ type MarkerCoordinates = {
   mainPhotoId: number;
   mainPhotoBlurhash: string;
   placeholder: boolean;
+  verificationStatus?: string;
+  externalObjectId?: number,
 };
 
 export const useMarkersQuery = () => {
@@ -27,6 +27,8 @@ export const useMarkersQuery = () => {
           mainPhotoId: marker.mainPhotoId,
           mainPhotoBlurhash: marker.mainPhotoBlurhash,
           placeholder: marker.id === "-1",
+          verificationStatus: marker.verificationStatus,
+          externalObjectId: marker.externalObjectId
         })) ?? []
       );
     },

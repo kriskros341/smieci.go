@@ -24,6 +24,7 @@ import {
   isMoveMarkerMapStrategy,
   isViewMarkersMapStrategy,
 } from "@utils/hasCoords";
+import { Badge } from "@ui/badge";
 
 const CustomCallout = styled(
   View,
@@ -33,17 +34,32 @@ const CustomCallout = styled(
 interface CustomMarkerProps extends MapMarkerProps {
   isFocused: boolean;
   mainPhotoId: number;
+  verificationStatus?: string | null;
   mainPhotoBlurHash: string;
   onDispayPreviewPress: () => void;
 }
 
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
+const FOCUSED_MARKER_COLOR = "blue"
+const OPEN_MARKER_COLOR = "red"
+const PENDING_MARKER_COLOR = "yellow"
+const APPROVED_MARKER_COLOR = "#10a37f"
+
 const CustomMarker = (props: CustomMarkerProps) => {
+  console.log({ props })
+  let color = OPEN_MARKER_COLOR
+  if (props.isFocused) {
+    color = FOCUSED_MARKER_COLOR
+  } else if (props.verificationStatus === 'approved') {
+    color = APPROVED_MARKER_COLOR
+  } else if (props.verificationStatus === 'pending') {
+    color = PENDING_MARKER_COLOR;
+  }
   return (
     <Marker
       {...props}
-      pinColor={props.isFocused ? "blue" : "red"}
+      pinColor={color}
       description="jdjdjdj"
       className="flex flex-row w-auto"
     >
@@ -53,7 +69,7 @@ const CustomMarker = (props: CustomMarkerProps) => {
             className="w-40 h-40"
             contentFit="contain"
             sharedTransitionTag="preview"
-            source={process.env.EXPO_PUBLIC + "/uploads/" + props.mainPhotoId}
+            source={process.env.EXPO_PUBLIC_API_URL + "/uploads/" + props.mainPhotoId}
             placeholder={{ blurhash: props.mainPhotoBlurHash }}
             cachePolicy="memory"
           />
@@ -62,7 +78,9 @@ const CustomMarker = (props: CustomMarkerProps) => {
               <View
                 className={`flex-1 bg-indigo-500 p-4 ${pressed ? "opacity-50" : ""}`}
               >
-                <Text>{">"}</Text>
+                <Badge className="bg-green">
+                  <Text>{">"}</Text>
+                </Badge>
               </View>
             )}
           </Pressable>
@@ -118,7 +136,7 @@ const MapStrategyConsumer = ({
   let customMarker = null;
   if (isMoveMarkerMapStrategy(strategy) && hasCoords(mapFocusPoint)) {
     customMarker = (
-      <Marker key="jdjd" pinColor={"green"} coordinate={mapFocusPoint} />
+      <Marker key="jdjd" pinColor="green" coordinate={mapFocusPoint} />
     );
   }
 
@@ -154,7 +172,8 @@ const MapStrategyConsumer = ({
             onDispayPreviewPress={() => {
               onMarkerPreviewClick?.(marker.key);
             }}
-          ></CustomMarker>
+            verificationStatus={marker.verificationStatus}
+          />
         ))}
         {customMarker}
       </MapView>
