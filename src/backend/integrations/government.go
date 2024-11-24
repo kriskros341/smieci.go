@@ -82,18 +82,27 @@ func epsg2180ToWGS84(x, y float64) (lat, lon float64) {
 }
 
 func GetAllGovMarkers() ([]models.CreateMarkerBody, error) {
-	res, err := http.Get(GET_ALL_MARKERS_URL)
+	client := &http.Client{}
+
+	req, err := http.NewRequest(
+		"GET",
+		GET_ALL_MARKERS_URL,
+		http.NoBody,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("error creating http request: %s\n", err)
+	}
+
+	res, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("error making http request: %s\n", err)
 	}
-	defer res.Body.Close() // Ensure the response body is closed
+	defer res.Body.Close()
 
-	// Check for non-200 HTTP status
 	if res.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Error: received status code %d\n", res.StatusCode)
 	}
 
-	// Read the response body
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Error reading response body: %v\n", err)
