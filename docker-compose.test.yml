@@ -18,21 +18,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - my-network
+      start_period: 10s
 
-  cron:
-    build:
-      context: ./src/backend
-      dockerfile: ./cron/Dockerfile
-    container_name: cron
-    networks:
-      - my-network
-    depends_on:
-      - postgres
-
-networks:
-  my-network:
-    driver: bridge
 volumes:
   db_data:

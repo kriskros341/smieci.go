@@ -54,8 +54,12 @@ func (r *leaderboardRepository) GetLeaderboardByType(leaderboard models.Leaderbo
 	return leaderboardEntries, err
 }
 
+var CurrentTime = func() time.Time {
+	return time.Now()
+}
+
 func startOfWeek() time.Time {
-	now := time.Now()
+	now := CurrentTime()
 	dayOfWeek := now.Weekday()
 	daysSinceMonday := int(dayOfWeek) - int(time.Monday)
 
@@ -68,7 +72,7 @@ func startOfWeek() time.Time {
 }
 
 func startOfMonth() time.Time {
-	now := time.Now()
+	now := CurrentTime()
 	startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
 	return startOfMonth
 }
