@@ -44,6 +44,7 @@ func (r *markerRepository) GetMarkersCoordinates() ([]models.MarkerCoordinates, 
 				m.long, 
 				m.mainPhotoId, 
 				u.blurhash,
+				m.externalobjectid,
 				ls.verification_status
 		FROM 
 				markers m
@@ -56,7 +57,7 @@ func (r *markerRepository) GetMarkersCoordinates() ([]models.MarkerCoordinates, 
 
 func (r *markerRepository) GetMarkerById(markerId string) (*models.GetMarkerPayload, error) {
 	var marker models.GetMarkerPayload
-	query := `SELECT id, lat, long, userId, points FROM markers WHERE id = $1`
+	query := `SELECT id, lat, long, userId, points, externalobjectid FROM markers WHERE id = $1`
 	println("Executing query", query, markerId)
 	err := r.db.Get(&marker, query, markerId)
 	if err != nil {

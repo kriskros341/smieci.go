@@ -18,7 +18,7 @@ type MarkerCoordinates struct {
 	MainPhotoId        *int64  `json:"mainPhotoId"`
 	Blurhash           *string `json:"blurhash"`
 	VerificationStatus *string `json:"verificationStatus" db:"verification_status"`
-	ExternalObjectId   *int64  `json:"externalObjectId" db:"externalobjectid""`
+	ExternalObjectId   *int64  `json:"externalObjectId" db:"externalobjectid"`
 }
 
 type GetMarkerPayload struct {
@@ -27,10 +27,11 @@ type GetMarkerPayload struct {
 	Long                      float64  `json:"long"`
 	FileNamesString           []string `json:"fileNamesString"`
 	BlurHashes                []string `json:"blurHashes"`
-	UserId                    string   `json:"userId"`
+	UserId                    *string  `json:"userId"`
 	Points                    int64    `json:"points"`
 	PendingVerificationsCount int64    `json:"pendingVerificationsCount"` // -1 if approved else ++
 	LatestSolutionId          int64    `json:"latestSolutionId"`
+	ExternalObjectId          *int64   `json:"externalObjectId" db:"externalobjectid"`
 }
 
 type CreateMarkerBody struct {

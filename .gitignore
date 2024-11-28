@@ -56,3 +56,9 @@ yarn-error.*
 android/
 
 pkg/
+build-*
+
+credentials.json
+dev.keystore
+
+android

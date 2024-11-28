@@ -12,7 +12,7 @@ import (
 )
 
 type UploadsRepository interface {
-	GetUploadsByMarkerId(markerId int64) ([]models.Upload, error)
+	GetUploadsByMarkerId(markerId string) ([]models.Upload, error)
 	GetUploadsBySolutionId(solutionId string) ([]models.SolutionUpload, error)
 	CreateUploadsFromHeaders(headers []*multipart.FileHeader) ([]int64, error)
 	GetPathForUploadById(uploadId string) (path string, err error)
@@ -43,7 +43,7 @@ func (r *uploadsRepository) GetPathForUploadById(uploadId string) (path string, 
 	return filePath, nil
 }
 
-func (r *uploadsRepository) GetUploadsByMarkerId(markerID int64) ([]models.Upload, error) {
+func (r *uploadsRepository) GetUploadsByMarkerId(markerID string) ([]models.Upload, error) {
 	var uploads []models.Upload
 	query := `
 		SELECT up.id, up.filename, up.blurhash 

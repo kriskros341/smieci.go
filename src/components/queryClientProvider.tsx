@@ -15,7 +15,7 @@ const getDefaultFetcher =
         console.error(JSON.stringify(err, null, 2));
         throw err;
       });
-  };
+};
 
 const CustomQueryClientProvider = (props: any) => {
   // Komponent ten został wydzielony, ponieważ useAxios można wykorzystać jedynie wewnątrz ClerkProvidera

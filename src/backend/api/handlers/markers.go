@@ -152,3 +152,29 @@ func (e *Env) GetMarkerSupporters(c *gin.Context) {
 
 	c.JSON(http.StatusOK, results)
 }
+
+func (e *Env) PatchMarkersPhotos(c *gin.Context) {
+	var getMarkerRequestPayload GetMarkerRequestPayload
+	// Recieve marker id payload
+	if err := c.ShouldBindUri(&getMarkerRequestPayload); err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	var allFilesHeaders []*multipart.FileHeader
+	for _, fileHeaders := range c.Request.MultipartForm.File {
+		for _, fileHeader := range fileHeaders {
+			allFilesHeaders = append(allFilesHeaders, fileHeader)
+		}
+	}
+
+	filesIds, err := e.Uploads.CreateUploadsFromHeaders(allFilesHeaders)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+}

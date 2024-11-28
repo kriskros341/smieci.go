@@ -10,6 +10,7 @@ type MarkerResponse = {
   blurHashes: string[];
   pendingVerificationsCount: number;
   latestSolutionId: number;
+  externalObjectId?: number
 };
 
 export const useMarkerQuery = (key: unknown) => {

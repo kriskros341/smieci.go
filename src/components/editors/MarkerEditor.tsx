@@ -36,6 +36,7 @@ const MarkerEditor = ({
       editorState.changeEditorState({ ...location }),
     );
   };
+
   const onPhoto = async () => {
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -57,6 +58,7 @@ const MarkerEditor = ({
         photos={d}
         onPhoto={onPhoto}
         reorder={editorState.reorderPhotoUris}
+        showAddPhotoButton
       />
       <View className="">
         <Text>latitude</Text>

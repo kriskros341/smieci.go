@@ -33,6 +33,28 @@ export const _createMarker = (
     .catch((e) => console.warn("blad", JSON.stringify(e)));
 };
 
+
+export const _modifyExternalMarkerMutation = (
+  axios: AxiosInstance,
+  markerKey: string,
+  payload: { uris: string[] }
+) => {
+  const formData = new FormData();
+  payload.uris.forEach((uri) => {
+    formData.append("file", {
+      uri,
+      name: "upload.jpg", // You can provide the file name here
+      type: "image/jpeg", // Adjust the type as needed
+    } as any);
+  });
+
+  return axios
+    .patch(`/markers/${markerKey}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    })
+    .catch((e) => console.warn("blad", JSON.stringify(e)));
+}
+
 type SupoortMarkerPayload = {
   userId: string;
   markerId: string;

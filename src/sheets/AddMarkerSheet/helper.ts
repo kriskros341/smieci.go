@@ -5,20 +5,16 @@ import { _createMarker } from "@api/markers";
 import { useAxios } from "@hooks/use-axios";
 import useLocation from "@hooks/useLocation";
 
-type editorStateType = {
+export type editorStateType = {
   latitude?: number;
   longitude?: number;
   photosUris: string[];
 };
 
-const getInitialEditorState = (): editorStateType => ({
-  photosUris: [],
-});
-
 export const useEditorState = () => {
-  const [editorState, setEditorState] = useState<editorStateType>(
-    getInitialEditorState(),
-  );
+  const [editorState, setEditorState] = useState<editorStateType>({
+    photosUris: [] as string[],
+  });
   const { location, isPending } = useLocation();
 
   const changeEditorState = (changes: Partial<editorStateType>) => {

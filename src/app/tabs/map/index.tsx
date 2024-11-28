@@ -8,7 +8,7 @@ import { AddMarkerSheet } from "@sheets/AddMarkerSheet";
 import { useRouter } from "expo-router";
 
 const Map = () => {
-  const [mapStrategy, changeMapStrategy, refetch] = useMapStrategy();
+  const [strategy, changeMapStrategy, refetch] = useMapStrategy();
   const [isAddMarkerSheetOpen, setIsAddMarkerSheetOpen] = useState(false);
 
   const actions = [];
@@ -47,7 +47,7 @@ const Map = () => {
       />
       <View className="relative flex flex-row flex-1">
         <MapStrategyConsumer
-          strategy={mapStrategy}
+          strategy={strategy}
           onMarkerPreviewClick={onMarkerPreviewClick}
         />
         <View className="absolute items-center justify-center bottom-4 right-4">

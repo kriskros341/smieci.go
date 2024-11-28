@@ -5,6 +5,7 @@ import { MAP_STRATEGY } from "./useMapStrategy";
 export type MapStrategyKey = keyof typeof MAP_STRATEGY;
 
 export type MarkerState = {
+  externalObjectId: any;
   key: string;
   coordinate: {
     latitude: any;
@@ -22,13 +23,13 @@ export type MapStrategyBase = {
   strategyName: string & {};
   markers?: MarkerState[];
   onPressOutsideMarker?: () => void;
-  onPressInsideMarker?: (event: MarkerPressEvent, markerIndex: number) => void;
+  onPressInsideMarker?: (event: MarkerPressEvent, markerKey: string) => void;
 };
 
 export type ViewMarkersMapStrategy = MapStrategyBase & {
   strategyName: typeof MAP_STRATEGY.viewMarkersStrategy;
   markers: MarkerState[];
-  focusedMarker?: MarkerState;
+  getFocusedMarkerKey: () => string | undefined;
 };
 
 export type MoveMarkerMapStrategy = MapStrategyBase & {
