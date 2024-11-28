@@ -169,7 +169,7 @@ func (e *Env) PatchMarkersPhotos(c *gin.Context) {
 		}
 	}
 
-	filesIds, err := e.Uploads.CreateUploadsFromHeaders(allFilesHeaders)
+	_, err := e.Uploads.CreateUploadsFromHeaders(allFilesHeaders)
 
 	if err != nil {
 		fmt.Println(err.Error())
