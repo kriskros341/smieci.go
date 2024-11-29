@@ -17,6 +17,7 @@ type MarkerRepository interface {
 	SupportMarker(userId string, markerId int64, amount int64) error
 	GetMarkerSupporters(markerId string) ([]models.GetMarkerSupportersResult, error)
 	UpsertExternalMarkers(markers []models.CreateMarkerBody) (int64, error)
+	AddUploadsToMarker(markerId string, uploadsIds []int64) error
 }
 
 type markerRepository struct {
@@ -283,4 +284,19 @@ func (r *markerRepository) UpsertExternalMarkers(markers []models.CreateMarkerBo
 	}
 
 	return rowsTotal, nil
+}
+
+func (r *markerRepository) AddUploadsToMarker(markerId string, uploadsIds []int64) error {
+
+	rows := []string{}
+	for i := 0; i < len(uploadsIds); i++ {
+		rows = append(rows, fmt.Sprintf(`(%s, %d)`, markerId, uploadsIds[i]))
+	}
+
+	insertedMarkerUploadsRelations := strings.Join(rows, ",")
+
+	query := fmt.Sprintf(`INSERT INTO relation_marker_uploads (markerId, uploadId) VALUES %s`, insertedMarkerUploadsRelations)
+	fmt.Println("executing query", query)
+	_, err := r.db.Exec(query)
+	return err
 }

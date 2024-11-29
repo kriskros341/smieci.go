@@ -180,10 +180,22 @@ func (e *Env) GetMarkerSupporters(c *gin.Context) {
 		return
 	}
 
+	println(len(results))
 	c.JSON(http.StatusOK, results)
 }
 
-func (e *Env) PatchMarkersPhotos(c *gin.Context) {
+type PatchMarkerPhotosPayload struct {
+	ExistingPhotosKeys []string `json:"existingPhotosKeys"`
+}
+
+func (e *Env) PatchMarkerPhotos(c *gin.Context) {
+	err := c.Request.ParseMultipartForm(32 << 24) // 512MB max memory
+	if err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	var getMarkerRequestPayload GetMarkerRequestPayload
 	// Recieve marker id payload
 	if err := c.ShouldBindUri(&getMarkerRequestPayload); err != nil {
@@ -199,7 +211,22 @@ func (e *Env) PatchMarkersPhotos(c *gin.Context) {
 		}
 	}
 
-	_, err := e.Uploads.CreateUploadsFromHeaders(allFilesHeaders)
+	// 2. Extract JSON data (as string) from the form
+	jsonData := c.PostForm("payload")
+	if jsonData == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing JSON data"})
+		return
+	}
+
+	// 3. Parse JSON data into the CreateMarkerBody struct
+	var payload PatchMarkerPhotosPayload
+	if err := json.Unmarshal([]byte(jsonData), &payload); err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON data"})
+		return
+	}
+
+	err = e.Uploads.FilterMarkerUploads(getMarkerRequestPayload.MarkerId, payload.ExistingPhotosKeys)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -207,4 +234,26 @@ func (e *Env) PatchMarkersPhotos(c *gin.Context) {
 		return
 	}
 
+	newUploadsIds, err := e.Uploads.CreateUploadsFromHeaders(allFilesHeaders)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// userId, err := helpers.GetUserIdFromSession(c)
+	if err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = e.Markers.AddUploadsToMarker(getMarkerRequestPayload.MarkerId, newUploadsIds)
+	if err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, 1)
 }

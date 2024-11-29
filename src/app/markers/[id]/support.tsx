@@ -24,7 +24,7 @@ const Support = () => {
     enabled: !!user?.id,
   });
 
-  const { data: markerData, refetch: refetchMarkerData } = useQuery<any>({
+  const { data: markerData } = useQuery<any>({
     queryKey: [`/markers/${id}`],
   });
 
@@ -34,7 +34,7 @@ const Support = () => {
   };
 
   const useSupportMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async (amount: number) => {
       if (!user?.id || !markerData?.id) {
         throw new Error("Wystąpił błąd");
       }
@@ -42,17 +42,20 @@ const Support = () => {
       return _supportMarker(axios, {
         userId: user.id,
         markerId: markerData.id,
-        amount: finalDelta,
+        amount,
       });
     },
-    onSuccess: () => {
-      refetchMarkerData();
-      queryClient.invalidateQueries({
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
         queryKey: [`/markers/${id}/supporters`],
       });
-      router.back();
-    },
+      router.back()
+    }
   });
+
+  const submit = async () => {
+    useSupportMutation.mutate(finalDelta)
+  }
 
   const isCommitDisabled = markerData?.points + finalDelta < 0;
   return (
@@ -109,7 +112,7 @@ const Support = () => {
         <Button
           title="Zatwierdź"
           disabled={isCommitDisabled || useSupportMutation.isPending}
-          onPress={useSupportMutation.mutate}
+          onPress={submit}
         />
       </View>
     </View>

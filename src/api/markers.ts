@@ -34,22 +34,32 @@ export const _createMarker = (
     .catch((e) => console.warn("blad", JSON.stringify(e)));
 };
 
+type modifyExternalMarkerData = {
+  existingPhotosKeys: string[],
+  newPhotos: string[],
+}
+
 export const _modifyExternalMarkerMutation = (
   axios: AxiosInstance,
   markerKey: string,
-  payload: { uris: string[] },
+  data: modifyExternalMarkerData
 ) => {
   const formData = new FormData();
-  payload.uris.forEach((uri) => {
+  data.newPhotos.forEach((uri) => {
     formData.append("file", {
       uri,
-      name: "upload.jpg", // You can provide the file name here
-      type: "image/jpeg", // Adjust the type as needed
+      name: "upload.jpg",
+      type: "image/jpeg",
     } as any);
   });
 
+  formData.append(
+    "payload",
+    JSON.stringify({ existingPhotosKeys: data.existingPhotosKeys }),
+  );
+
   return axios
-    .patch(`/markers/${markerKey}`, formData, {
+    .patch(`/markers/${markerKey}/uploads`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     })
     .catch((e) => console.warn("blad", JSON.stringify(e)));
@@ -65,7 +75,7 @@ export const _supportMarker = async (
   axios: AxiosInstance,
   payload: SupoortMarkerPayload,
 ) => {
-  axios.put("/markers/support", payload);
+  return axios.put("/markers/support", payload);
 };
 
 export const _getMarkersInRegion = async (

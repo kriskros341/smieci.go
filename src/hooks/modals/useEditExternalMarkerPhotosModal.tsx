@@ -1,83 +1,98 @@
 import { useState } from "react";
-import { Modal, Pressable, SafeAreaView } from "react-native";
-import PhotoGallery from "@components/photoGallery";
-import { editorStateType, useEditorState } from "@sheets/AddMarkerSheet/helper";
+import { Modal, Pressable, Text } from "react-native";
 
-import * as ImagePicker from "expo-image-picker";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { GestureHandlerRootView, ScrollView } from "react-native-gesture-handler";
 import Button from "@ui/button";
-import { _modifyExternalMarkerMutation } from "@api/markers";
-import { useAxios } from "@hooks/use-axios";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Control, useFieldArray, useForm } from "react-hook-form";
+import PhotosField, { Photo } from "@components/PhotosField";
+import { EditExternalMarkerPhotosFormValues } from "./useEditExternalMarkerPhotosModal.types";
+import { useModifyExternalMarkerMutation } from "./useEditExternalMarkerPhotosModal.helper";
+import { usePreviewImageModal } from "./usePreviewImageModal";
+import DividerWithText from "@ui/DividerWithText";
+import { useQueryClient } from "@tanstack/react-query";
+import { Checkbox } from "@ui/checkbox";
 
-type EditExternalMarkerPhotosModalOptions = {
-  props: editorStateType,
-}
-
-type MarkerPayload = {
-  photosUris: string[];
-};
-
-type useModifyExternalMarkerMutationOptions = {
-  markerKey: string,
-  onSettled?: Function;
-};
-
-export const useModifyExternalMarkerMutation = (
-  options: useModifyExternalMarkerMutationOptions,
-) => {
-  const queryClient = useQueryClient();
-  const axios = useAxios();
-  const ModifyExternalMarkersMutation = useMutation<
-    unknown,
-    MarkerPayload,
-    { photosUris: string[] }
-  >({
-    mutationFn: async ({ photosUris }) => {
-      const payload = {
-        uris: photosUris,
-      };
-      return _modifyExternalMarkerMutation(axios, options.markerKey, payload);
-    },
-    onSettled() {
-      queryClient.invalidateQueries({ queryKey: ["/markers"] });
-      options?.onSettled?.();
-    },
-  });
-  return ModifyExternalMarkersMutation;
-};
 
 type useEditExternalMarkerPhotosModalOptions = {
   markerKey: string
 }
 
+interface ExistingPhotosFormFieldProps {
+  control: Control<EditExternalMarkerPhotosFormValues>
+}
+
+// KCTODO Usuwanie obecnych zdjęć?
+const ExistingPhotosFormField = ({ control }: ExistingPhotosFormFieldProps) => {
+  const { PreviewImageModal, openPreviewImageModal } = usePreviewImageModal();
+  const { fields, update } = useFieldArray({
+    name: "existingPhotos",
+    control,
+  });
+
+  const toggleIsChecked = (idx: number, isChecked: boolean) => {
+    update(idx, { ...fields[idx], isChecked })
+  }
+
+  return (
+    <>
+      <PhotosField
+        photos={fields}
+        openPreviewImageModal={openPreviewImageModal}
+        renderControls={({ idx }) => (
+          <Pressable className="absolute right-0 top-2">
+            <Checkbox checked={!!fields[idx].isChecked} onCheckedChange={(value) => toggleIsChecked(idx, value)}/>
+          </Pressable>
+        )}
+      />
+      {PreviewImageModal}
+    </>
+  );
+}
+
+// KCTODO usuwanie dodanych zdjęć?
+const NewPhotosFormField = ({ control }: ExistingPhotosFormFieldProps) => {
+  const { PreviewImageModal, openPreviewImageModal } = usePreviewImageModal();
+  const { fields, append } = useFieldArray({
+    name: "newPhotos",
+    control,
+  });
+
+  return (
+    <>
+      <PhotosField photos={fields} append={append} openPreviewImageModal={openPreviewImageModal} />
+      {PreviewImageModal}
+    </>
+  );
+}
+
+// KCTODO Może warto większość zawartości przenieśc do components?
+// KCTODO Limit zdjęć znacznika zewnętrznego dodawanych przez jednego użytkownika
 export const useEditExternalMarkerPhotosModal = (props: useEditExternalMarkerPhotosModalOptions) => {
-  const editorState = useEditorState();
-
+  const queryClient = useQueryClient()
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const openEditExternalMarkerPhotosModal = (modalOptions: EditExternalMarkerPhotosModalOptions) => {
-    editorState.changeEditorState(modalOptions.props)
+  
+  const { handleSubmit, control, reset } = useForm<EditExternalMarkerPhotosFormValues>({
+    defaultValues: {
+      existingPhotos: [],
+      newPhotos: [],
+    },
+  });
+
+  const openEditExternalMarkerPhotosModal = (markerPhotos: Photo[]) => {
     setIsModalVisible(true);
-    console.log("modal should have opened");
-  };
-
-  const photos = editorState.photosUris.map((uri) => ({ uri }))
-
-
-  const onPhoto = async () => {
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
+    reset({
+      existingPhotos: markerPhotos.map((photo) => ({ ...photo, isChecked: true })),
+      newPhotos: [],
     });
-    if (!result.canceled) {
-      editorState.addPhotoUri(result.assets[0].uri);
-    }
+    console.log("modal should have opened");
   };
 
   const mutation = useModifyExternalMarkerMutation({ markerKey: props.markerKey })
 
-  const onSubmit = () => {
-    mutation.mutate({ photosUris: editorState.photosUris })
+  const onSubmit = async (formState: EditExternalMarkerPhotosFormValues) => {
+    await mutation.mutateAsync(formState);
+    queryClient.invalidateQueries({ queryKey: [`/markers/${props.markerKey}`] });
+    setIsModalVisible(false);
   };
 
   const EditExternalMarkerPhotosModal = (
@@ -89,18 +104,28 @@ export const useEditExternalMarkerPhotosModal = (props: useEditExternalMarkerPho
         console.log("close");
       }}
     >
-      <SafeAreaView>
+      <ScrollView>
         <GestureHandlerRootView className="w-screen h-full">
-          <PhotoGallery photos={photos} onPhoto={onPhoto} showAddPhotoButton />
+          <DividerWithText>
+            <Text>
+              Obecne zdjęcia dodane przez Ciebie
+            </Text>
+          </DividerWithText>
+          <ExistingPhotosFormField control={control} />
+          <DividerWithText>
+            <Text>
+              Dodawanie zdjęć
+            </Text>
+          </DividerWithText>
+          <NewPhotosFormField control={control} />
           <Pressable className="p-4">
             <Button
               title="Dodaj zdjęcia"
-              onPress={onSubmit}
-              disabled={!editorState.photosUris.length || mutation.isPending}
+              onPress={handleSubmit(onSubmit)}
             />
           </Pressable>
         </GestureHandlerRootView>
-      </SafeAreaView>
+      </ScrollView>
     </Modal>
   );
 

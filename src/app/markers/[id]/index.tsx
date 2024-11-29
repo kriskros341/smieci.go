@@ -73,9 +73,7 @@ const MarkerPreview = () => {
       return;
     }
     
-    console.log({ markerData });
-
-    openEditExternalMarkerPhotosModal({ props: { photosUris: markerData.fileNamesString ?? [] } })
+    openEditExternalMarkerPhotosModal(photos)
   }
 
   return (
@@ -125,7 +123,7 @@ const MarkerPreview = () => {
             {markerSupportersData && markerSupportersData?.length !== 0 ? (
               <View className="flex flex-row py-4">
                 {markerSupportersData
-                  ?.splice(0, 3)
+                  ?.slice(0, 3)
                   .map((item, index: number) => (
                     <View className="relative pr-4">
                       <Avatar
