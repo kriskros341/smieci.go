@@ -14,8 +14,24 @@ import (
 	_ "image/jpeg"
 )
 
-func (e *Env) GetMarkersCoordinates(c *gin.Context) {
-	MarkerCoordinates, err := e.Markers.GetMarkersCoordinates()
+type GetMarkersInRegionPayload struct {
+	Latitude       float64 `form:"latitude" json:"latitude" binding:"required"`
+	Longitude      float64 `form:"longitude" json:"longitude" binding:"required"`
+	LatitudeDelta  float64 `form:"latitudeDelta" json:"latitudeDelta" binding:"required"`
+	LongitudeDelta float64 `form:"longitudeDelta" json:"longitudeDelta" binding:"required"`
+}
+
+func (e *Env) GetMarkersInRegion(c *gin.Context) {
+	var payload GetMarkersInRegionPayload
+
+	if err := c.Bind(&payload); err != nil {
+		var error = gin.H{"error": err.Error()}
+		fmt.Println(error)
+		c.JSON(http.StatusBadRequest, error)
+		return
+	}
+
+	markers, err := e.Markers.GetMarkersInRegion(payload.Latitude, payload.Longitude, payload.LatitudeDelta, payload.LongitudeDelta)
 	if err != nil {
 		var error = gin.H{"error": err.Error()}
 		fmt.Println(error)
@@ -23,7 +39,21 @@ func (e *Env) GetMarkersCoordinates(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, MarkerCoordinates)
+	fmt.Println(markers)
+
+	c.JSON(http.StatusOK, markers)
+}
+
+func (e *Env) GetMarkers(c *gin.Context) {
+	Markers, err := e.Markers.GetMarkers()
+	if err != nil {
+		var error = gin.H{"error": err.Error()}
+		fmt.Println(error)
+		c.JSON(http.StatusInternalServerError, error)
+		return
+	}
+
+	c.JSON(http.StatusOK, Markers)
 }
 
 type GetMarkerRequestPayload struct {

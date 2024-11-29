@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { LatLng } from "react-native-maps";
 
 import Backdrop from "@components/backdrop";
-import CreateMarkerEditor from "@components/editors/MarkerEditor";
+import MarkerEditor from "@components/editors/MarkerEditor";
 import MinimalCoordinatesView from "@components/minimalCoordinatesView";
 import { useMapFocusPoint } from "@stores/useMapFocusPoint";
 import { useCreateMarkerMutation, useEditorState } from "./helper";
@@ -69,7 +69,7 @@ export const AddMarkerSheet = (props: AddMarkerSheetProps) => {
             onConfirm={onMoveMarkerConfirm}
           />
         ) : (
-          <CreateMarkerEditor
+          <MarkerEditor
             editorState={editorState}
             onSubmit={onSubmit}
             moveMarker={onMoveMarkerPress}

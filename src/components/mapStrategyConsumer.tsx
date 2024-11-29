@@ -1,5 +1,6 @@
 import { Image } from "expo-image";
 import { styled } from "nativewind";
+import * as React from "react";
 import { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -17,15 +18,18 @@ import MapView, {
   Region,
 } from "react-native-maps";
 
+import { _getMarkersInRegion } from "@api/markers";
+import { useAxios } from "@hooks/use-axios";
 import useLocation from "@hooks/useLocation";
 import { MapStrategies, MarkerState } from "@hooks/useMapStrategy.interfaces";
 import { useMapFocusPoint } from "@stores/useMapFocusPoint";
+import { useQuery } from "@tanstack/react-query";
+import { Badge } from "@ui/badge";
 import {
   hasCoords,
   isMoveMarkerMapStrategy,
   isViewMarkersMapStrategy,
 } from "@utils/hasCoords";
-import { Badge } from "@ui/badge";
 
 const CustomCallout = styled(
   View,
@@ -43,18 +47,18 @@ interface CustomMarkerProps extends MapMarkerProps {
 
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
-const FOCUSED_MARKER_COLOR = "blue"
-const OPEN_MARKER_COLOR = "red"
-const PENDING_MARKER_COLOR = "yellow"
-const APPROVED_MARKER_COLOR = "#10a37f"
+const FOCUSED_MARKER_COLOR = "blue";
+const OPEN_MARKER_COLOR = "red";
+const PENDING_MARKER_COLOR = "yellow";
+const APPROVED_MARKER_COLOR = "#10a37f";
 
 const CustomMarker = (props: CustomMarkerProps) => {
-  let color = OPEN_MARKER_COLOR
+  let color = OPEN_MARKER_COLOR;
   if (props.isFocused) {
-    color = FOCUSED_MARKER_COLOR
-  } else if (props.verificationStatus === 'approved') {
-    color = APPROVED_MARKER_COLOR
-  } else if (props.verificationStatus === 'pending') {
+    color = FOCUSED_MARKER_COLOR;
+  } else if (props.verificationStatus === "approved") {
+    color = APPROVED_MARKER_COLOR;
+  } else if (props.verificationStatus === "pending") {
     color = PENDING_MARKER_COLOR;
   }
 
@@ -81,7 +85,11 @@ const CustomMarker = (props: CustomMarkerProps) => {
                   className="w-40 h-40"
                   contentFit="contain"
                   sharedTransitionTag="preview"
-                  source={process.env.EXPO_PUBLIC_API_URL + "/uploads/" + props.mainPhotoId}
+                  source={
+                    process.env.EXPO_PUBLIC_API_URL +
+                    "/uploads/" +
+                    props.mainPhotoId
+                  }
                   placeholder={{ blurhash: props.mainPhotoBlurHash }}
                   cachePolicy="memory"
                 />
@@ -134,20 +142,48 @@ const isInRegion = (coordinate: LatLng, mapRegion?: Region) => {
   const longMin = longitude - longitudeDelta / 2;
   const longMax = longitude + longitudeDelta / 2;
 
-  return coordinate.latitude >= latMin && coordinate.latitude <= latMax && coordinate.longitude >= longMin && coordinate.longitude <= longMax;
-}
+  return (
+    coordinate.latitude >= latMin &&
+    coordinate.latitude <= latMax &&
+    coordinate.longitude >= longMin &&
+    coordinate.longitude <= longMax
+  );
+};
 
 const MapStrategyConsumer = ({
   strategy,
   onMarkerPreviewClick,
 }: MapStrategyConsumerProps) => {
-  const { mapFocusPoint, changeMapFocusPoint } = useMapFocusPoint();
+  const mapFocusPointStore = useMapFocusPoint();
+  const { changeMapFocusPoint, mapFocusPoint } = mapFocusPointStore;
   const mapRef = useRef<MapView>(null);
   const [mapRegion, setMapRegion] = useState<Region>();
+  const axios = useAxios();
+
+  const { data } = useQuery({
+    queryKey: ["get-markers-in-region", mapRegion],
+    queryFn: () => {
+      if (!mapRegion) {
+        return [];
+      }
+      return _getMarkersInRegion(axios, mapRegion!);
+    },
+    refetchInterval: 5_000,
+  });
+
+  console.log({ data, mapRegion });
 
   const { location, isPending, error } = useLocation();
 
-  const displayedMarkers: MarkerState[] = useMemo(() => strategy.markers?.filter(({ coordinate }) => isInRegion(coordinate, mapRegion)) ?? [], [strategy.markers, mapRegion]);
+  const displayedMarkers: MarkerState[] = useMemo(
+    () =>
+      strategy.markers?.filter(({ coordinate }) =>
+        isInRegion(coordinate, mapRegion),
+      ) ?? [],
+    [strategy.markers, mapRegion],
+  );
+
+  console.log(displayedMarkers);
 
   if (!location || isPending || error) {
     return (
@@ -158,14 +194,16 @@ const MapStrategyConsumer = ({
   }
 
   const onRegionChange = async (region: Region) => {
+    // console.log(1);
     const screenuseMapFocusPoint =
       await mapRef.current?.pointForCoordinate(region)!;
     screenuseMapFocusPoint.y -= 100;
     const mapTransformedCenter = await mapRef.current?.coordinateForPoint(
       screenuseMapFocusPoint,
     )!;
+    // console.log(mapTransformedCenter);
     changeMapFocusPoint(mapTransformedCenter);
-    setMapRegion(region)
+    setMapRegion(region);
   };
 
   let customMarker = null;
@@ -175,9 +213,13 @@ const MapStrategyConsumer = ({
     );
   }
 
-  const nonUniqueKeys = strategy.markers?.filter((marker) => strategy.markers?.indexOf(marker) !== strategy.markers?.lastIndexOf(marker))
+  const nonUniqueKeys = strategy.markers?.filter(
+    (marker) =>
+      strategy.markers?.indexOf(marker) !==
+      strategy.markers?.lastIndexOf(marker),
+  );
 
-  console.log("rerendered!", nonUniqueKeys)
+  // console.log("rerendered!", nonUniqueKeys);
   return (
     <TouchableWithoutFeedback onPressIn={strategy.onPressOutsideMarker}>
       <MapView
@@ -200,7 +242,10 @@ const MapStrategyConsumer = ({
           <CustomMarker
             mainPhotoBlurHash={marker.mainPhotoBlurhash}
             mainPhotoId={marker.mainPhotoId}
-            isFocused={isViewMarkersMapStrategy(strategy) && marker.key === strategy.getFocusedMarkerKey()}
+            isFocused={
+              isViewMarkersMapStrategy(strategy) &&
+              marker.key === strategy.getFocusedMarkerKey()
+            }
             key={marker.key}
             coordinate={marker.coordinate}
             onPress={(event) => {

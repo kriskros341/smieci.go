@@ -166,10 +166,10 @@ func main() {
 	router.GET("/users/:userId", env.GetUserById)
 	router.POST("/markers", env.CreateMarker)
 	router.GET("/markers/:markerId", env.GetMarkerById)
-	router.GET("/markers/:markerId", env.GetMarkerById)
 	router.POST("/markers/:markerId/solve", env.PostMarkerSolution) // do przeniesienia jako solutions/create
 	router.GET("/markers/:markerId/supporters", env.GetMarkerSupporters)
-	router.GET("/markers", env.GetMarkersCoordinates)
+	router.GET("/markers", env.GetMarkers)
+	router.GET("/markers/region", env.GetMarkersInRegion)
 	router.PUT("/markers/support", env.SupportMarker)
 	router.GET("/solutions/:solutionId", env.GetSolution)
 	router.POST("/solutions/:solutionId/status", env.SetSolutionStatus)

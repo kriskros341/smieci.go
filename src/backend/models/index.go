@@ -11,7 +11,7 @@ type SolutionUpload struct {
 	UploadType string `db:"uploadtype"`
 }
 
-type MarkerCoordinates struct {
+type Marker struct {
 	Id                 int64   `json:"id"`
 	Lat                float64 `json:"lat"`
 	Long               float64 `json:"long"`

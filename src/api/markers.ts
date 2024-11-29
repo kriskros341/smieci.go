@@ -1,4 +1,5 @@
 import { AxiosInstance } from "axios";
+import { Region } from "react-native-maps";
 
 type createMarkerPayload = {
   uris: string[];
@@ -33,11 +34,10 @@ export const _createMarker = (
     .catch((e) => console.warn("blad", JSON.stringify(e)));
 };
 
-
 export const _modifyExternalMarkerMutation = (
   axios: AxiosInstance,
   markerKey: string,
-  payload: { uris: string[] }
+  payload: { uris: string[] },
 ) => {
   const formData = new FormData();
   payload.uris.forEach((uri) => {
@@ -53,7 +53,7 @@ export const _modifyExternalMarkerMutation = (
       headers: { "Content-Type": "multipart/form-data" },
     })
     .catch((e) => console.warn("blad", JSON.stringify(e)));
-}
+};
 
 type SupoortMarkerPayload = {
   userId: string;
@@ -66,4 +66,20 @@ export const _supportMarker = async (
   payload: SupoortMarkerPayload,
 ) => {
   axios.put("/markers/support", payload);
+};
+
+export const _getMarkersInRegion = async (
+  axios: AxiosInstance,
+  region: Region,
+): Promise<any[]> => {
+  const res = await axios.get("/markers/region", {
+    params: {
+      latitude: region.latitude,
+      longitude: region.longitude,
+      latitudeDelta: region.latitudeDelta,
+      longitudeDelta: region.longitudeDelta,
+    },
+  });
+
+  return res.data;
 };

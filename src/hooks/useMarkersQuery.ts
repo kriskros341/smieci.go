@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-type MarkerCoordinates = {
+type Marker = {
   id: string;
   lat: number;
   long: number;
@@ -8,13 +8,13 @@ type MarkerCoordinates = {
   mainPhotoBlurhash: string;
   placeholder: boolean;
   verificationStatus?: string;
-  externalObjectId?: number,
+  externalObjectId?: number;
 };
 
 export const useMarkersQuery = () => {
   const { isPending, error, data, refetch } = useQuery({
     queryKey: ["/markers"],
-    select: (markerPayload: MarkerCoordinates[]) => {
+    select: (markerPayload: Marker[]) => {
       return (
         markerPayload?.map((marker) => ({
           key: marker.id,
@@ -28,7 +28,7 @@ export const useMarkersQuery = () => {
           mainPhotoBlurhash: marker.mainPhotoBlurhash,
           placeholder: marker.id === "-1",
           verificationStatus: marker.verificationStatus,
-          externalObjectId: marker.externalObjectId
+          externalObjectId: marker.externalObjectId,
         })) ?? []
       );
     },
