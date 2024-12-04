@@ -8,7 +8,7 @@ type Upload struct {
 
 type SolutionUpload struct {
 	Upload
-	UploadType string `db:"uploadtype"`
+	UploadType string `json:"uploadType" db:"uploadtype"`
 }
 
 type Marker struct {

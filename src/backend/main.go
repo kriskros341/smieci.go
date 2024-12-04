@@ -103,11 +103,11 @@ func SyncUsers(e *handlers.Env) error {
 
 func main() {
 	err := godotenv.Load()
-	WEBHOOK_SECRET := os.Getenv("WEBHOOK_SECRET")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 		return
 	}
+	WEBHOOK_SECRET := os.Getenv("WEBHOOK_SECRET")
 	db := database.Connect("localhost")
 	defer db.Close()
 
@@ -176,7 +176,6 @@ func main() {
 	router.POST("/solutions/:solutionId/status", env.SetSolutionStatus)
 	router.GET("/uploads/:uploadId", env.GetFile)
 	router.POST("/webhook", env.HandleEvent)
-
 	router.GET("/leaderboard", env.GetLeaderboardByType)
 
 	router.Run("0.0.0.0:8080")

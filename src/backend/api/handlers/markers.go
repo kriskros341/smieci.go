@@ -39,8 +39,6 @@ func (e *Env) GetMarkersInRegion(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(markers)
-
 	c.JSON(http.StatusOK, markers)
 }
 

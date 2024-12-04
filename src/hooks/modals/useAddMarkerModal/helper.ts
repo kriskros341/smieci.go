@@ -55,13 +55,7 @@ type MarkerPayload = {
   longitude: number;
 };
 
-type useCreateMarkerMutationOptions = {
-  onSettled: Function;
-};
-
-export const useCreateMarkerMutation = (
-  options: useCreateMarkerMutationOptions,
-) => {
+export const useCreateMarkerMutation = () => {
   const queryClient = useQueryClient();
   const axios = useAxios();
   const createMarkersMutation = useMutation<
@@ -79,7 +73,6 @@ export const useCreateMarkerMutation = (
     },
     onSettled() {
       queryClient.invalidateQueries({ queryKey: ["/markers"] });
-      options.onSettled();
     },
   });
   return createMarkersMutation;

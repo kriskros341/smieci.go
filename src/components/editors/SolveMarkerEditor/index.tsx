@@ -32,7 +32,7 @@ function SolveMarkerEditor(props: ResolveMarkerEditorProps) {
   const originalPhotos: { uri: string; blurhash: string }[] = [];
   data?.fileNamesString?.forEach((_, index) => {
     originalPhotos.push({
-      uri: getUriByUploadId(data?.fileNamesString[index]),
+      uri: getUriByUploadId(data?.fileNamesString[index])!,
       blurhash: data?.blurHashes[index],
     });
   });
@@ -48,7 +48,7 @@ function SolveMarkerEditor(props: ResolveMarkerEditorProps) {
     <ScrollView>
       <DividerWithText>
         <Text className="mr-2">
-          Uczestnicy<Text className="text-red-800">*</Text>
+          Uczestnicy {data?.externalObjectId ? null : <Text className="text-red-800">*</Text>}
         </Text>
       </DividerWithText>
       <ParticipantsFormField control={control} disabled={props.disabled} />

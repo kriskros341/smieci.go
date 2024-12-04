@@ -6,7 +6,6 @@ import {
   MoveMarkerMapStrategy,
   ViewMarkersMapStrategy,
 } from "./useMapStrategy.interfaces";
-import { useMarkersQuery } from "./useMarkersQuery";
 
 export const MAP_STRATEGY = {
   moveMarkerStrategy: "moveMarkerStrategy",
@@ -16,13 +15,12 @@ export const MAP_STRATEGY = {
 
 // Reinicjalizowanie mapy jest kosztowne. Trzeba dugo czekac itd. Lepiej podmienic zestaw propsow niz tworzyc osobny komponent
 export const useMapStrategy = () => {
-  const [focusedMarkerKey, setFocusedMarkerKey] = useState<string>();
-  const { data: markers, refetch } = useMarkersQuery();
+  const [focusedMarkerId, setFocusedMarkerId] = useState<number>();
   const [selectedStrategyKey, setSelectedStrategyKey] =
     useState<MapStrategyKey>("viewMarkersStrategy");
 
-  const onPressInsideMarker = (event: MarkerPressEvent, markerKey: string) => {
-    setFocusedMarkerKey(markerKey);
+  const onPressInsideMarker = (event: MarkerPressEvent, markerId: number) => {
+    setFocusedMarkerId(markerId);
   };
 
   const changeStrategy = <K extends MapStrategyKey>(selectedStrategyKey: K) => {
@@ -33,10 +31,9 @@ export const useMapStrategy = () => {
   const mapStrategy = {
     [MAP_STRATEGY.viewMarkersStrategy]: {
       strategyName: MAP_STRATEGY.viewMarkersStrategy,
-      markers,
-      getFocusedMarkerKey: () => focusedMarkerKey,
+      getFocusedMarkerId: () => focusedMarkerId,
       onPressInsideMarker,
-      onPressOutsideMarker: () => setFocusedMarkerKey(undefined),
+      onPressOutsideMarker: () => setFocusedMarkerId(undefined),
     } as const satisfies ViewMarkersMapStrategy,
     [MAP_STRATEGY.moveMarkerStrategy]: {
       strategyName: MAP_STRATEGY.moveMarkerStrategy,
@@ -48,5 +45,5 @@ export const useMapStrategy = () => {
 
   const strategy = mapStrategy[selectedStrategyKey ?? MAP_STRATEGY.idle];
 
-  return [strategy, changeStrategy, refetch] as const;
+  return [strategy, changeStrategy] as const;
 };

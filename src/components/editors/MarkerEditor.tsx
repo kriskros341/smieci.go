@@ -1,14 +1,13 @@
 import { useUser } from "@clerk/clerk-expo";
-import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import * as ImagePicker from "expo-image-picker";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { LatLng } from "react-native-maps";
 
 import Button from "@/ui/button";
 import { hasCoords } from "@/utils/hasCoords";
-import { useEditorState } from "@sheets/AddMarkerSheet/helper";
 
 import PhotoGallery from "../photoGallery";
+import { useEditorState } from "@hooks/modals/useAddMarkerModal/helper";
 
 type CreateMarkerEditorProps = {
   onSubmit: () => void;
@@ -62,12 +61,12 @@ const MarkerEditor = ({
       />
       <View className="">
         <Text>latitude</Text>
-        <BottomSheetTextInput
+        <TextInput
           value={editorState.latitude?.toString()}
           editable={false}
         />
         <Text>longitude</Text>
-        <BottomSheetTextInput
+        <TextInput
           value={editorState.longitude?.toString()}
           editable={false}
         />
