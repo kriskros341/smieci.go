@@ -11,15 +11,30 @@ export type editorStateType = {
   photosUris: string[];
 };
 
+const initial = {
+  photosUris: [] as string[],
+}
+
 export const useEditorState = () => {
-  const [editorState, setEditorState] = useState<editorStateType>({
-    photosUris: [] as string[],
-  });
+  const [editorState, setEditorState] = useState<editorStateType>(initial);
+
   const { location, isPending } = useLocation();
 
   const changeEditorState = (changes: Partial<editorStateType>) => {
     setEditorState({ ...editorState, ...changes });
   };
+
+  const reset = () => {
+    let changes = {}
+    if (location) {
+      changes = {
+        location: true,
+        latitude: location?.coords.latitude,
+        longitude: location?.coords.longitude,
+      };
+    }
+    changeEditorState({ ...initial, ...changes });
+  }
 
   useEffect(() => {
     if (location && !editorState.latitude && !editorState.longitude) {
@@ -46,6 +61,7 @@ export const useEditorState = () => {
     isPending,
     addPhotoUri,
     reorderPhotoUris,
+    reset
   };
 };
 

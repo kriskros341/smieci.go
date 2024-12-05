@@ -56,7 +56,7 @@ export const PhotosField = (props: PhotosFieldProps) => {
     );
   });
 
-  if (props.append) {
+  if (props.append && !props.disabled) {
     displayFields.push(
       <Pressable
         onPress={onPhoto}

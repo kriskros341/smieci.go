@@ -26,13 +26,16 @@ export const useAddMarkerModal = (options: useAddMarkerModalOptions) => {
     editorState.changeEditorState({ ...coords });
   };
 
-  const onSubmit = () => {
-    createMarkersMutation.mutate(editorState);
+  const onSubmit = async () => {
+    await createMarkersMutation.mutateAsync(editorState);
+    editorState.reset();
     setIsModalVisible(false);
+    options.onCancel?.()
   };
 
   useEffect(() => {
     return () => {
+      editorState.reset();
       options.onCancel?.()
     }
   }, [])

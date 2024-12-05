@@ -59,28 +59,31 @@ const MarkerEditor = ({
         reorder={editorState.reorderPhotoUris}
         showAddPhotoButton
       />
-      <View className="">
-        <Text>latitude</Text>
+      <View className="p-4">
+        <Text>Szerokość geograficzna</Text>
         <TextInput
           value={editorState.latitude?.toString()}
           editable={false}
         />
-        <Text>longitude</Text>
+        <Text>Długość geograficzna</Text>
         <TextInput
           value={editorState.longitude?.toString()}
           editable={false}
         />
-        <Button title="Move marker" onPress={onMoveMarker} />
+        <Button title="Przemieść" buttonClassName="rounded-lg" onPress={onMoveMarker} />
       </View>
-      <Text>Issuer</Text>
-      <TextInput value={user?.user!.username ?? ""} editable={false} />
-      <Pressable>
-        <Button
-          title="Create Marker"
-          onPress={onSubmit}
-          disabled={!editorState.photosUris.length || isPending}
-        />
-      </Pressable>
+      <View className="p-4">
+        <Text>Odpowiedzialny</Text>
+        <TextInput value={user?.user!.username ?? ""} editable={false} />
+        <Pressable>
+          <Button
+            buttonClassName="rounded-lg"
+            title="Utwórz znacznik"
+            onPress={onSubmit}
+            disabled={!editorState.photosUris.length || isPending}
+          />
+        </Pressable>
+      </View>
     </>
   );
 };

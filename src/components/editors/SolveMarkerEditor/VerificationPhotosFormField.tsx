@@ -118,6 +118,7 @@ const VerificationPhotosFormField = ({
     buttons.push(
       <Button
         title="Podmień"
+        buttonClassName="rounded-full"
         onPress={() => {
           openVerificationPhotoModal({
             newPhotoUri: undefined,
@@ -133,6 +134,7 @@ const VerificationPhotosFormField = ({
     buttons.push(
       <Button
         title="Dodaj"
+        buttonClassName="rounded-full"
         onPress={() => {
           openVerificationPhotoModal({
             newPhotoUri: fields[activePhotoIdx]?.uri,
@@ -149,7 +151,9 @@ const VerificationPhotosFormField = ({
       <View className="flex-1 flex flex-row flex-wrap h-full items-start justify-start">
         {photosComponents}
       </View>
-      {buttons}
+      <View className="p-4">
+        {buttons}
+      </View>
       {VerificationPhotoModal}
     </>
   );

@@ -3,7 +3,7 @@ import { Image } from "expo-image";
 import { useCallback, useRef, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import DraggableFlatList from "react-native-draggable-flatlist";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -145,7 +145,7 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
   }
 
   return (
-    <View>
+    <GestureHandlerRootView>
       <GestureDetector gesture={gesture}>
         <Animated.FlatList
           onLayout={handleLayout}
@@ -202,7 +202,7 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
           </Pressable>
         )}
       </View>
-    </View>
+    </GestureHandlerRootView>
   );
 };
 

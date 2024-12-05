@@ -56,66 +56,77 @@ const Support = () => {
   const submit = async () => {
     useSupportMutation.mutate(finalDelta)
   }
-
   const isCommitDisabled = markerData?.points + finalDelta < 0;
   return (
-    <View className="flex gap-2">
-      <Text>Dostępne punkty {userData?.supportPoints}</Text>
-      <View className="flex flex-row w-full">
-        <View className="flex-1">
-          <Button
-            textClassName="text-center"
-            title="1"
-            onPress={() => setMultiplier(1)}
-          />
+    <View className="space-y-4 p-4 w-full">
+        {/* Points Display */}
+        <View className="bg-gray-50 p-3 rounded-lg">
+          <Text className="text-lg font-medium">
+            Dostępne punkty: {userData?.supportPoints}
+          </Text>
         </View>
-        <View className="flex-1">
-          <Button
-            textClassName="text-center"
-            title="10"
-            onPress={() => setMultiplier(10)}
-          />
+  
+        {/* Multiplier Selection */}
+        <View>
+          <Text className="text-sm text-gray-600 mb-2">Wybierz mnożnik</Text>
+          <View className="flex flex-row gap-2">
+            {[1, 10, 100].map((value) => (
+              <View key={value} className="flex-1 ">
+                <Button
+                  title={value.toString()}
+                  onPress={() => setMultiplier(value)}
+                  buttonClassName={`${
+                    multiplier === value ? 'bg-blue-600' : 'bg-gray-200'
+                  } py-2 rounded-lg`}
+                  textClassName={multiplier === value ? "" : "text-blue-600"}
+                />
+              </View>
+            ))}
+          </View>
+          <Text className="text-sm text-gray-600 mt-1">
+            Aktywny mnożnik: x{multiplier}
+          </Text>
         </View>
-        <View className="flex-1">
+  
+        {/* Delta Controls */}
+        <View>
+          <Text className="text-sm text-gray-600 mb-2">Dostosuj wartość</Text>
+          <View className="flex flex-row gap-2">
+            <View className="flex-1">
+              <Button 
+                title="-"
+                onPress={() => setDelta(delta - 1)}
+                buttonClassName="bg-blue-600 py-2 rounded-lg"
+              />
+            </View>
+            <View className="flex-1">
+              <Button
+                title="+"
+                onPress={() => setDelta(delta + 1)}
+                buttonClassName="bg-blue-600 py-2 rounded-lg"
+              />
+            </View>
+          </View>
+          <Text className="text-center text-sm">
+            Punkty zgłoszenia: {markerData?.points + finalDelta} + {delta * multiplier}
+          </Text>
+        </View>
+  
+        {/* Actions */}
+        <View className="space-y-2">
           <Button
-            textClassName="text-center"
-            title="100"
-            onPress={() => setMultiplier(100)}
+            title="Aplikuj"
+            onPress={updateFinalDelta}
+            buttonClassName="bg-blue-600 py-2 rounded-lg"
+          />
+          <Button
+            title="Zatwierdź"
+            disabled={isCommitDisabled || useSupportMutation.isPending}
+            onPress={submit}
+            buttonClassName="bg-green py-2 rounded-lg disabled:bg-gray-300 mt-2"
           />
         </View>
       </View>
-      <Text>Mnożnik x{multiplier}</Text>
-      <View className="flex flex-row">
-        <View className="flex-1">
-          <Button
-            textClassName="text-center"
-            title="+"
-            onPress={() => setDelta(delta + 1)}
-          />
-        </View>
-        <View className="flex-1">
-          <Button
-            textClassName="text-center"
-            title="-"
-            onPress={() => setDelta(delta - 1)}
-          />
-        </View>
-      </View>
-      <View>
-        <Text>Zmień o {delta * multiplier}</Text>
-      </View>
-      <View>
-        <Button title="aplikuj" onPress={updateFinalDelta} />
-      </View>
-      <Text>Punkty zgłoszenia {markerData?.points + finalDelta}</Text>
-      <View>
-        <Button
-          title="Zatwierdź"
-          disabled={isCommitDisabled || useSupportMutation.isPending}
-          onPress={submit}
-        />
-      </View>
-    </View>
   );
 };
 

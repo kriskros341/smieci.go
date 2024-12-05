@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import {
   ActivityIndicator,
   Text,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import MapView, {
@@ -27,7 +26,8 @@ import {
 } from "@utils/hasCoords";
 import { Entypo } from "@expo/vector-icons";
 import { useMarkerQuery } from "@hooks/useMarkerQuery";
-import StatusBadge from "./statusBadge";
+import { getUriByUploadId } from "@utils/getUriFromPhotoId";
+import { Image } from "expo-image";
 
 const CustomCallout = styled(
   View,
@@ -44,22 +44,20 @@ interface CustomMarkerProps extends MapMarkerProps {
   onDispayPreviewPress: () => void;
 }
 
-const FOCUSED_MARKER_COLOR = "red";
+// const FOCUSED_MARKER_COLOR = "red";
 const OPEN_MARKER_COLOR = "blue";
 const PENDING_MARKER_COLOR = "yellow";
 const APPROVED_MARKER_COLOR = "#10a37f";
 
 const CustomMarker = (props: CustomMarkerProps) => {
   let color = OPEN_MARKER_COLOR;
-  if (props.isFocused) {
-    color = FOCUSED_MARKER_COLOR;
-  } else if (props.verificationStatus === "approved") {
+  if (props.verificationStatus === "approved") {
     color = APPROVED_MARKER_COLOR;
   } else if (props.verificationStatus === "pending") {
     color = PENDING_MARKER_COLOR;
   }
 
-  const { data } = useMarkerQuery(props.isFocused ? props.id : undefined);
+  const imageSrc = getUriByUploadId(props.mainPhotoId)
 
   return (
     <Marker
@@ -75,15 +73,16 @@ const CustomMarker = (props: CustomMarkerProps) => {
             {props.externalObjectId ? (
               <View>
                 <Text>Znacznik z systemu rządowego</Text>
-                <View className="flex flex-row">
-                  <Text>status: </Text><StatusBadge pendingVerificationsCount={data?.pendingVerificationsCount || 0} />
-                </View>
               </View>
             ) : (
               <View>
-                <View className="flex flex-row">
-                  <StatusBadge pendingVerificationsCount={data?.pendingVerificationsCount || 0} />
-                </View>
+                <Image
+                  className="w-40 h-40"
+                  contentFit="contain"
+                  source={imageSrc}
+                  placeholder={{ blurhash: props.mainPhotoBlurHash }}
+                  cachePolicy="memory"
+                />
               </View>
             )}
           </>
@@ -253,7 +252,7 @@ const MapStrategyConsumer = ({
               isViewMarkersMapStrategy(strategy) &&
               marker.id === strategy.getFocusedMarkerId()
             }
-            key={marker.id}
+            key={marker.id + (marker?.verificationStatus ?? '')}
             coordinate={{ latitude: marker.lat, longitude: marker.long }}
             onPress={(event) => {
               strategy.onPressInsideMarker?.(event, marker.id);

@@ -115,9 +115,8 @@ const MarkerPreview = () => {
           </View>
           {verificationStatusSection}
           <View className="p-4">
-            <Text>You can support it by clicking here</Text>
-            <Text>Point count: {markerData?.points}</Text>
-            <Text>Gathered from {markerSupportersData?.length} supporters</Text>
+            <Text>Ilość zebranych punktów wsparcia: {markerData?.points}</Text>
+            <Text>{markerSupportersData?.length} wspierających</Text>
           </View>
           <View className="p-4">
             {markerSupportersData && markerSupportersData?.length !== 0 ? (
