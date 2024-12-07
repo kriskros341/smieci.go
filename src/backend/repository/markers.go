@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"backend/database"
+	"backend/helpers"
 	"backend/models"
 	"fmt"
 	"strings"
@@ -175,6 +176,38 @@ func (r *markerRepository) CreateMarker(marker models.CreateMarkerBody, userId s
 		return err
 	}
 
+	var uploads []struct {
+		ID       int64  `db:"id"`
+		Filename string `db:"filename"`
+	}
+
+	uploadsQuery := `SELECT u.id, u.filename FROM relation_marker_uploads rmu 
+                     LEFT JOIN uploads u ON rmu.uploadId = u.id 
+                     WHERE rmu.markerId = $1`
+	err = r.db.Select(&uploads, uploadsQuery, markerId)
+	if err != nil {
+		return err
+	}
+
+	filenames := make([]string, len(uploads))
+	for i, upload := range uploads {
+		filenames[i] = upload.Filename
+	}
+
+	isValid, err := helpers.ValidateImagesWithPython(markerId, filenames)
+	if err != nil {
+		return err
+	}
+
+	status := "pending"
+	if isValid {
+		status = "approved"
+	} else {
+		status = "denied"
+	}
+
+	updateQuery := `UPDATE markers SET status = $1 WHERE id = $2`
+	_, err = r.db.Exec(updateQuery, status, markerId)
 	return err
 }
 

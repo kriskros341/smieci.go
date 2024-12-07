@@ -1,14 +1,13 @@
 import requests
+from pydantic import BaseModel
 import torch
 import uvicorn
-from accelerate.test_utils.testing import get_backend
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
-from transformers import AutoImageProcessor, AutoModelForObjectDetection
+import os
+from typing import List
 
-THRESHOLD = 0.04
-MODEL = "hxwk507/detr-garbage"
 
 app = FastAPI()
 app.add_middleware(
@@ -19,39 +18,48 @@ app.add_middleware(
     allow_credentials=True,
 )
 
-device, _, _ = get_backend()
+model = None
+@app.on_event("startup")
+async def load_model():
+    global model
+    model_path = 'best.pt'
+    model = torch.hub.load('ultralytics/yolov5', 'custom', path=model_path, force_reload=False)
+    model.eval()
 
-image_processor = AutoImageProcessor.from_pretrained(MODEL)
-model = AutoModelForObjectDetection.from_pretrained(MODEL)
-model = model.to(device)
+class ImageProcessRequest(BaseModel):
+    markerId: int
+    filenames: List[str]
 
+class ValidationResponse(BaseModel):
+    valid: bool
 
-@app.post("/inference")
-async def inference(path):
+@app.post("/validate-images", response_model=ValidationResponse)
+async def validate_images(request: ImageProcessRequest):
     # TODO: add access token for security and add to .env
-    image = Image.open(requests.get(path, stream=True).raw)
+    try:
+        for filename in request.filenames:
+            if not os.path.exists(filename):
+                return ValidationResponse(valid=False)
 
-    with torch.no_grad():
-        inputs = image_processor(images=[], return_tensors="pt")
-        outputs = model(**inputs.to(device))
-        target_sizes = torch.tensor([[image.size[1], image.size[0]]])
-        results = image_processor.post_process_object_detection(
-            outputs, threshold=THRESHOLD, target_sizes=target_sizes
-        )[0]
+        try:
+            imgs = [Image.open(f) for f in request.filenames]
+            results = model(imgs)
 
-    for score, label, box in zip(
-        results["scores"], results["labels"], results["boxes"]
-    ):
-        box = [round(i, 2) for i in box.tolist()]
-        print(
-            f"Detected {model.config.id2label[label.item()]} with confidence "
-            f"{round(score.item(), 3)} at location {box}"
-        )
-    return {
-        "labels": [model.config.id2label[label.item()] for label in results["labels"]],
-        "scores": [round(score.item(), 3) for score in results["scores"]],
-        "boxes": [[round(i, 2) for i in box.tolist()] for box in results["boxes"]],
-    }
+            ok = False
+            for result in results.ims:
+                if len(result) > 0:
+                    ok = True
+                    break
+            return ValidationResponse(valid=ok)
+
+        except Exception as e:
+            print(f"Error processing images: {str(e)}")
+            return ValidationResponse(valid=False)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 
 
 if __name__ == "__main__":
