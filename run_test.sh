@@ -28,7 +28,10 @@ done
 echo "Running migrations..."
 migrate -database 'postgres://postgres:dbpass@localhost:5432/postgres?sslmode=disable' -path ./src/backend/migrations up
 
-echo "Running tests..."
+echo "Running unit tests..."
+go test ./src/backend/tests/unit/... -v
+
+echo "Running integration tests..."
 go test ./src/backend/tests/integration/... -v 
 
 echo "Shutting down Docker Compose..."

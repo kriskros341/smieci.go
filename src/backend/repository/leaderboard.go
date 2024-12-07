@@ -27,7 +27,7 @@ func (r *leaderboardRepository) GetLeaderboardByType(leaderboard models.Leaderbo
 	var startDate time.Time
 	switch leaderboard {
 	case models.Weekly:
-		startDate = startOfWeek()
+		startDate = StartOfWeek()
 	case models.Monthly:
 		startDate = startOfMonth()
 	case models.AllTime:
@@ -58,7 +58,7 @@ var CurrentTime = func() time.Time {
 	return time.Now()
 }
 
-func startOfWeek() time.Time {
+func StartOfWeek() time.Time {
 	now := CurrentTime()
 	dayOfWeek := now.Weekday()
 	daysSinceMonday := int(dayOfWeek) - int(time.Monday)
