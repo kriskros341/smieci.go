@@ -12,13 +12,18 @@ module.exports = {
       resizeMode: "contain",
       backgroundColor: "#ffffff",
     },
-    owner: "h4wk507",
+    owner: "smieci",
     assetBundlePatterns: ["**/*"],
     ios: {
       supportsTablet: true,
       jsEngine: "hermes",
     },
     android: {
+      config: {
+        googleMaps: {
+          apiKey: "AIzaSyAo0hhvg2ojViwGzSKT7XkIipQPybLUlPY"
+        }
+      },
       permissions: ["CAMERA", "WRITE_EXTERNAL_STORAGE"],
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
@@ -31,12 +36,23 @@ module.exports = {
       favicon: "./assets/favicon.png",
       bundler: "metro",
     },
-    plugins: ["expo-router", "expo-secure-store", "expo-image-picker"],
+    plugins: [
+      "expo-router",
+      "expo-secure-store",
+      "expo-image-picker",
+      [
+        "expo-asset",
+        {
+          "assets": ["path/to/file.png", "path/to/directory"]
+        }
+      ]
+    ],
     extra: {
       clerkPublishableKey: process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY,
-      // eas: {
-      //   projectId: "84b4e448-a347-47ed-b16f-fd35172e9e44",
-      // },
+      eas: {
+        projectId: "84b4e448-a347-47ed-b16f-fd35172e9e44",
+        // projectId: "04fd1fd2-4050-498f-aed1-cf4126296f49", // TEMP kris
+      },
     },
   },
 };

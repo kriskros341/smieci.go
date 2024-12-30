@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:16.2
+    restart: unless-stopped
+    container_name: db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/pgdata
+    environment:
+      PGUSER: postgres
+      PGDATABASE: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: dbpass
+      POSTGRES_USER: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  db_data:

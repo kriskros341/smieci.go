@@ -1,5 +1,6 @@
 import PhotoGallery from "@components/photoGallery";
 import StatusBadge from "@components/statusBadge";
+import { useEditExternalMarkerPhotosModal } from "@hooks/modals/useEditExternalMarkerPhotosModal";
 import { useMarkerQuery } from "@hooks/useMarkerQuery";
 import { useQuery } from "@tanstack/react-query";
 import Avatar from "@ui/avatar";
@@ -23,12 +24,16 @@ const mapStyle = [
 const MarkerPreview = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const { data } = useMarkerQuery(id);
+  const { data: markerData } = useMarkerQuery(id);
+
+  const { EditExternalMarkerPhotosModal, openEditExternalMarkerPhotosModal } = useEditExternalMarkerPhotosModal({
+    markerKey: id as string
+  });
 
   const photos =
-    data?.fileNamesString?.map((uri: string, idx: number) => ({
+    markerData?.fileNamesString?.map((uri: string, idx: number) => ({
       uri: process.env.EXPO_PUBLIC_API_URL + "/uploads/" + uri,
-      blurhash: data.blurHashes[idx],
+      blurhash: markerData.blurHashes[idx],
     })) ?? [];
 
   const { data: markerSupportersData } = useQuery<
@@ -43,18 +48,18 @@ const MarkerPreview = () => {
       <View className="flex-row gap-4 ">
         <Text>Status weryfikacji:</Text>
         <StatusBadge
-          pendingVerificationsCount={data?.pendingVerificationsCount || 0}
+          pendingVerificationsCount={markerData?.pendingVerificationsCount || 0}
         />
       </View>
       <View className="pt-4">
-        {data?.pendingVerificationsCount === 0 ? (
-          <Link asChild href={`markers/${data?.id}/solvePreface`}>
+        {markerData?.pendingVerificationsCount === 0 ? (
+          <Link asChild href={`markers/${markerData?.id}/solvePreface`}>
             <Button title="Podziel się rezultatem" />
           </Link>
         ) : (
           <Link
             asChild
-            href={`markers/${data?.id}/solution/${data?.latestSolutionId}`}
+            href={`markers/${markerData?.id}/solution/${markerData?.latestSolutionId}`}
           >
             <Button title="Wyświetl rozwiązanie" />
           </Link>
@@ -63,18 +68,28 @@ const MarkerPreview = () => {
     </View>
   );
 
-  console.log({ markerSupportersData })
+  const onPhoto = () => {
+    if (!markerData?.externalObjectId) {
+      return;
+    }
+    
+    openEditExternalMarkerPhotosModal(photos)
+  }
+
   return (
     <>
       <ScrollView>
         <View className="flex-1 w-full h-full bg-transparent">
-          <PhotoGallery photos={[...photos]} isDragDisabled />
+          {markerData?.externalObjectId && (
+            <View className="p-4"><Text>Zgłoszenie pochodzi z systemu państwowego. Każdy użytkownik może zaproponować jego zmiany które następnie zostaną zweryfikowane.</Text></View>
+          )}
+          <PhotoGallery photos={[...photos]} showAddPhotoButton={!!markerData?.externalObjectId} isDragDisabled onPhoto={onPhoto} />
           <View className="flex flex-row gap-8 p-4">
             <View>
               <Text>latitude</Text>
-              <TextInput value={data?.lat?.toString()} editable={false} />
+              <TextInput value={markerData?.lat?.toString()} editable={false} />
               <Text>longitude</Text>
-              <TextInput value={data?.long?.toString()} editable={false} />
+              <TextInput value={markerData?.long?.toString()} editable={false} />
             </View>
             <MapView
               customMapStyle={mapStyle}
@@ -82,8 +97,8 @@ const MarkerPreview = () => {
               className="w-24 h-24"
               showsUserLocation
               region={{
-                latitude: data?.lat ?? 0,
-                longitude: data?.lat ?? 0,
+                latitude: markerData?.lat ?? 0,
+                longitude: markerData?.lat ?? 0,
                 latitudeDelta: 0.1,
                 longitudeDelta: 0.1,
               }}
@@ -92,23 +107,22 @@ const MarkerPreview = () => {
                 key="jdjd"
                 pinColor="green"
                 coordinate={{
-                  latitude: data?.lat ?? 0,
-                  longitude: data?.lat ?? 0,
+                  latitude: markerData?.lat ?? 0,
+                  longitude: markerData?.lat ?? 0,
                 }}
               />
             </MapView>
           </View>
           {verificationStatusSection}
           <View className="p-4">
-            <Text>You can support it by clicking here</Text>
-            <Text>Point count: {data?.points}</Text>
-            <Text>Gathered from {markerSupportersData?.length} supporters</Text>
+            <Text>Ilość zebranych punktów wsparcia: {markerData?.points}</Text>
+            <Text>{markerSupportersData?.length} wspierających</Text>
           </View>
           <View className="p-4">
             {markerSupportersData && markerSupportersData?.length !== 0 ? (
               <View className="flex flex-row py-4">
                 {markerSupportersData
-                  ?.splice(0, 3)
+                  ?.slice(0, 3)
                   .map((item, index: number) => (
                     <View className="relative pr-4">
                       <Avatar
@@ -125,7 +139,7 @@ const MarkerPreview = () => {
                     title="Więcej"
                     onPress={() =>
                       router.push({
-                        pathname: `markers/${data?.id}/supporters`,
+                        pathname: `markers/${markerData?.id}/supporters`,
                       })
                     }
                   />
@@ -139,12 +153,13 @@ const MarkerPreview = () => {
             <Button
               title="Wesprzyj"
               onPress={() =>
-                router.push({ pathname: `markers/${data?.id}/support` })
+                router.push({ pathname: `markers/${markerData?.id}/support` })
               }
             />
           </View>
         </View>
       </ScrollView>
+      {EditExternalMarkerPhotosModal}
     </>
   );
 };

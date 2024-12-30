@@ -8,15 +8,17 @@ type Upload struct {
 
 type SolutionUpload struct {
 	Upload
-	UploadType string `db:"uploadtype"`
+	UploadType string `json:"uploadType" db:"uploadtype"`
 }
 
-type MarkerCoordinates struct {
-	Id          int64   `json:"id"`
-	Lat         float64 `json:"lat"`
-	Long        float64 `json:"long"`
-	MainPhotoId int64   `json:"mainPhotoId"`
-	Blurhash    string  `json:"blurhash"`
+type Marker struct {
+	Id                 int64   `json:"id"`
+	Lat                float64 `json:"lat"`
+	Long               float64 `json:"long"`
+	MainPhotoId        *int64  `json:"mainPhotoId"`
+	Blurhash           *string `json:"blurhash"`
+	VerificationStatus *string `json:"verificationStatus" db:"verification_status"`
+	ExternalObjectId   *int64  `json:"externalObjectId" db:"externalobjectid"`
 }
 
 type GetMarkerPayload struct {
@@ -25,15 +27,17 @@ type GetMarkerPayload struct {
 	Long                      float64  `json:"long"`
 	FileNamesString           []string `json:"fileNamesString"`
 	BlurHashes                []string `json:"blurHashes"`
-	UserId                    string   `json:"userId"`
+	UserId                    *string  `json:"userId"`
 	Points                    int64    `json:"points"`
 	PendingVerificationsCount int64    `json:"pendingVerificationsCount"` // -1 if approved else ++
 	LatestSolutionId          int64    `json:"latestSolutionId"`
+	ExternalObjectId          *int64   `json:"externalObjectId" db:"externalobjectid"`
 }
 
 type CreateMarkerBody struct {
-	Latitude  float64 `json:"latitude"`
-	Longitude float64 `json:"longitude"`
+	Latitude         float64 `json:"latitude"`
+	Longitude        float64 `json:"longitude"`
+	ExternalObjectId *int64  `json:"ObjectId"`
 }
 
 type GetMarkerSupportersResult struct {

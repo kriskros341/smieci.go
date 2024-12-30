@@ -1,14 +1,13 @@
 import { useUser } from "@clerk/clerk-expo";
-import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import * as ImagePicker from "expo-image-picker";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { LatLng } from "react-native-maps";
 
-import { useEditorState } from "@sheets/AddMarkerSheet/helper";
 import Button from "@/ui/button";
 import { hasCoords } from "@/utils/hasCoords";
 
 import PhotoGallery from "../photoGallery";
+import { useEditorState } from "@hooks/modals/useAddMarkerModal/helper";
 
 type CreateMarkerEditorProps = {
   onSubmit: () => void;
@@ -36,6 +35,7 @@ const MarkerEditor = ({
       editorState.changeEditorState({ ...location }),
     );
   };
+
   const onPhoto = async () => {
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -57,29 +57,33 @@ const MarkerEditor = ({
         photos={d}
         onPhoto={onPhoto}
         reorder={editorState.reorderPhotoUris}
+        showAddPhotoButton
       />
-      <View className="">
-        <Text>latitude</Text>
-        <BottomSheetTextInput
+      <View className="p-4">
+        <Text>Szerokość geograficzna</Text>
+        <TextInput
           value={editorState.latitude?.toString()}
           editable={false}
         />
-        <Text>longitude</Text>
-        <BottomSheetTextInput
+        <Text>Długość geograficzna</Text>
+        <TextInput
           value={editorState.longitude?.toString()}
           editable={false}
         />
-        <Button title="Move marker" onPress={onMoveMarker} />
+        <Button title="Przemieść" buttonClassName="rounded-lg" onPress={onMoveMarker} />
       </View>
-      <Text>Issuer</Text>
-      <TextInput value={user?.user!.username ?? ""} editable={false} />
-      <Pressable>
-        <Button
-          title="Create Marker"
-          onPress={onSubmit}
-          disabled={!editorState.photosUris.length || isPending}
-        />
-      </Pressable>
+      <View className="p-4">
+        <Text>Odpowiedzialny</Text>
+        <TextInput value={user?.user!.username ?? ""} editable={false} />
+        <Pressable>
+          <Button
+            buttonClassName="rounded-lg"
+            title="Utwórz znacznik"
+            onPress={onSubmit}
+            disabled={!editorState.photosUris.length || isPending}
+          />
+        </Pressable>
+      </View>
     </>
   );
 };

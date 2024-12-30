@@ -3,13 +3,14 @@ import { Image } from "expo-image";
 import { useCallback, useRef, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import DraggableFlatList from "react-native-draggable-flatlist";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import { cn } from "@utils/cn";
 import { DraggablePhoto } from "./draggablePhoto";
@@ -19,11 +20,12 @@ const AnimatedImage = Animated.createAnimatedComponent(Image);
 interface PhotoGalleryProps {
   photos: {
     uri: string;
-    blurhash: string;
+    blurhash?: string;
   }[];
   onPhoto?: () => void;
   reorder?: (newData: any) => void;
   isDragDisabled?: boolean;
+  showAddPhotoButton?: boolean,
 }
 
 export const PhotoGallery = (props: PhotoGalleryProps) => {
@@ -103,6 +105,21 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
     });
 
   if (props.photos.length === 0) {
+    if (!props.showAddPhotoButton) {
+      return (
+        <Animated.View className="aspect-square w-full flex justify-center items-center">
+          <View>
+            <MaterialCommunityIcons
+              className="bg-none"
+              name="null"
+              size={64}
+              color="black"
+            />
+          <Text className="mt-4">Brak zdjęć</Text>
+          </View>
+        </Animated.View>
+      )
+    }
     return (
       <Pressable onPress={props.onPhoto}>
         {({ pressed }) => (
@@ -128,7 +145,7 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
   }
 
   return (
-    <View>
+    <GestureHandlerRootView>
       <GestureDetector gesture={gesture}>
         <Animated.FlatList
           onLayout={handleLayout}
@@ -143,7 +160,7 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
             <AnimatedImage
               style={style}
               key={item.uri}
-              className={cn("aspect-square h-full bg-green-100")}
+              className={cn("aspect-square h-full bg-green")}
               source={{ uri: item.uri }}
               placeholder={{ blurhash: item.blurhash }}
             />
@@ -158,32 +175,34 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
           onDragEnd={({ from, to, data }) => reorder(from, to, data)}
           horizontal
           keyExtractor={(data, index) => data.uri + index}
-          className={cn("h-full", props.onPhoto ? "aspect-[4]" : "aspect-[5]")}
+          className={cn("h-full", props.showAddPhotoButton ? "aspect-[4]" : "aspect-[5]")}
           renderItem={(data) => (
             <DraggablePhoto {...data} isDragDisabled={props.isDragDisabled} />
           )}
         />
-        <Pressable onPress={props.onPhoto}>
-          {({ pressed }) => (
-            <Animated.View className="aspect-square h-full flex justify-center items-center">
-              <View
-                className={cn(
-                  "p-1 rounded-lg shadow-md shadow-black bg-blue-500",
-                  pressed && "opacity-50",
-                )}
-              >
-                <AntDesign
-                  className="bg-none"
-                  name="plus"
-                  size={40}
-                  color="black"
-                />
-              </View>
-            </Animated.View>
-          )}
-        </Pressable>
+        {props.showAddPhotoButton && (
+          <Pressable onPress={props.onPhoto}>
+            {({ pressed }) => (
+              <Animated.View className="aspect-square h-full flex justify-center items-center">
+                <View
+                  className={cn(
+                    "p-1 rounded-lg shadow-md shadow-black bg-blue-500",
+                    pressed && "opacity-50",
+                  )}
+                >
+                  <AntDesign
+                    className="bg-none"
+                    name="plus"
+                    size={40}
+                    color="black"
+                  />
+                </View>
+              </Animated.View>
+            )}
+          </Pressable>
+        )}
       </View>
-    </View>
+    </GestureHandlerRootView>
   );
 };
 

@@ -1,2 +1,3 @@
+ALTER TABLE markers DROP CONSTRAINT markers_userid_fkey;
 DROP TABLE IF EXISTS markers;
-DROP TABLE IF EXISTS uploads;
+DROP TABLE IF EXISTS uploads CASCADE;

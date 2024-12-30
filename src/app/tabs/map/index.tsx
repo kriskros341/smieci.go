@@ -1,39 +1,74 @@
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import MapStrategyConsumer from "@components/mapStrategyConsumer";
 import { useMapStrategy } from "@hooks/useMapStrategy";
-import { AddMarkerSheet } from "@sheets/AddMarkerSheet";
 import { useRouter } from "expo-router";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { isMoveMarkerMapStrategy, isViewMarkersMapStrategy } from "@utils/hasCoords";
+import { useAddMarkerModal } from "@hooks/modals/useAddMarkerModal";
+import { useMapFocusPoint } from "@stores/useMapFocusPoint";
 
 const Map = () => {
-  const [mapStrategy, changeMapStrategy, refetch] = useMapStrategy();
-  const [isAddMarkerSheetOpen, setIsAddMarkerSheetOpen] = useState(false);
+  const [strategy, changeMapStrategy] = useMapStrategy();
+  const { AddMarkerModal, setMarkerCoordinates, setIsModalVisible } = useAddMarkerModal({
+    onMoveMarkerPress: () => {
+      changeMapStrategy("moveMarkerStrategy")
+    },
+    onCancel: () => {
+      changeMapStrategy("viewMarkersStrategy")
+    }
+  })
+  const { mapFocusPoint } = useMapFocusPoint();
 
   const actions = [];
 
   const onAddMarkerClick = () => {
-    setIsAddMarkerSheetOpen(true);
+    setIsModalVisible(true);
   };
 
-  if (!isAddMarkerSheetOpen) {
+  const confirmMoveMarkerToMapFocusPoint = () => {
+    setMarkerCoordinates(mapFocusPoint!)
+  }
+
+  if (isViewMarkersMapStrategy(strategy)) {
     actions.push(
-      <Pressable className="z-10" onPressOut={onAddMarkerClick}>
+      <Pressable className="z-10 right-12" onPressOut={onAddMarkerClick}>
         {({ pressed }) => (
           <View
             style={{ opacity: pressed ? 0.5 : 1 }}
-            className="w-16 h-16 bg-white rounded-full"
+            className="w-16 h-16 bg-white rounded-full justify-center items-center"
           >
-            <Text className="text-center">Dodaj znacznik</Text>
-          </View>
+            <MaterialCommunityIcons
+              name="plus"
+              color="green"
+              size={40}
+            />
+            </View>
+        )}
+      </Pressable>,
+    );
+  } else if (isMoveMarkerMapStrategy(strategy)) {
+    actions.push(
+      <Pressable className="z-10 right-12" onPressOut={confirmMoveMarkerToMapFocusPoint}>
+        {({ pressed }) => (
+          <View
+            style={{ opacity: pressed ? 0.5 : 1 }}
+            className="w-16 h-16 bg-white rounded-full justify-center items-center"
+          >
+            <MaterialIcons
+              name="place"
+              color="green"
+              size={40}
+            />
+            </View>
         )}
       </Pressable>,
     );
   }
 
   const router = useRouter();
-  const onMarkerPreviewClick = (key: string) => {
+  const onMarkerPreviewClick = (key: number) => {
     router.push(`/markers/${key}`);
   };
 
@@ -47,27 +82,14 @@ const Map = () => {
       />
       <View className="relative flex flex-row flex-1">
         <MapStrategyConsumer
-          strategy={mapStrategy}
+          strategy={strategy}
           onMarkerPreviewClick={onMarkerPreviewClick}
         />
         <View className="absolute items-center justify-center bottom-4 right-4">
           {actions}
         </View>
       </View>
-      {isAddMarkerSheetOpen && (
-        <AddMarkerSheet
-          hide={() => setIsAddMarkerSheetOpen(false)}
-          key={isAddMarkerSheetOpen ? "j" : "d"}
-          onMoveMarkerPress={() => changeMapStrategy("moveMarkerStrategy")}
-          onMoveMarkerConfirm={() => changeMapStrategy("idle")}
-          onSubmit={() => {
-            setIsAddMarkerSheetOpen(false);
-            console.log("onSubmit!");
-            changeMapStrategy("viewMarkersStrategy");
-            refetch();
-          }}
-        />
-      )}
+      {AddMarkerModal}
     </>
   );
 };

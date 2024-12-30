@@ -143,7 +143,7 @@ func (r *solutionsRepository) ApproveMarkerSolution(solutionId string) error {
 	var totalPoints int64
 	{
 		status := "approved"
-		query := `UPDATE solutions s set verification_status = $1 from markers m WHERE s.id = $2 and markerid = m.id RETURNING m.points`
+		query := `UPDATE solutions s set verification_status = $1, approved_at = Now() from markers m WHERE s.id = $2 and markerid = m.id RETURNING m.points`
 		println("Executing ", query, status, solutionId)
 		err := tx.Get(&totalPoints, query, status, solutionId)
 		if err != nil {
@@ -173,10 +173,10 @@ func (r *solutionsRepository) ApproveMarkerSolution(solutionId string) error {
 	// Increment points of participants
 	{
 		var query = `
-			UPDATE users
-				SET points = points + $1
-				FROM solutions_users_relation sur
-			WHERE sur.solutionId = $2;
+		UPDATE users
+			SET points = points + $1
+			FROM solutions_users_relation sur
+		WHERE sur.solutionId = $2 and sur.userid = users.id
 		`
 		println("Executing ", query, totalPoints/participantsCount, solutionId)
 		_, err := tx.Exec(query, totalPoints/participantsCount, solutionId)
@@ -211,7 +211,7 @@ func (r *solutionsRepository) ReopenMarkerSolution(solutionId string) error {
 	var totalPoints int64
 	{
 		status := "pending"
-		query := `UPDATE solutions s set verification_status = $1 from markers m WHERE s.id = $2 and markerid = m.id RETURNING m.points`
+		query := `UPDATE solutions s set verification_status = $1, approved_at = NULL from markers m WHERE s.id = $2 and markerid = m.id RETURNING m.points`
 		println("Executing ", query, status, solutionId)
 		err := tx.Get(&totalPoints, query, status, solutionId)
 		if err != nil {

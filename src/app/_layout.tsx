@@ -7,6 +7,8 @@ import * as SecureStore from "expo-secure-store";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 
+import 'react-native-url-polyfill/auto';
+
 const tokenCache = {
   async getToken(key: string) {
     try {

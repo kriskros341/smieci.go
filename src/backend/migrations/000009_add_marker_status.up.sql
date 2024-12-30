@@ -1,0 +1,1 @@
+ALTER TABLE markers ADD COLUMN status verification_status_enum NOT NULL DEFAULT 'pending'

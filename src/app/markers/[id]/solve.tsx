@@ -70,13 +70,13 @@ const useSolveMarkerMutation = (
 const SolveMarker = () => {
   const { id } = useLocalSearchParams();
   const navigation = useNavigation();
-  const { data } = useMarkerQuery(id);
+  const { data: markerData } = useMarkerQuery(id);
   const { YesNoModal, openYesNoModal } = useYesNoModal();
   const { user } = useUser();
   const queryClient = useQueryClient();
   const solveMarkerMutation = useSolveMarkerMutation(id as string, {
     onSuccess: () => {
-      queryClient.refetchQueries({ queryKey: [`/markers/${id}`] });
+      queryClient.refetchQueries({ queryKey: [`/markers/${id}`, '/markers'] });
       navigation.removeListener("beforeRemove", onBeforeRemove);
       navigation.goBack();
       Toast.show({
@@ -89,7 +89,7 @@ const SolveMarker = () => {
 
   const methods = useForm<SolveMarkerEditorFormValues>({
     defaultValues: {
-      photos: data?.fileNamesString.map(() => ({ uri: undefined })) ?? [],
+      photos: markerData?.fileNamesString.map(() => ({ uri: undefined })) ?? [],
       additionalPhotos: [],
       participants: [{ userId: user?.id }],
     },
@@ -105,15 +105,17 @@ const SolveMarker = () => {
 
   const validate = (data: SolveMarkerEditorFormValues) => {
     let isValid = true;
-    data.photos.forEach(({ uri }, index) => {
-      if (!uri) {
-        setError(`photos.${index}`, {
-          type: "manual",
-          message: "Pole wymagane",
-        });
-        isValid = false;
-      }
-    });
+    if (!markerData?.externalObjectId) { // Jeśli znacznik jest zewnętrzny to nie waliduj czy jest komplet zdjęć
+      data.photos.forEach(({ uri }, index) => {
+        if (!uri) {
+          setError(`photos.${index}`, {
+            type: "manual",
+            message: "Pole wymagane",
+          });
+          isValid = false;
+        }
+      });
+    }
     return isValid;
   };
 

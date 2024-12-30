@@ -1,0 +1,30 @@
+name: Integration tests
+
+on:
+  [push]
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Compose
+        uses: hoverkraft-tech/compose-action@v2.0.1
+        with:
+          compose-file: "./docker-compose.test.yml"
+
+      - name: Set up Go migrate
+        run: |
+          curl -L https://packagecloud.io/golang-migrate/migrate/gpgkey | sudo apt-key add -
+          echo "deb https://packagecloud.io/golang-migrate/migrate/ubuntu/ $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/migrate.list
+          sudo apt-get update
+          sudo apt-get install -y migrate
+
+      - name: Run tests
+        run: |
+          chmod +x ./run_test.sh
+          ./run_test.sh
+

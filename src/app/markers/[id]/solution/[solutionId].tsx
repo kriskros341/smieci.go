@@ -117,14 +117,16 @@ const PreivewMarkerSolution = () => {
   const navigation = useNavigation();
   const queryClient = useQueryClient();
   const { solutionId, id } = useLocalSearchParams();
-  const { data } = useSolutionQuery(solutionId as string);
-  const { data: markerData } = useMarkerQuery(id as string);
+  const { data, refetch: refetchSolution } = useSolutionQuery(solutionId as string);
+  const { data: markerData, refetch: refetchMarker } = useMarkerQuery(id as string);
   const { mutateAsync, isPending } = useSolutionStatusMutation(solutionId);
 
   const option = (result: string, goBackOnSuccess?: boolean) => {
     mutateAsync(result).then(() => {
+      refetchMarker()
+      refetchSolution()
+      queryClient.refetchQueries({ queryKey: [`/markers/${id}`, '/users/getUsers', '/users/current', '/markers'] });
       goBackOnSuccess && navigation.goBack();
-      queryClient.invalidateQueries({ queryKey: [`/markers/${id}`, '/users/getUsers', '/users/current'] });
     });
   };
 

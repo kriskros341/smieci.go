@@ -15,7 +15,7 @@ interface Props {
 const LeaderboardView: React.FC<Props> = ({ leaderboardType }) => {
   const axios = useAxios();
 
-  const { isPending, error, data, refetch } = useQuery({
+  const { isPending, error, data } = useQuery({
     queryKey: ["leaderboard", leaderboardType],
     queryFn: () => _getLeaderboard(axios, leaderboardType),
   });
@@ -30,7 +30,7 @@ const LeaderboardView: React.FC<Props> = ({ leaderboardType }) => {
 
   // TODO: empty state
   return (
-    <View className="h-full">
+    <View className="h-full p-4">
       <View className="flex flex-row justify-around">
         <Text className="basis-1/5 text-slate-400">Pozycja</Text>
         <Text className="basis-3/5 text-slate-400">Użytkownik</Text>
@@ -43,7 +43,6 @@ const LeaderboardView: React.FC<Props> = ({ leaderboardType }) => {
         )}
         estimatedItemSize={200}
       />
-      <Button title="refetch" onPress={() => refetch()} />
     </View>
   );
 };

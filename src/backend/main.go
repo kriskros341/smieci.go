@@ -12,6 +12,7 @@ import (
 	"os"
 	"strings"
 
+	"backend/integrations"
 	"log"
 
 	"github.com/gin-contrib/cors"
@@ -102,10 +103,11 @@ func SyncUsers(e *handlers.Env) error {
 
 func main() {
 	err := godotenv.Load()
-	WEBHOOK_SECRET := os.Getenv("WEBHOOK_SECRET")
 	if err != nil {
 		log.Fatal("Error loading .env file")
+		return
 	}
+	WEBHOOK_SECRET := os.Getenv("WEBHOOK_SECRET")
 	db := database.Connect("localhost")
 	defer db.Close()
 
@@ -146,20 +148,34 @@ func main() {
 	if err != nil {
 		return
 	}
+	markers, err := integrations.GetAllGovMarkers()
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	count, err := env.Markers.UpsertExternalMarkers(markers)
+	if err != nil {
+		fmt.Println(fmt.Errorf("Failed to fetch markers from .gov integration %w", err))
+	} else {
+		fmt.Printf("%d markers upserted from .gov datasources\n\n", count)
+	}
+
 	router.GET("/users/getUsers", env.GetUsers)
 	router.GET("/users/current/permissions", env.GetCurrentUserPermissions)
 	router.GET("/users/:userId", env.GetUserById)
 	router.POST("/markers", env.CreateMarker)
 	router.GET("/markers/:markerId", env.GetMarkerById)
+	router.PATCH("/markers/:markerId/uploads", env.PatchMarkerPhotos)
 	router.POST("/markers/:markerId/solve", env.PostMarkerSolution) // do przeniesienia jako solutions/create
 	router.GET("/markers/:markerId/supporters", env.GetMarkerSupporters)
-	router.GET("/markers", env.GetMarkersCoordinates)
+	router.GET("/markers", env.GetMarkers)
+	router.GET("/markers/region", env.GetMarkersInRegion)
 	router.PUT("/markers/support", env.SupportMarker)
 	router.GET("/solutions/:solutionId", env.GetSolution)
 	router.POST("/solutions/:solutionId/status", env.SetSolutionStatus)
 	router.GET("/uploads/:uploadId", env.GetFile)
 	router.POST("/webhook", env.HandleEvent)
-
 	router.GET("/leaderboard", env.GetLeaderboardByType)
 
 	router.Run("0.0.0.0:8080")

@@ -1,2 +1,2 @@
 # every minute
-* * * * * root /bin/update-available-points >> /logs/update-available-points.log 2>&1
+* * * * * root /bin/update-available-points >> /proc/1/fd/1 2>> /proc/1/fd/2

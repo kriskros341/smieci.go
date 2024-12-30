@@ -1,12 +1,9 @@
-import { Image } from "expo-image";
 import { styled } from "nativewind";
-import { useRef } from "react";
+import * as React from "react";
+import { useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Animated,
-  Pressable,
   Text,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import MapView, {
@@ -16,56 +13,79 @@ import MapView, {
   Region,
 } from "react-native-maps";
 
+import { _getMarkersInRegion } from "@api/markers";
+import { useAxios } from "@hooks/use-axios";
 import useLocation from "@hooks/useLocation";
 import { MapStrategies } from "@hooks/useMapStrategy.interfaces";
 import { useMapFocusPoint } from "@stores/useMapFocusPoint";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   hasCoords,
   isMoveMarkerMapStrategy,
   isViewMarkersMapStrategy,
 } from "@utils/hasCoords";
+import { Entypo } from "@expo/vector-icons";
+import { useMarkerQuery } from "@hooks/useMarkerQuery";
+import { getUriByUploadId } from "@utils/getUriFromPhotoId";
+import { Image } from "expo-image";
 
 const CustomCallout = styled(
   View,
-  "bg-white p-3 rounded-lg shadow-md border border-gray-300 w-auto h-auto",
+  "bg-white rounded-lg shadow-md border border-gray-300 w-auto h-auto p-3",
 );
 
 interface CustomMarkerProps extends MapMarkerProps {
+  externalObjectId: any;
   isFocused: boolean;
-  mainPhotoId: number;
-  mainPhotoBlurHash: string;
+  mainPhotoId?: number;
+  markerId: number,
+  verificationStatus?: string | null;
+  mainPhotoBlurHash?: string;
   onDispayPreviewPress: () => void;
 }
 
-const AnimatedImage = Animated.createAnimatedComponent(Image);
+// const FOCUSED_MARKER_COLOR = "red";
+const OPEN_MARKER_COLOR = "blue";
+const PENDING_MARKER_COLOR = "yellow";
+const APPROVED_MARKER_COLOR = "#10a37f";
 
 const CustomMarker = (props: CustomMarkerProps) => {
+  let color = OPEN_MARKER_COLOR;
+  if (props.verificationStatus === "approved") {
+    color = APPROVED_MARKER_COLOR;
+  } else if (props.verificationStatus === "pending") {
+    color = PENDING_MARKER_COLOR;
+  }
+
+  const imageSrc = getUriByUploadId(props.mainPhotoId)
+
   return (
     <Marker
       {...props}
-      pinColor={props.isFocused ? "blue" : "red"}
-      description="jdjdjdj"
       className="flex flex-row w-auto"
     >
+      <View>
+        <Entypo name="trash" color={color} size={32} />
+      </View>
       <Callout tooltip onPress={props.onDispayPreviewPress}>
         <CustomCallout>
-          <AnimatedImage
-            className="w-40 h-40"
-            contentFit="contain"
-            sharedTransitionTag="preview"
-            source={process.env.EXPO_PUBLIC + "/uploads/" + props.mainPhotoId}
-            placeholder={{ blurhash: props.mainPhotoBlurHash }}
-            cachePolicy="memory"
-          />
-          <Pressable>
-            {({ pressed }) => (
-              <View
-                className={`flex-1 bg-indigo-500 p-4 ${pressed ? "opacity-50" : ""}`}
-              >
-                <Text>{">"}</Text>
+          <>
+            {props.externalObjectId ? (
+              <View>
+                <Text>Znacznik z systemu rządowego</Text>
+              </View>
+            ) : (
+              <View>
+                <Image
+                  className="w-40 h-40"
+                  contentFit="contain"
+                  source={imageSrc}
+                  placeholder={{ blurhash: props.mainPhotoBlurHash }}
+                  cachePolicy="memory"
+                />
               </View>
             )}
-          </Pressable>
+          </>
         </CustomCallout>
       </Callout>
     </Marker>
@@ -75,26 +95,109 @@ const CustomMarker = (props: CustomMarkerProps) => {
 const mapStyle = [
   {
     featureType: "poi",
-    elementType: "labels",
+    elementType: "all",
     stylers: [
       {
         visibility: "off",
       },
     ],
   },
+  {
+    featureType: "road",
+    elementType: "all",
+    stylers: [
+      {
+        visibility: "simplified",
+      },
+    ],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry.stroke",
+    stylers: [
+      {
+        visibility: "simplified",
+      },
+    ],
+  },
+  {
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "off"
+      }
+    ]
+  },
 ];
 
 type MapStrategyConsumerProps = {
   strategy: MapStrategies;
-  onMarkerPreviewClick: (s: string) => void;
+  onMarkerPreviewClick: (id: number) => void;
 };
+
+type Markerr = {
+  blurhash?: string,
+  externalObjectId?: number,
+  id: number,
+  lat: number,
+  long: number,
+  verificationStatus?: string | null
+  mainPhotoBlurhash?: string,
+  mainPhotoId?: number,
+}
+
+const useMarkersInRegion = (mapRegion?: Region) => {
+  const axios = useAxios();
+  const queryClient = useQueryClient();
+
+  // Query key for the current region
+  const regionQueryKey = ['/markers', 'get-markers-in-region', mapRegion];
+
+  // Centralized cache for all markers
+  const markersCacheKey = ['/markers', 'all-markers'];
+
+  const result = useQuery({
+    queryKey: regionQueryKey,
+    queryFn: async () => {
+      if (!mapRegion) return [];
+      const newMarkers = await _getMarkersInRegion(axios, mapRegion);
+
+      const cache: Map<number, Markerr> = queryClient.getQueryData(markersCacheKey) ?? new Map<number, Markerr>();
+
+      let hasNew = false
+      newMarkers.forEach(marker => {
+        if (!cache.has(marker.id)) {
+          hasNew = true;
+          cache.set(marker.id, marker);
+        }
+      });
+
+      if (hasNew) {
+        queryClient.setQueryData(markersCacheKey, cache);
+      }
+
+      return Array.from(cache.values());
+    },
+    placeholderData: keepPreviousData
+  });
+
+  React.useEffect(() => {
+    result.refetch()
+  }, [mapRegion])
+
+  return result;
+}
 
 const MapStrategyConsumer = ({
   strategy,
   onMarkerPreviewClick,
 }: MapStrategyConsumerProps) => {
-  const { mapFocusPoint, changeMapFocusPoint } = useMapFocusPoint();
+  const { changeMapFocusPoint, mapFocusPoint } = useMapFocusPoint();
   const mapRef = useRef<MapView>(null);
+  const [mapRegion, setMapRegion] = useState<Region>();
+
+  const { data, isFetching } = useMarkersInRegion(mapRegion);
+
   const { location, isPending, error } = useLocation();
 
   if (!location || isPending || error) {
@@ -106,31 +209,28 @@ const MapStrategyConsumer = ({
   }
 
   const onRegionChange = async (region: Region) => {
-    const screenuseMapFocusPoint =
-      await mapRef.current?.pointForCoordinate(region)!;
-    screenuseMapFocusPoint.y -= 100;
-    const mapTransformedCenter = await mapRef.current?.coordinateForPoint(
-      screenuseMapFocusPoint,
-    )!;
-    changeMapFocusPoint(mapTransformedCenter);
+    changeMapFocusPoint(region);
+    setMapRegion(region);
   };
 
   let customMarker = null;
   if (isMoveMarkerMapStrategy(strategy) && hasCoords(mapFocusPoint)) {
     customMarker = (
-      <Marker key="jdjd" pinColor={"green"} coordinate={mapFocusPoint} />
+      <Marker key="jdjd" pinColor="green" coordinate={mapFocusPoint} />
     );
   }
 
-  const focusedMarkerKey =
-    isViewMarkersMapStrategy(strategy) && strategy.focusedMarker?.key;
-
   return (
-    <TouchableWithoutFeedback onPressIn={strategy.onPressOutsideMarker}>
+    <View className="flex-1">
       <MapView
+        showsCompass={false}
+        showsPointsOfInterest={false}
+        showsScale={false}
+        showsIndoors={false}
+        maxZoomLevel={12} // Na zbytnim zoomie są artefakty
         ref={mapRef}
+        provider="google"
         customMapStyle={mapStyle}
-        provider={undefined}
         className="flex-1 h-full"
         showsUserLocation
         region={{
@@ -139,26 +239,39 @@ const MapStrategyConsumer = ({
           latitudeDelta: 0.1,
           longitudeDelta: 0.1,
         }}
+        zoomControlEnabled
         onRegionChangeComplete={onRegionChange}
+        toolbarEnabled={false}
       >
-        {strategy.markers?.map((marker, index) => (
+        {data?.map((marker) => (
           <CustomMarker
+            markerId={marker.id}
             mainPhotoBlurHash={marker.mainPhotoBlurhash}
             mainPhotoId={marker.mainPhotoId}
-            isFocused={focusedMarkerKey === marker.key}
-            key={marker.key}
-            coordinate={marker.coordinate}
+            isFocused={
+              isViewMarkersMapStrategy(strategy) &&
+              marker.id === strategy.getFocusedMarkerId()
+            }
+            key={marker.id + (marker?.verificationStatus ?? '')}
+            coordinate={{ latitude: marker.lat, longitude: marker.long }}
             onPress={(event) => {
-              strategy.onPressInsideMarker?.(event, index);
+              strategy.onPressInsideMarker?.(event, marker.id);
             }}
             onDispayPreviewPress={() => {
-              onMarkerPreviewClick?.(marker.key);
+              onMarkerPreviewClick?.(marker.id);
             }}
-          ></CustomMarker>
+            verificationStatus={marker.verificationStatus}
+            externalObjectId={marker.externalObjectId}
+          />
         ))}
         {customMarker}
       </MapView>
-    </TouchableWithoutFeedback>
+      {(isFetching) && (
+        <View className="absolute w-10 h-10 bg-white top-3 left-3 opacity-75 flex justify-center align-center">
+          <ActivityIndicator size="small" />
+        </View>
+      )}
+    </View>
   );
 };
 

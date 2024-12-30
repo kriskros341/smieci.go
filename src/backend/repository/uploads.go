@@ -12,9 +12,10 @@ import (
 )
 
 type UploadsRepository interface {
-	GetUploadsByMarkerId(markerId int64) ([]models.Upload, error)
+	GetUploadsByMarkerId(markerId string) ([]models.Upload, error)
 	GetUploadsBySolutionId(solutionId string) ([]models.SolutionUpload, error)
 	CreateUploadsFromHeaders(headers []*multipart.FileHeader) ([]int64, error)
+	FilterMarkerUploads(markerKey string, uploadsIds []string) error
 	GetPathForUploadById(uploadId string) (path string, err error)
 }
 
@@ -43,7 +44,7 @@ func (r *uploadsRepository) GetPathForUploadById(uploadId string) (path string, 
 	return filePath, nil
 }
 
-func (r *uploadsRepository) GetUploadsByMarkerId(markerID int64) ([]models.Upload, error) {
+func (r *uploadsRepository) GetUploadsByMarkerId(markerID string) ([]models.Upload, error) {
 	var uploads []models.Upload
 	query := `
 		SELECT up.id, up.filename, up.blurhash 
@@ -106,4 +107,18 @@ func (r *uploadsRepository) CreateUploadsFromHeaders(headers []*multipart.FileHe
 		ids = append(ids, id)
 	}
 	return ids, nil
+}
+
+func (r *uploadsRepository) FilterMarkerUploads(markerKey string, uploadsIds []string) error {
+	if len(uploadsIds) == 0 {
+		return nil
+	}
+
+	query, args, err := sqlx.In("DELETE FROM relation_marker_uploads rmu WHERE rmu.markerid = ? AND rmu.uploadid NOT IN (?)", markerKey, uploadsIds)
+
+	println("executing", query, "with", args)
+	query = r.db.Rebind(query)
+	_, err = r.db.Exec(query, args...)
+
+	return err
 }

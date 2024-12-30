@@ -23,7 +23,7 @@ const ParticipantsFormField = ({
   const remainder = fields.slice(3);
 
   return (
-    <View>
+    <View className="p-4">
       {fields.slice(0, 3)?.map(({ userId }) => {
         const user = data?.find(({ id }: { id: string }) => id === userId);
         return (
@@ -42,6 +42,7 @@ const ParticipantsFormField = ({
       ) : null}
       {!disabled && (
         <Button
+          buttonClassName="rounded-full mt-4"
           title="Dodaj uczestników"
           onPress={() =>
             openAddParticipantsModal({

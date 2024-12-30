@@ -3,5 +3,5 @@ create table if not exists relation_marker_uploads (
   	markerId INTEGER NOT NULL,
   	uploadId INTEGER NOT NULL,
 	foreign key (markerId) references markers(id),
-	foreign key (uploadId) references uploads(id)
+	foreign key (uploadId) references uploads(id) ON DELETE CASCADE
 );
