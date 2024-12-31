@@ -1,3 +1,5 @@
 .gitignore
 venv/
-model/
+__pycache__/
+*.jpg
+req.txt

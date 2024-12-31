@@ -1,12 +1,11 @@
-import requests
 from pydantic import BaseModel
 import torch
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
-import os
 from typing import List
+import io
 # from dotenv import load_dotenv
 
 
@@ -29,39 +28,33 @@ async def load_model():
 
 class ImageProcessRequest(BaseModel):
     markerId: int
-    filenames: List[str]
+    files: List[UploadFile]
 
 class ValidationResponse(BaseModel):
     valid: bool
 
 @app.post("/validate-images", response_model=ValidationResponse)
-async def validate_images(request: ImageProcessRequest):
-    # TODO: add access token for security and add to .env
-    print(f"Checking files: {request.filenames}")
-    print(f"Current working directory: {os.getcwd()}")
-    print(f"Directory contents: {os.listdir('.')}")
+async def validate_images(
+    marker_id: int = Form(...),
+    files: List[UploadFile] = File(...),
+):
+    # TODO: add access token for security and add to .env, or docker internal network
+    if len(files) > 10:
+        raise HTTPException(status_code=400, detail="Too many images")
+    imgs = []
     try:
-        for filename in request.filenames:
-            if not os.path.exists(filename):
-                return ValidationResponse(valid=False)
+        for file in files:
+            content = await file.read()
+            img = Image.open(io.BytesIO(content))
+            imgs.append(img)
+        results = model(imgs)
 
-        try:
-            imgs = [Image.open(f) for f in request.filenames]
-            results = model(imgs)
-
-            ok = False
-            for result in results.ims:
-                if len(result) > 0:
-                    ok = True
-                    break
-            print(results)
-            return ValidationResponse(valid=ok)
-
-        except Exception as e:
-            print(f"Error processing images: {str(e)}")
-            return ValidationResponse(valid=False)
+        valid = any(len(result) > 0 for result in results.ims)
+        print(results)
+        return ValidationResponse(valid=valid)
 
     except Exception as e:
+        print(f"Error processing images: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
