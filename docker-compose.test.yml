@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:16.2
     restart: unless-stopped
-    container_name: db
+    container_name: test-db
     ports:
       - "5432:5432"
     volumes:
