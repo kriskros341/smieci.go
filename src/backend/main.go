@@ -17,7 +17,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
+	//"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	svix "github.com/svix/svix-webhooks/go"
 )
@@ -35,10 +35,10 @@ type ClerkUserResponse struct {
 }
 
 func SyncUsers(e *handlers.Env) error {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatal("Error loading .env file")
+	// }
 	CLERK_API_SECRET_KEY := os.Getenv("CLERK_API_SECRET_KEY")
 	CLERK_SERVICE_URL := os.Getenv("CLERK_SERVICE_URL")
 	url := fmt.Sprintf("%s/v1/users", CLERK_SERVICE_URL)
@@ -102,13 +102,13 @@ func SyncUsers(e *handlers.Env) error {
 }
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-		return
-	}
-	WEBHOOK_SECRET := os.Getenv("WEBHOOK_SECRET")
-	db := database.Connect("localhost")
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatal("Error loading .env file")
+	// 	return
+	// }
+	pass := os.Getenv("POSTGRES_PASSWORD")
+	db := database.Connect("postgres", pass)
 	defer db.Close()
 
 	cwd, err := os.Getwd()
@@ -118,6 +118,7 @@ func main() {
 	}
 	println("Uploads will be placed in %s/uploads", cwd)
 
+	WEBHOOK_SECRET := os.Getenv("WEBHOOK_SECRET")
 	wh, err := svix.NewWebhook(WEBHOOK_SECRET)
 	println("created webhook handler with secret", WEBHOOK_SECRET)
 	if err != nil {
@@ -178,5 +179,5 @@ func main() {
 	router.POST("/webhook", env.HandleEvent)
 	router.GET("/leaderboard", env.GetLeaderboardByType)
 
-	router.Run("0.0.0.0:8080")
+	router.Run(":8080")
 }

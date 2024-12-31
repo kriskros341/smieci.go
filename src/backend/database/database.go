@@ -6,8 +6,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func Connect(host string) (db *sqlx.DB) {
-	datasource := fmt.Sprintf("host=%s port=5432 user=postgres password=dbpass sslmode=disable", host)
+func Connect(host string, password string) (db *sqlx.DB) {
+	datasource := fmt.Sprintf("host=%s port=5432 user=postgres password=%s sslmode=disable", host, password)
 	db, err := sqlx.Connect("postgres", datasource)
 	if err != nil {
 		panic(err)

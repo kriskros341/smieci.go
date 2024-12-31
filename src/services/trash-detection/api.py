@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import os
 from typing import List
+from dotenv import load_dotenv
 
 
 app = FastAPI()
@@ -21,6 +22,9 @@ app.add_middleware(
 model = None
 @app.on_event("startup")
 async def load_model():
+    if not load_dotenv():
+        print("failed to load .env")
+        exit(1)
     global model
     model_path = 'best.pt'
     model = torch.hub.load('ultralytics/yolov5', 'custom', path=model_path, force_reload=False)
@@ -63,4 +67,4 @@ async def validate_images(request: ImageProcessRequest):
 
 
 if __name__ == "__main__":
-    uvicorn.run("api:app", host="127.0.0.1", port=6969, reload=True)
+    uvicorn.run("api:app", host="164.90.189.40", port=6969, reload=True)
