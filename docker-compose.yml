@@ -45,6 +45,16 @@ services:
       migrate:
         condition: service_completed_successfully
 
+  service:
+    env_file:
+      - .env
+    ports:
+      - "6969:6969"
+    build:
+      context: ./src/services/trash-detection
+      dockerfile: ./Dockerfile
+    container_name: trash-detection
+
   cron:
     env_file:
       - .env

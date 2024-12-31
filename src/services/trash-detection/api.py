@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import os
 from typing import List
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
 
 app = FastAPI()
@@ -22,9 +22,6 @@ app.add_middleware(
 model = None
 @app.on_event("startup")
 async def load_model():
-    if not load_dotenv():
-        print("failed to load .env")
-        exit(1)
     global model
     model_path = 'best.pt'
     model = torch.hub.load('ultralytics/yolov5', 'custom', path=model_path, force_reload=False)
@@ -40,6 +37,9 @@ class ValidationResponse(BaseModel):
 @app.post("/validate-images", response_model=ValidationResponse)
 async def validate_images(request: ImageProcessRequest):
     # TODO: add access token for security and add to .env
+    print(f"Checking files: {request.filenames}")
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Directory contents: {os.listdir('.')}")
     try:
         for filename in request.filenames:
             if not os.path.exists(filename):
@@ -54,6 +54,7 @@ async def validate_images(request: ImageProcessRequest):
                 if len(result) > 0:
                     ok = True
                     break
+            print(results)
             return ValidationResponse(valid=ok)
 
         except Exception as e:
@@ -67,4 +68,4 @@ async def validate_images(request: ImageProcessRequest):
 
 
 if __name__ == "__main__":
-    uvicorn.run("api:app", host="164.90.189.40", port=6969, reload=True)
+    uvicorn.run("api:app", host="0.0.0.0", port=6969, reload=True)
