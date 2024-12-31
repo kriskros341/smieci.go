@@ -8,7 +8,7 @@ import (
 )
 
 func SetupTestDB(t *testing.T, query string) *sqlx.DB {
-	db := database.Connect("localhost")
+	db := database.Connect("localhost", "dbpass")
 
 	_, err := db.Exec(query)
 	if err != nil {

@@ -33,6 +33,7 @@ COPY --from=build /usr/local /usr/local
 COPY . /app
 
 WORKDIR /app
+
 ENV PYTHONPATH=/app
 
 CMD ["python", "api.py"]

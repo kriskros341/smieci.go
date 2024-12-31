@@ -6,7 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from typing import List
 import io
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
+import os
 
 
 app = FastAPI()
@@ -21,6 +22,10 @@ app.add_middleware(
 model = None
 @app.on_event("startup")
 async def load_model():
+    if os.getenv("HOST") == "localhost":
+        if not load_dotenv(override=False):
+            print("Error loading .env file")
+            exit(1)
     global model
     model_path = 'best.pt'
     model = torch.hub.load('ultralytics/yolov5', 'custom', path=model_path, force_reload=False)
@@ -35,7 +40,7 @@ class ValidationResponse(BaseModel):
 
 @app.post("/validate-images", response_model=ValidationResponse)
 async def validate_images(
-    marker_id: int = Form(...),
+    marker_id: int = Form(...), # TODO: unused probably
     files: List[UploadFile] = File(...),
 ):
     # TODO: add access token for security and add to .env, or docker internal network

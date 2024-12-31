@@ -4,30 +4,31 @@ import (
 	"fmt"
 
 	"backend/database"
+	"backend/helpers"
 	"backend/integrations"
 	repositories "backend/repository"
-	//"log"
+
+	"log"
 	"os"
 
-	"backend/cron/src/consts"
-	//"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	//err := godotenv.Load()
-	//if err != nil {
-	//	log.Fatal("Error loading .env file")
-	//	return
-	//}
-	pass := os.Getenv("POSTGRES_PASSWORD")
+	err := helpers.LoadEnvsIfNotLoaded()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+		return
+	}
 
-	fmt.Println("Fetching government markers...")
-	db := database.Connect(consts.DATABASE_DOCKER_HOST, pass)
+	pass := os.Getenv("POSTGRES_PASSWORD")
+	host := os.Getenv("HOST")
+	db := database.Connect(host, pass)
 	defer db.Close()
 
 	Markers := repositories.NewMarkerRepository(db)
 
+	fmt.Println("Fetching government markers...")
 	govermentMarkers, err := integrations.GetAllGovMarkers()
 	if err != nil {
 		fmt.Println("Error getting government markers: ", err)

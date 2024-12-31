@@ -5,6 +5,8 @@ services:
     container_name: postgres
     env_file:
       - .env
+    environment:
+      - HOST=postgres
     ports:
       - "5432:5432"
     volumes:
@@ -12,7 +14,7 @@ services:
     networks:
       - my-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready"]
+      test: ["CMD-SHELL", "pg_isready"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -21,7 +23,16 @@ services:
     image: migrate/migrate
     env_file:
       - .env
-    command: ["-path", "/migrations", "-database",  "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable", "up"]
+    environment:
+      - HOST=postgres
+    command:
+      [
+        "-path",
+        "/migrations",
+        "-database",
+        "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable",
+        "up",
+      ]
     depends_on:
       postgres:
         condition: service_healthy
@@ -33,6 +44,8 @@ services:
   api:
     env_file:
       - .env
+    environment:
+      - HOST=postgres
     ports:
       - "8080:8080"
     build:
@@ -48,6 +61,8 @@ services:
   service:
     env_file:
       - .env
+    environment:
+      - HOST=postgres
     ports:
       - "6969:6969"
     build:
@@ -58,6 +73,8 @@ services:
   cron:
     env_file:
       - .env
+    environment:
+      - HOST=postgres
     build:
       context: ./src/backend
       dockerfile: ./cron/Dockerfile
