@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libc6 \
     && rm -rf /var/lib/apt/lists/* && apt-get clean
 
+RUN mkdir uploads
 COPY --from=builder /workspace/backend .
 
 ENV GIN_MODE=release

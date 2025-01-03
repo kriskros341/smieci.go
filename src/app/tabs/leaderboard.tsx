@@ -25,22 +25,24 @@ const Leaderboard: React.FC = () => {
   });
 
   return (
-    <TabView
-      navigationState={{ index, routes }}
-      renderScene={renderScene}
-      onIndexChange={setIndex}
-      initialLayout={{ width: layout.width }}
-      style={{ backgroundColor: "white" }}
-      className="border-t border-solid border-slate-200"
-      renderTabBar={(props) => (
-        <TabBar
-          {...props}
-          style={{ backgroundColor: "white" }}
-          activeColor="black"
-          inactiveColor="gray"
-        />
-      )}
-    />
+    <>
+      <TabView
+        navigationState={{ index, routes }}
+        renderScene={renderScene}
+        onIndexChange={setIndex}
+        initialLayout={{ width: layout.width }}
+        style={{ backgroundColor: "white" }}
+        className="border-t border-solid border-slate-200"
+        renderTabBar={(props) => (
+          <TabBar
+            {...props}
+            style={{ backgroundColor: "white" }}
+            activeColor="black"
+            inactiveColor="gray"
+          />
+        )}
+      />
+    </>
   );
 };
 
