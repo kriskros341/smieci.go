@@ -23,10 +23,10 @@ const SignUp: React.FC = () => {
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      username: "test",
-      emailAddress: "test+clerk_test@ll.ll",
-      password: "testtest",
-      confirmPassword: "testtest",
+      username: "",
+      emailAddress: "",
+      password: "",
+      confirmPassword: "",
     },
     resolver: zodResolver(schema),
   });

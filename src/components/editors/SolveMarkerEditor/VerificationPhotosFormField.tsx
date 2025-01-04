@@ -1,17 +1,17 @@
-import { Control, useFieldArray, useFormContext } from "react-hook-form";
-import { useState } from "react";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { Pressable, Text, View } from "react-native";
-import { runOnJS } from "react-native-reanimated";
-import { Image } from "expo-image";
 import clsx from "clsx";
+import { Image } from "expo-image";
+import { useState } from "react";
+import { Control, useFieldArray, useFormContext } from "react-hook-form";
+import { Pressable, Text, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { runOnJS } from "react-native-reanimated";
 
-import Button from "@ui/button";
-import { useCreateVerificationPhotoModal } from "@hooks/modals/useVerificationPhotoEditorModal";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { useCreateVerificationPhotoModal } from "@hooks/modals/useVerificationPhotoEditorModal";
+import Button from "@ui/button";
 
-import { SolveMarkerEditorFormValues } from "./interfaces";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui/tooltip";
+import { SolveMarkerEditorFormValues } from "./interfaces";
 
 interface VerificationPhotoFormFieldProps {
   errors: any;
@@ -72,7 +72,7 @@ const VerificationPhotosFormField = ({
         );
       });
     return (
-      <View className="relative flex basis-1/3 aspect-[0.6]">
+      <View className="relative flex basis-1/3 aspect-[0.6]" key={idx}>
         <Pressable
           key={`original-photo-${idx}`}
           className={clsx(
@@ -85,9 +85,7 @@ const VerificationPhotosFormField = ({
             <Image
               className={clsx(
                 "flex-1",
-                !disabled &&
-                  idx === activePhotoIdx &&
-                  "border-4 border-green",
+                !disabled && idx === activePhotoIdx && "border-4 border-green",
               )}
               key={isOriginalPhoto ? uri : fields[idx].uri}
               source={{
@@ -148,12 +146,10 @@ const VerificationPhotosFormField = ({
 
   return (
     <>
-      <View className="flex-1 flex flex-row flex-wrap h-full items-start justify-start">
+      <View className="flex flex-row flex-wrap items-start justify-start flex-1 h-full">
         {photosComponents}
       </View>
-      <View className="p-4">
-        {buttons}
-      </View>
+      <View className="p-4">{buttons}</View>
       {VerificationPhotoModal}
     </>
   );

@@ -1,7 +1,7 @@
-import * as React from "react";
-import { View, Text } from "react-native";
 import { cn } from "@utils/cn";
 import { Image } from "expo-image";
+import * as React from "react";
+import { Text, View } from "react-native";
 
 interface AvatarProps {
   size?: number;
@@ -37,7 +37,7 @@ const Avatar: React.FC<AvatarProps> = ({
       className={cn(
         `flex items-center justify-center ${backgroundColor}`,
         `border ${borderColor}`,
-        className && className,
+        className,
       )}
       style={{ ...avatarSize, borderWidth }}
     >
