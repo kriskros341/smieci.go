@@ -4,6 +4,7 @@ import (
 	"backend/api/auth"
 	"backend/api/handlers"
 	"backend/database"
+	"backend/helpers"
 	repositories "backend/repository"
 	"encoding/json"
 	"fmt"
@@ -17,7 +18,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
+
 	_ "github.com/lib/pq"
 	svix "github.com/svix/svix-webhooks/go"
 )
@@ -35,10 +36,6 @@ type ClerkUserResponse struct {
 }
 
 func SyncUsers(e *handlers.Env) error {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
 	CLERK_API_SECRET_KEY := os.Getenv("CLERK_API_SECRET_KEY")
 	CLERK_SERVICE_URL := os.Getenv("CLERK_SERVICE_URL")
 	url := fmt.Sprintf("%s/v1/users", CLERK_SERVICE_URL)
@@ -54,6 +51,10 @@ func SyncUsers(e *handlers.Env) error {
 	req.Header.Set("Authorization", "Bearer "+CLERK_API_SECRET_KEY)
 	client := &http.Client{}
 	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("Error making request: %v\n", err)
+		return err
+	}
 
 	// Read the response body
 	body, err := io.ReadAll(resp.Body)
@@ -102,13 +103,15 @@ func SyncUsers(e *handlers.Env) error {
 }
 
 func main() {
-	err := godotenv.Load()
+	err := helpers.LoadEnvsIfNotLoaded()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 		return
 	}
-	WEBHOOK_SECRET := os.Getenv("WEBHOOK_SECRET")
-	db := database.Connect("localhost")
+
+	pass := os.Getenv("POSTGRES_PASSWORD")
+	host := os.Getenv("HOST")
+	db := database.Connect(host, pass)
 	defer db.Close()
 
 	cwd, err := os.Getwd()
@@ -118,6 +121,7 @@ func main() {
 	}
 	println("Uploads will be placed in %s/uploads", cwd)
 
+	WEBHOOK_SECRET := os.Getenv("WEBHOOK_SECRET")
 	wh, err := svix.NewWebhook(WEBHOOK_SECRET)
 	println("created webhook handler with secret", WEBHOOK_SECRET)
 	if err != nil {
@@ -144,21 +148,23 @@ func main() {
 		Leaderboard: Leaderboard,
 	}
 
-	err = SyncUsers(env)
-	if err != nil {
-		return
-	}
-	markers, err := integrations.GetAllGovMarkers()
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		err = SyncUsers(env)
+		if err != nil {
+			return
+		}
+		markers, err := integrations.GetAllGovMarkers()
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
 
-	count, err := env.Markers.UpsertExternalMarkers(markers)
-	if err != nil {
-		fmt.Println(fmt.Errorf("Failed to fetch markers from .gov integration %w", err))
-	} else {
-		fmt.Printf("%d markers upserted from .gov datasources\n\n", count)
+		count, err := env.Markers.UpsertExternalMarkers(markers)
+		if err != nil {
+			fmt.Println(fmt.Errorf("failed to fetch markers from .gov integration %w", err))
+		} else {
+			fmt.Printf("%d markers upserted from .gov datasources\n\n", count)
+		}
 	}
 
 	router.GET("/users/getUsers", env.GetUsers)
@@ -178,5 +184,5 @@ func main() {
 	router.POST("/webhook", env.HandleEvent)
 	router.GET("/leaderboard", env.GetLeaderboardByType)
 
-	router.Run("0.0.0.0:8080")
+	router.Run(":8080")
 }

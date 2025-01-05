@@ -1,9 +1,9 @@
 import { useUsers } from "@hooks/useUsersQuery";
-import { Control, useFieldArray } from "react-hook-form";
-import { View, Text } from "react-native";
-import { SolveMarkerEditorFormValues } from "./interfaces";
 import Avatar from "@ui/avatar";
 import Button from "@ui/button";
+import { Control, useFieldArray } from "react-hook-form";
+import { Text, View } from "react-native";
+import { SolveMarkerEditorFormValues } from "./interfaces";
 import { useAddParticipantsModal } from "./useAddParticipantsModal";
 
 const ParticipantsFormField = ({
@@ -27,7 +27,7 @@ const ParticipantsFormField = ({
       {fields.slice(0, 3)?.map(({ userId }) => {
         const user = data?.find(({ id }: { id: string }) => id === userId);
         return (
-          <View className="flex flex-row items-center p-2">
+          <View className="flex flex-row items-center p-2" key={user?.id}>
             <Avatar key={user?.id} imageUrl={user?.profileImageURL} />
             <View className="mx-2">
               <Text>{user?.username}</Text>

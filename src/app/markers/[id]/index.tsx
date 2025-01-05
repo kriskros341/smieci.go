@@ -26,9 +26,10 @@ const MarkerPreview = () => {
   const { id } = useLocalSearchParams();
   const { data: markerData } = useMarkerQuery(id);
 
-  const { EditExternalMarkerPhotosModal, openEditExternalMarkerPhotosModal } = useEditExternalMarkerPhotosModal({
-    markerKey: id as string
-  });
+  const { EditExternalMarkerPhotosModal, openEditExternalMarkerPhotosModal } =
+    useEditExternalMarkerPhotosModal({
+      markerKey: id as string,
+    });
 
   const photos =
     markerData?.fileNamesString?.map((uri: string, idx: number) => ({
@@ -72,24 +73,37 @@ const MarkerPreview = () => {
     if (!markerData?.externalObjectId) {
       return;
     }
-    
-    openEditExternalMarkerPhotosModal(photos)
-  }
+
+    openEditExternalMarkerPhotosModal(photos);
+  };
 
   return (
     <>
       <ScrollView>
         <View className="flex-1 w-full h-full bg-transparent">
           {markerData?.externalObjectId && (
-            <View className="p-4"><Text>Zgłoszenie pochodzi z systemu państwowego. Każdy użytkownik może zaproponować jego zmiany które następnie zostaną zweryfikowane.</Text></View>
+            <View className="p-4">
+              <Text>
+                Zgłoszenie pochodzi z systemu państwowego. Każdy użytkownik może
+                zaproponować jego zmiany które następnie zostaną zweryfikowane.
+              </Text>
+            </View>
           )}
-          <PhotoGallery photos={[...photos]} showAddPhotoButton={!!markerData?.externalObjectId} isDragDisabled onPhoto={onPhoto} />
+          <PhotoGallery
+            photos={[...photos]}
+            showAddPhotoButton={!!markerData?.externalObjectId}
+            isDragDisabled
+            onPhoto={onPhoto}
+          />
           <View className="flex flex-row gap-8 p-4">
             <View>
               <Text>latitude</Text>
               <TextInput value={markerData?.lat?.toString()} editable={false} />
               <Text>longitude</Text>
-              <TextInput value={markerData?.long?.toString()} editable={false} />
+              <TextInput
+                value={markerData?.long?.toString()}
+                editable={false}
+              />
             </View>
             <MapView
               customMapStyle={mapStyle}
@@ -124,7 +138,7 @@ const MarkerPreview = () => {
                 {markerSupportersData
                   ?.slice(0, 3)
                   .map((item, index: number) => (
-                    <View className="relative pr-4">
+                    <View className="relative pr-4" key={index}>
                       <Avatar
                         imageUrl={item.profileImageUrl}
                         className="mr-4"

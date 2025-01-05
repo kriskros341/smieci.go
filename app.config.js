@@ -41,9 +41,11 @@ module.exports = {
       "expo-secure-store",
       "expo-image-picker",
       [
-        "expo-asset",
+        "expo-build-properties",
         {
-          "assets": ["path/to/file.png", "path/to/directory"]
+          "android": {
+            "usesCleartextTraffic": true
+          }
         }
       ]
     ],

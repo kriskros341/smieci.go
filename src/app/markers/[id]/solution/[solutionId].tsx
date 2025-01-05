@@ -1,26 +1,26 @@
 import SolveMarkerEditor from "@components/editors/SolveMarkerEditor";
-import { useLocalSearchParams, useNavigation } from "expo-router";
 import { SolveMarkerEditorFormValues } from "@components/editors/SolveMarkerEditor/interfaces";
-import { FormProvider, useForm } from "react-hook-form";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getUriByUploadId } from "@utils/getUriFromPhotoId";
-import { useEffect, useLayoutEffect, useState } from "react";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import StatusBadge from "@components/statusBadge";
 import { Entypo } from "@expo/vector-icons";
+import { useAxios } from "@hooks/use-axios";
+import { useMarkerQuery } from "@hooks/useMarkerQuery";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { SolutionStatus } from "@utils/databaseConstants";
+import { getUriByUploadId } from "@utils/getUriFromPhotoId";
+import { useLocalSearchParams, useNavigation } from "expo-router";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 import {
+  ActivityIndicator,
   Modal,
   Pressable,
   StyleSheet,
   Text,
   TouchableWithoutFeedback,
   View,
-  ActivityIndicator,
 } from "react-native";
-import { useAxios } from "@hooks/use-axios";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
-import { useMarkerQuery } from "@hooks/useMarkerQuery";
-import StatusBadge from "@components/statusBadge";
-import { SolutionStatus } from "@utils/databaseConstants";
 
 const useSolutionQuery = (solutionId: string) => {
   return useQuery<any>({
@@ -117,17 +117,30 @@ const PreivewMarkerSolution = () => {
   const navigation = useNavigation();
   const queryClient = useQueryClient();
   const { solutionId, id } = useLocalSearchParams();
-  const { data, refetch: refetchSolution } = useSolutionQuery(solutionId as string);
-  const { data: markerData, refetch: refetchMarker } = useMarkerQuery(id as string);
+  const { data, refetch: refetchSolution } = useSolutionQuery(
+    solutionId as string,
+  );
+  const { data: markerData, refetch: refetchMarker } = useMarkerQuery(
+    id as string,
+  );
   const { mutateAsync, isPending } = useSolutionStatusMutation(solutionId);
 
   const option = (result: string, goBackOnSuccess?: boolean) => {
-    mutateAsync(result).then(() => {
-      refetchMarker()
-      refetchSolution()
-      queryClient.refetchQueries({ queryKey: [`/markers/${id}`, '/users/getUsers', '/users/current', '/markers'] });
-      goBackOnSuccess && navigation.goBack();
-    });
+    mutateAsync(result)
+      .then(() => {
+        refetchMarker();
+        refetchSolution();
+        queryClient.refetchQueries({
+          queryKey: [
+            `/markers/${id}`,
+            "/users/getUsers",
+            "/users/current",
+            "/markers",
+          ],
+        });
+        goBackOnSuccess && navigation.goBack();
+      })
+      .catch((err) => console.log(err));
   };
 
   const contextMenuItems = [];
@@ -139,7 +152,10 @@ const PreivewMarkerSolution = () => {
     });
   } else {
     contextMenuItems.push(
-      { text: "Zatwierdź", callback: () => option(SolutionStatus.Approved, true) },
+      {
+        text: "Zatwierdź",
+        callback: () => option(SolutionStatus.Approved, true),
+      },
       { text: "Odrzuć", callback: () => option(SolutionStatus.Denied, true) },
     );
   }
