@@ -144,7 +144,7 @@ const PreivewMarkerSolution = () => {
   };
 
   const contextMenuItems = [];
-  if (markerData?.pendingVerificationsCount === -1) {
+  if (markerData?.solvedAt) {
     // Rozwiązany
     contextMenuItems.push({
       text: "Otwórz ponownie",
@@ -183,16 +183,17 @@ const PreivewMarkerSolution = () => {
     queryKey: ["/users/current/permissions"],
   });
 
+  const markerStatus = (markerData?.status ?? "pending") as
+    | "pending"
+    | "approved"
+    | "denied";
+
   useLayoutEffect(() => {
     if (currentUserPermissions?.includes("reviewing")) {
       navigation.setOptions({
         headerRight: () => (
           <View className="flex flex-row gap-4">
-            <StatusBadge
-              pendingVerificationsCount={
-                markerData?.pendingVerificationsCount || 0
-              }
-            />
+            <StatusBadge status={markerStatus} />
             {isPending ? <ActivityIndicator /> : Trigger}
           </View>
         ),
@@ -203,7 +204,7 @@ const PreivewMarkerSolution = () => {
   return (
     <>
       <FormProvider {...methods}>
-        <SolveMarkerEditor markerId={id} disabled />
+        <SolveMarkerEditor markerId={id as string} disabled />
       </FormProvider>
       {Menu}
     </>

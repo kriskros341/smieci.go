@@ -121,6 +121,7 @@ func GetAllGovMarkers() ([]models.CreateMarkerBody, error) {
 			ExternalObjectId: &Feature.Attributes.ObjectId,
 			Latitude:         Latitude,
 			Longitude:        Longitude,
+			Status:           "approved",
 		}
 	}
 

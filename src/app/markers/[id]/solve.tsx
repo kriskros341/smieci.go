@@ -1,19 +1,19 @@
-import SolveMarkerEditor from "@components/editors/SolveMarkerEditor";
-import { useLocalSearchParams, useNavigation } from "expo-router";
-import { useLayoutEffect } from "react";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import { SolveMarkerEditorFormValues } from "@components/editors/SolveMarkerEditor/interfaces";
-import { FormProvider, useForm } from "react-hook-form";
-import { useMarkerQuery } from "@hooks/useMarkerQuery";
-import { useYesNoModal } from "@hooks/modals/useYesNoModal";
-import { isEqual } from "lodash-es";
-import Toast from "react-native-toast-message";
 import { useUser } from "@clerk/clerk-expo";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import SolveMarkerEditor from "@components/editors/SolveMarkerEditor";
+import { SolveMarkerEditorFormValues } from "@components/editors/SolveMarkerEditor/interfaces";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { useYesNoModal } from "@hooks/modals/useYesNoModal";
 import { useAxios } from "@hooks/use-axios";
+import { useMarkerQuery } from "@hooks/useMarkerQuery";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosInstance } from "axios";
+import { useLocalSearchParams, useNavigation } from "expo-router";
+import { isEqual } from "lodash-es";
+import { useLayoutEffect } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 import { ActivityIndicator } from "react-native";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import Toast from "react-native-toast-message";
 
 const _postMarkerSolution = async (
   axios: AxiosInstance,
@@ -70,13 +70,13 @@ const useSolveMarkerMutation = (
 const SolveMarker = () => {
   const { id } = useLocalSearchParams();
   const navigation = useNavigation();
-  const { data: markerData } = useMarkerQuery(id);
+  const { data: markerData } = useMarkerQuery(id as string);
   const { YesNoModal, openYesNoModal } = useYesNoModal();
   const { user } = useUser();
   const queryClient = useQueryClient();
   const solveMarkerMutation = useSolveMarkerMutation(id as string, {
     onSuccess: () => {
-      queryClient.refetchQueries({ queryKey: [`/markers/${id}`, '/markers'] });
+      queryClient.refetchQueries({ queryKey: [`/markers/${id}`, "/markers"] });
       navigation.removeListener("beforeRemove", onBeforeRemove);
       navigation.goBack();
       Toast.show({
@@ -105,7 +105,8 @@ const SolveMarker = () => {
 
   const validate = (data: SolveMarkerEditorFormValues) => {
     let isValid = true;
-    if (!markerData?.externalObjectId) { // Jeśli znacznik jest zewnętrzny to nie waliduj czy jest komplet zdjęć
+    if (!markerData?.externalObjectId) {
+      // Jeśli znacznik jest zewnętrzny to nie waliduj czy jest komplet zdjęć
       data.photos.forEach(({ uri }, index) => {
         if (!uri) {
           setError(`photos.${index}`, {
@@ -180,7 +181,7 @@ const SolveMarker = () => {
 
   return (
     <FormProvider {...methods}>
-      <SolveMarkerEditor markerId={id} />
+      <SolveMarkerEditor markerId={id as string} />
       {YesNoModal}
     </FormProvider>
   );

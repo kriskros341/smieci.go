@@ -54,6 +54,7 @@ func (r *markerRepository) GetMarkersInRegion(latitude float64, longitude float6
 		LEFT JOIN latest_solutions ls ON m.id = ls.markerid AND ls.row_num = 1
 		left JOIN uploads u ON u.id = m.mainPhotoId
 		WHERE 
+				m.solved_at IS NULL AND
 				m.lat >= $1 AND
 				m.lat <= $2 AND
 				m.long >= $3 AND
@@ -100,6 +101,8 @@ func (r *markerRepository) GetMarkers() ([]models.Marker, error) {
 				ls.verification_status
 		FROM 
 				markers m
+		WHERE 
+				m.solved_at IS NULL
 		LEFT JOIN latest_solutions ls ON m.id = ls.markerid AND ls.row_num = 1
 		left JOIN uploads u ON u.id = m.mainPhotoId;`
 	println("Executing queyr", query)
@@ -109,7 +112,7 @@ func (r *markerRepository) GetMarkers() ([]models.Marker, error) {
 
 func (r *markerRepository) GetMarkerById(markerId string) (*models.GetMarkerPayload, error) {
 	var marker models.GetMarkerPayload
-	query := `SELECT id, lat, long, userId, points, externalobjectid FROM markers WHERE id = $1`
+	query := `SELECT id, lat, long, userId, points, externalobjectid, solved_at, status FROM markers WHERE id = $1`
 	println("Executing query", query, markerId)
 	err := r.db.Get(&marker, query, markerId)
 	if err != nil {
@@ -121,8 +124,11 @@ func (r *markerRepository) GetMarkerById(markerId string) (*models.GetMarkerPayl
 		return &marker, err
 	}
 
+	marker.FileNamesString = []string{}
+	marker.BlurHashes = []string{}
+
 	for _, upload := range uploads {
-		marker.FileNamesString = append(marker.FileNamesString, fmt.Sprintf("%d", upload.Id))
+		marker.FileNamesString = append(marker.FileNamesString, upload.Filename)
 		marker.BlurHashes = append(marker.BlurHashes, upload.BlurHash)
 	}
 
@@ -265,9 +271,9 @@ func (r *markerRepository) UpsertExternalMarkers(markers []models.CreateMarkerBo
 	rows := []string{}
 	var rowsTotal int64 = 0
 	for idx, marker := range markers {
-		rows = append(rows, fmt.Sprintf(`(%f, %f, %d)`, marker.Latitude, marker.Longitude, *marker.ExternalObjectId))
+		rows = append(rows, fmt.Sprintf(`(%f, %f, %d, '%s')`, marker.Latitude, marker.Longitude, *marker.ExternalObjectId, marker.Status))
 		if idx%BATCH_SIZE == 0 {
-			res, err := tx.Exec(fmt.Sprintf(`INSERT INTO markers (lat, long, externalobjectid)
+			res, err := tx.Exec(fmt.Sprintf(`INSERT INTO markers (lat, long, externalobjectid, status)
 				VALUES %s
 				ON CONFLICT (externalobjectid)
 				DO UPDATE SET
@@ -291,7 +297,7 @@ func (r *markerRepository) UpsertExternalMarkers(markers []models.CreateMarkerBo
 		}
 	}
 
-	res, err := tx.Exec(fmt.Sprintf(`INSERT INTO markers (lat, long, externalobjectid)
+	res, err := tx.Exec(fmt.Sprintf(`INSERT INTO markers (lat, long, externalobjectid, status)
 		VALUES %s
 		ON CONFLICT (externalobjectid)
 		DO UPDATE SET

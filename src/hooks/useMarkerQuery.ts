@@ -10,10 +10,12 @@ type MarkerResponse = {
   blurHashes: string[];
   pendingVerificationsCount: number;
   latestSolutionId: number;
-  externalObjectId?: number
+  externalObjectId?: number;
+  status: string;
+  solvedAt?: string;
 };
 
-export const useMarkerQuery = (key: unknown) => {
+export const useMarkerQuery = (key: string) => {
   const data = useQuery<MarkerResponse>({
     queryKey: [`/markers/${key}`],
     refetchOnWindowFocus: true,

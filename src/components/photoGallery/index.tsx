@@ -1,16 +1,20 @@
 import AntDesign from "@expo/vector-icons/AntDesign";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Image } from "expo-image";
 import { useCallback, useRef, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import DraggableFlatList from "react-native-draggable-flatlist";
-import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import { cn } from "@utils/cn";
 import { DraggablePhoto } from "./draggablePhoto";
@@ -25,7 +29,8 @@ interface PhotoGalleryProps {
   onPhoto?: () => void;
   reorder?: (newData: any) => void;
   isDragDisabled?: boolean;
-  showAddPhotoButton?: boolean,
+  showAddPhotoButton?: boolean;
+  disabled?: boolean;
 }
 
 export const PhotoGallery = (props: PhotoGalleryProps) => {
@@ -107,7 +112,7 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
   if (props.photos.length === 0) {
     if (!props.showAddPhotoButton) {
       return (
-        <Animated.View className="aspect-square w-full flex justify-center items-center">
+        <Animated.View className="flex items-center justify-center w-full aspect-square">
           <View>
             <MaterialCommunityIcons
               className="bg-none"
@@ -115,19 +120,20 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
               size={64}
               color="black"
             />
-          <Text className="mt-4">Brak zdjęć</Text>
+            <Text className="mt-4">Brak zdjęć</Text>
           </View>
         </Animated.View>
-      )
+      );
     }
     return (
-      <Pressable onPress={props.onPhoto}>
+      <Pressable onPress={props.onPhoto} disabled={props.disabled}>
         {({ pressed }) => (
-          <Animated.View className="aspect-square w-full flex justify-center items-center">
+          <Animated.View className="flex items-center justify-center w-full aspect-square">
             <View
               className={cn(
                 "p-1 rounded-lg shadow-md shadow-black bg-blue-500",
                 pressed && "opacity-50",
+                props.disabled && "opacity-50",
               )}
             >
               <AntDesign
@@ -175,19 +181,23 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
           onDragEnd={({ from, to, data }) => reorder(from, to, data)}
           horizontal
           keyExtractor={(data, index) => data.uri + index}
-          className={cn("h-full", props.showAddPhotoButton ? "aspect-[4]" : "aspect-[5]")}
+          className={cn(
+            "h-full",
+            props.showAddPhotoButton ? "aspect-[4]" : "aspect-[5]",
+          )}
           renderItem={(data) => (
             <DraggablePhoto {...data} isDragDisabled={props.isDragDisabled} />
           )}
         />
         {props.showAddPhotoButton && (
-          <Pressable onPress={props.onPhoto}>
+          <Pressable onPress={props.onPhoto} disabled={props.disabled}>
             {({ pressed }) => (
-              <Animated.View className="aspect-square h-full flex justify-center items-center">
+              <Animated.View className="flex items-center justify-center h-full aspect-square">
                 <View
                   className={cn(
                     "p-1 rounded-lg shadow-md shadow-black bg-blue-500",
                     pressed && "opacity-50",
+                    props.disabled && "opacity-50",
                   )}
                 >
                   <AntDesign

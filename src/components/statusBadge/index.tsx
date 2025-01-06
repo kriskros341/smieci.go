@@ -1,31 +1,32 @@
 import { Badge } from "@ui/badge";
-import { View, Text } from "react-native";
+import * as React from "react";
+import { Text, View } from "react-native";
 
 type StatusBadgeProps = {
-  pendingVerificationsCount: number;
+  status: "pending" | "approved" | "denied";
 };
 
-const StatusBadge = (props: StatusBadgeProps) => {
+const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   let component;
-  if (props?.pendingVerificationsCount === -1) {
+  if (status === "approved") {
     component = (
       <Badge className="bg-green">
-        <Text>Zaakcpetowany</Text>
+        <Text className="text-emerald-100">Zaakceptowany</Text>
       </Badge>
     );
   }
-  if (props?.pendingVerificationsCount > 0) {
+  if (status === "pending") {
     component = (
       <Badge className="bg-yellow-600">
-        <Text>Oczekuje weryfikacji</Text>
+        <Text className="text-yellow-100">Oczekuje weryfikacji</Text>
       </Badge>
     );
   }
 
-  if (props?.pendingVerificationsCount === 0) {
+  if (status === "denied") {
     component = (
       <Badge className="bg-blue-600">
-        <Text>Otwarty</Text>
+        <Text className="text-blue-100">Odrzucony</Text>
       </Badge>
     );
   }

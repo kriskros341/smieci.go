@@ -1,11 +1,7 @@
 import { styled } from "nativewind";
 import * as React from "react";
 import { useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 import MapView, {
   Callout,
   MapMarkerProps,
@@ -14,19 +10,22 @@ import MapView, {
 } from "react-native-maps";
 
 import { _getMarkersInRegion } from "@api/markers";
+import { Entypo } from "@expo/vector-icons";
 import { useAxios } from "@hooks/use-axios";
 import useLocation from "@hooks/useLocation";
 import { MapStrategies } from "@hooks/useMapStrategy.interfaces";
 import { useMapFocusPoint } from "@stores/useMapFocusPoint";
-import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { getUriByUploadId } from "@utils/getUriFromPhotoId";
 import {
   hasCoords,
   isMoveMarkerMapStrategy,
   isViewMarkersMapStrategy,
 } from "@utils/hasCoords";
-import { Entypo } from "@expo/vector-icons";
-import { useMarkerQuery } from "@hooks/useMarkerQuery";
-import { getUriByUploadId } from "@utils/getUriFromPhotoId";
 import { Image } from "expo-image";
 
 const CustomCallout = styled(
@@ -38,7 +37,7 @@ interface CustomMarkerProps extends MapMarkerProps {
   externalObjectId: any;
   isFocused: boolean;
   mainPhotoId?: number;
-  markerId: number,
+  markerId: number;
   verificationStatus?: string | null;
   mainPhotoBlurHash?: string;
   onDispayPreviewPress: () => void;
@@ -57,13 +56,10 @@ const CustomMarker = (props: CustomMarkerProps) => {
     color = PENDING_MARKER_COLOR;
   }
 
-  const imageSrc = getUriByUploadId(props.mainPhotoId)
+  const imageSrc = getUriByUploadId(props.mainPhotoId);
 
   return (
-    <Marker
-      {...props}
-      className="flex flex-row w-auto"
-    >
+    <Marker {...props} className="flex flex-row w-auto">
       <View>
         <Entypo name="trash" color={color} size={32} />
       </View>
@@ -121,12 +117,12 @@ const mapStyle = [
     ],
   },
   {
-    "elementType": "geometry",
-    "stylers": [
+    elementType: "geometry",
+    stylers: [
       {
-        "color": "off"
-      }
-    ]
+        color: "off",
+      },
+    ],
   },
 ];
 
@@ -136,25 +132,25 @@ type MapStrategyConsumerProps = {
 };
 
 type Markerr = {
-  blurhash?: string,
-  externalObjectId?: number,
-  id: number,
-  lat: number,
-  long: number,
-  verificationStatus?: string | null
-  mainPhotoBlurhash?: string,
-  mainPhotoId?: number,
-}
+  blurhash?: string;
+  externalObjectId?: number;
+  id: number;
+  lat: number;
+  long: number;
+  verificationStatus?: string | null;
+  mainPhotoBlurhash?: string;
+  mainPhotoId?: number;
+};
 
 const useMarkersInRegion = (mapRegion?: Region) => {
   const axios = useAxios();
   const queryClient = useQueryClient();
 
   // Query key for the current region
-  const regionQueryKey = ['/markers', 'get-markers-in-region', mapRegion];
+  const regionQueryKey = ["/markers", "get-markers-in-region", mapRegion];
 
   // Centralized cache for all markers
-  const markersCacheKey = ['/markers', 'all-markers'];
+  const markersCacheKey = ["/markers", "all-markers"];
 
   const result = useQuery({
     queryKey: regionQueryKey,
@@ -162,10 +158,11 @@ const useMarkersInRegion = (mapRegion?: Region) => {
       if (!mapRegion) return [];
       const newMarkers = await _getMarkersInRegion(axios, mapRegion);
 
-      const cache: Map<number, Markerr> = queryClient.getQueryData(markersCacheKey) ?? new Map<number, Markerr>();
+      const cache: Map<number, Markerr> =
+        queryClient.getQueryData(markersCacheKey) ?? new Map<number, Markerr>();
 
-      let hasNew = false
-      newMarkers.forEach(marker => {
+      let hasNew = false;
+      newMarkers.forEach((marker) => {
         if (!cache.has(marker.id)) {
           hasNew = true;
           cache.set(marker.id, marker);
@@ -178,15 +175,15 @@ const useMarkersInRegion = (mapRegion?: Region) => {
 
       return Array.from(cache.values());
     },
-    placeholderData: keepPreviousData
+    placeholderData: keepPreviousData,
   });
 
   React.useEffect(() => {
-    result.refetch()
-  }, [mapRegion])
+    result.refetch();
+  }, [mapRegion]);
 
   return result;
-}
+};
 
 const MapStrategyConsumer = ({
   strategy,
@@ -252,7 +249,7 @@ const MapStrategyConsumer = ({
               isViewMarkersMapStrategy(strategy) &&
               marker.id === strategy.getFocusedMarkerId()
             }
-            key={marker.id + (marker?.verificationStatus ?? '')}
+            key={marker.id + (marker?.verificationStatus ?? "")}
             coordinate={{ latitude: marker.lat, longitude: marker.long }}
             onPress={(event) => {
               strategy.onPressInsideMarker?.(event, marker.id);
@@ -266,8 +263,8 @@ const MapStrategyConsumer = ({
         ))}
         {customMarker}
       </MapView>
-      {(isFetching) && (
-        <View className="absolute w-10 h-10 bg-white top-3 left-3 opacity-75 flex justify-center align-center">
+      {isFetching && (
+        <View className="absolute flex justify-center w-10 h-10 bg-white opacity-75 top-3 left-3 align-center">
           <ActivityIndicator size="small" />
         </View>
       )}

@@ -24,7 +24,7 @@ const mapStyle = [
 const MarkerPreview = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const { data: markerData } = useMarkerQuery(id);
+  const { data: markerData } = useMarkerQuery(id as string);
 
   const { EditExternalMarkerPhotosModal, openEditExternalMarkerPhotosModal } =
     useEditExternalMarkerPhotosModal({
@@ -44,18 +44,23 @@ const MarkerPreview = () => {
     enabled: !!id,
   });
 
+  const markerStatus = (markerData?.status ?? "pending") as
+    | "pending"
+    | "approved"
+    | "denied";
+
+  const disabled = markerStatus !== "approved" && !markerData?.solvedAt;
+
   const verificationStatusSection = (
     <View className="flex-col p-4">
-      <View className="flex-row gap-4 ">
-        <Text>Status weryfikacji:</Text>
-        <StatusBadge
-          pendingVerificationsCount={markerData?.pendingVerificationsCount || 0}
-        />
+      <View className="flex-col gap-4">
+        <Text>Status weryfikacji wiarygodności zgłoszenia</Text>
+        <StatusBadge status={markerStatus} />
       </View>
       <View className="pt-4">
         {markerData?.pendingVerificationsCount === 0 ? (
           <Link asChild href={`markers/${markerData?.id}/solvePreface`}>
-            <Button title="Podziel się rezultatem" />
+            <Button title="Podziel się rezultatem" disabled={disabled} />
           </Link>
         ) : (
           <Link
@@ -77,6 +82,8 @@ const MarkerPreview = () => {
     openEditExternalMarkerPhotosModal(photos);
   };
 
+  console.log({ markerData });
+
   return (
     <>
       <ScrollView>
@@ -94,12 +101,13 @@ const MarkerPreview = () => {
             showAddPhotoButton={!!markerData?.externalObjectId}
             isDragDisabled
             onPhoto={onPhoto}
+            disabled={disabled}
           />
           <View className="flex flex-row gap-8 p-4">
             <View>
-              <Text>latitude</Text>
+              <Text>Szerokość geograficzna</Text>
               <TextInput value={markerData?.lat?.toString()} editable={false} />
-              <Text>longitude</Text>
+              <Text>Długość geograficzna</Text>
               <TextInput
                 value={markerData?.long?.toString()}
                 editable={false}
@@ -129,8 +137,12 @@ const MarkerPreview = () => {
           </View>
           {verificationStatusSection}
           <View className="p-4">
-            <Text>Ilość zebranych punktów wsparcia: {markerData?.points}</Text>
-            <Text>{markerSupportersData?.length} wspierających</Text>
+            <Text>
+              Liczba zebranych punktów wsparcia: {markerData?.points ?? 0}.
+            </Text>
+            <Text>
+              Liczba wspierających: {markerSupportersData?.length ?? 0}.
+            </Text>
           </View>
           <View className="p-4">
             {markerSupportersData && markerSupportersData?.length !== 0 ? (
@@ -161,7 +173,7 @@ const MarkerPreview = () => {
               </View>
             ) : (
               <View className="py-4">
-                <Text>This marker has no supporters yet.</Text>
+                <Text>Ten znacznik nie posiada jeszcze wspierających.</Text>
               </View>
             )}
             <Button
@@ -169,6 +181,7 @@ const MarkerPreview = () => {
               onPress={() =>
                 router.push({ pathname: `markers/${markerData?.id}/support` })
               }
+              disabled={disabled}
             />
           </View>
         </View>

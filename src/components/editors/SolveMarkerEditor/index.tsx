@@ -1,29 +1,29 @@
-import { ScrollView } from "react-native-gesture-handler";
-import { Text } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFormContext } from "react-hook-form";
+import { Text } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { usePreviewImageModal } from "@hooks/modals/usePreviewImageModal";
+import { useMarkerQuery } from "@hooks/useMarkerQuery";
 import DividerWithText from "@ui/DividerWithText";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui/tooltip";
-import { usePreviewImageModal } from "@hooks/modals/usePreviewImageModal";
 import { getUriByUploadId } from "@utils/getUriFromPhotoId";
-import { useMarkerQuery } from "@hooks/useMarkerQuery";
 
-import VerificationPhotosFormField from "./VerificationPhotosFormField";
 import AdditionalPhotosFormField from "./AdditionalPhotosFormField";
 import { SolveMarkerEditorFormValues } from "./interfaces";
 import ParticipantsFormField from "./ParticipantsFormField";
+import VerificationPhotosFormField from "./VerificationPhotosFormField";
 
 type ResolveMarkerEditorProps = {
-  markerId: unknown;
+  markerId: string;
   disabled?: boolean;
 };
 
-function SolveMarkerEditor(props: ResolveMarkerEditorProps) {
+function SolveMarkerEditor({ markerId, disabled }: ResolveMarkerEditorProps) {
   const { PreviewImageModal, openPreviewImageModal } = usePreviewImageModal();
   const insets = useSafeAreaInsets();
-  const { data } = useMarkerQuery(props.markerId);
+  const { data } = useMarkerQuery(markerId);
   const {
     control,
     formState: { errors },
@@ -48,10 +48,13 @@ function SolveMarkerEditor(props: ResolveMarkerEditorProps) {
     <ScrollView>
       <DividerWithText>
         <Text className="mr-2">
-          Uczestnicy {data?.externalObjectId ? null : <Text className="text-red-800">*</Text>}
+          Uczestnicy{" "}
+          {data?.externalObjectId ? null : (
+            <Text className="text-red-800">*</Text>
+          )}
         </Text>
       </DividerWithText>
-      <ParticipantsFormField control={control} disabled={props.disabled} />
+      <ParticipantsFormField control={control} disabled={disabled} />
       <DividerWithText>
         <Text className="mr-2">
           Zdjęcia ze zgłoszenia<Text className="text-red-800">*</Text>
@@ -73,7 +76,7 @@ function SolveMarkerEditor(props: ResolveMarkerEditorProps) {
         errors={errors.photos}
         openPreviewImageModal={openPreviewImageModal}
         originalPhotos={originalPhotos}
-        disabled={props.disabled}
+        disabled={disabled}
       />
       <DividerWithText>
         <Text className="mr-2">Dodatkowe zdjęcia</Text>
@@ -92,7 +95,7 @@ function SolveMarkerEditor(props: ResolveMarkerEditorProps) {
       <AdditionalPhotosFormField
         control={control}
         openPreviewImageModal={openPreviewImageModal}
-        disabled={props.disabled}
+        disabled={disabled}
       />
       {PreviewImageModal}
     </ScrollView>

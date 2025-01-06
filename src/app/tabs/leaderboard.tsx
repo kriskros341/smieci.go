@@ -10,7 +10,7 @@ const Leaderboard: React.FC = () => {
 
   const routes = [
     { key: "weekly", title: "Tygodniowe" },
-    { key: "monthly", title: "Miesięczne" }, // TODO: change to all-time??
+    { key: "monthly", title: "Miesięczne" },
     { key: "alltime", title: "Ogólne" },
   ];
 
@@ -25,24 +25,22 @@ const Leaderboard: React.FC = () => {
   });
 
   return (
-    <>
-      <TabView
-        navigationState={{ index, routes }}
-        renderScene={renderScene}
-        onIndexChange={setIndex}
-        initialLayout={{ width: layout.width }}
-        style={{ backgroundColor: "white" }}
-        className="border-t border-solid border-slate-200"
-        renderTabBar={(props) => (
-          <TabBar
-            {...props}
-            style={{ backgroundColor: "white" }}
-            activeColor="black"
-            inactiveColor="gray"
-          />
-        )}
-      />
-    </>
+    <TabView
+      navigationState={{ index, routes }}
+      renderScene={renderScene}
+      onIndexChange={setIndex}
+      initialLayout={{ width: layout.width }}
+      style={{ backgroundColor: "white" }}
+      className="border-t border-solid border-slate-200"
+      renderTabBar={(props) => (
+        <TabBar
+          {...props}
+          style={{ backgroundColor: "white" }}
+          activeColor="black"
+          inactiveColor="gray"
+        />
+      )}
+    />
   );
 };
 

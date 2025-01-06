@@ -5,5 +5,6 @@ module.exports = {
     "import/order": "off",
     "react/jsx-boolean-value": "off",
     "prettier/prettier": "off",
+    "react/jsx-key": "warn",
   },
 };
