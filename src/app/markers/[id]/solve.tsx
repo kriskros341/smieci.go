@@ -55,12 +55,15 @@ const useSolveMarkerMutation = (
   options: useSolveMarkerMutationOptions,
 ) => {
   const axios = useAxios();
+  const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: (solveMarkerPayload: SolveMarkerEditorFormValues) => {
       return _postMarkerSolution(axios, markerId, solveMarkerPayload);
     },
     onSuccess: () => {
       options?.onSuccess?.();
+      const cache = queryClient.getQueryData(['all-markers']) as Map<string, any>;
+      cache.delete(markerId);
     },
   });
 

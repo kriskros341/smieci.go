@@ -1,4 +1,3 @@
-import { useClerk } from "@clerk/clerk-expo";
 import PhotoGallery from "@components/photoGallery";
 import StatusBadge from "@components/statusBadge";
 import { useEditExternalMarkerPhotosModal } from "@hooks/modals/useEditExternalMarkerPhotosModal";
@@ -10,6 +9,12 @@ import DividerWithText from "@ui/DividerWithText";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, ScrollView, Text, TextInput, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
+
+declare const process: {
+  env: {
+    EXPO_PUBLIC_API_URL: string,
+  }
+}
 
 const mapStyle = [
   {
@@ -26,12 +31,12 @@ const mapStyle = [
 const MarkerPreview = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const { data: markerData } = useMarkerQuery(id as string);
+  const { data: markerData, refetch } = useMarkerQuery(id as string);
 
-  const { EditExternalMarkerPhotosModal, openEditExternalMarkerPhotosModal } =
-    useEditExternalMarkerPhotosModal({
-      markerKey: id as string,
-    });
+  const { EditExternalMarkerPhotosModal, openEditExternalMarkerPhotosModal } = useEditExternalMarkerPhotosModal({
+    markerKey: id as string,
+    refetch,
+  });
 
   const photos =
     markerData?.fileNamesString?.map((uri: string, idx: number) => ({
@@ -76,7 +81,6 @@ const MarkerPreview = () => {
           )}
         </View>
       </View>
-  
     </>
   );
 

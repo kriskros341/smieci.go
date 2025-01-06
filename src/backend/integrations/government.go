@@ -114,15 +114,24 @@ func GetAllGovMarkers() ([]models.CreateMarkerBody, error) {
 		return nil, fmt.Errorf("Error unmarshaling JSON: %v\n", err)
 	}
 
-	markers := make([]models.CreateMarkerBody, len(response.Features))
-	for idx, Feature := range response.Features {
+	markers := make([]models.CreateMarkerBody, 0)
+
+Loop:
+	for _, Feature := range response.Features {
 		Latitude, Longitude := epsg2180ToWGS84(Feature.Geometry.Latitude, Feature.Geometry.Longitude)
-		markers[idx] = models.CreateMarkerBody{
+
+		for _, marker := range markers {
+			if math.Abs(marker.Latitude-Latitude) < 0.00500 || math.Abs(marker.Longitude-Longitude) < 0.00500 {
+				continue Loop
+			}
+		}
+
+		markers = append(markers, models.CreateMarkerBody{
 			ExternalObjectId: &Feature.Attributes.ObjectId,
 			Latitude:         Latitude,
 			Longitude:        Longitude,
 			Status:           "approved",
-		}
+		})
 	}
 
 	return markers, nil
