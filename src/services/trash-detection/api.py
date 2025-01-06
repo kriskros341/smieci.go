@@ -88,6 +88,7 @@ async def validate_images(
                 if confidence > DETECTION_CONFIDENCE_THRESHOLD:
                     detections_found = True
                     break
+        print("detections_found", detections_found)
         return ValidationResponse(valid=detections_found)
 
     except Exception as e:

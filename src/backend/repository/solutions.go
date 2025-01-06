@@ -119,6 +119,11 @@ func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []
 		}
 	}
 
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
 	// STEP: VERIFY SOLUTION BASED ON UPLOADS
 	// TODO: additional GPS check with marker ???
 
@@ -137,11 +142,15 @@ func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []
 
 	// Validate images
 
+	fmt.Println("filenames", filenames)
+
 	isValid, err := helpers.ValidateImagesWithPython(filenames)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
+
+	fmt.Println("isValid", isValid)
 
 	status := "pending"
 	if isValid {
@@ -159,12 +168,6 @@ func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []
 		err = fmt.Errorf("invalid status %s", status)
 	}
 
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	err = tx.Commit()
 	return err
 }
 
@@ -189,7 +192,7 @@ func (r *solutionsRepository) ApproveMarkerSolution(solutionId int) error {
 		return err
 	}
 
-	_, err = tx.Exec(`UPDATE markers SET solved_at = Now() WHERE id = $1`, solutionId)
+	_, err = tx.Exec(`UPDATE markers SET solved_at = Now() FROM solutions s WHERE markers.id = s.markerid AND s.id = $1`, solutionId)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to update marker solved_at: %w", err)
