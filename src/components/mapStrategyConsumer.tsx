@@ -25,7 +25,6 @@ import {
   isViewMarkersMapStrategy,
 } from "@utils/hasCoords";
 import { Entypo } from "@expo/vector-icons";
-import { useMarkerQuery } from "@hooks/useMarkerQuery";
 import { getUriByUploadId } from "@utils/getUriFromPhotoId";
 import { Image } from "expo-image";
 
@@ -151,7 +150,7 @@ const useMarkersInRegion = (mapRegion?: Region) => {
   const queryClient = useQueryClient();
 
   // Query key for the current region
-  const regionQueryKey = ['/markers', 'get-markers-in-region', mapRegion];
+  const regionQueryKey = ['get-markers-in-region', mapRegion];
 
   // Centralized cache for all markers
   const markersCacheKey = ['/markers', 'all-markers'];

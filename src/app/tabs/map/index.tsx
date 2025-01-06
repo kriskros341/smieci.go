@@ -31,6 +31,32 @@ const Map = () => {
     setMarkerCoordinates(mapFocusPoint!)
   }
 
+  // const queryClient = useQueryClient();
+
+  // const refreshMarkers = () => {
+  //   const cache = queryClient.getQueryData(['all-markers']) as any;
+  //   console.log({ cache })
+  //   queryClient.resetQueries()
+  //   cache?.clear()
+  // }
+
+  // actions.push(
+  //   <Pressable className="z-10 right-12" onPressOut={refreshMarkers}>
+  //     {({ pressed }) => (
+  //       <View
+  //         style={{ opacity: pressed ? 0.5 : 1 }}
+  //         className="w-16 h-16 bg-white rounded-full justify-center items-center"
+  //       >
+  //         <MaterialIcons
+  //           name="refresh"
+  //           color="green"
+  //           size={40}
+  //         />
+  //         </View>
+  //     )}
+  //   </Pressable>,
+  // )
+
   if (isViewMarkersMapStrategy(strategy)) {
     actions.push(
       <Pressable className="z-10 right-12" onPressOut={onAddMarkerClick}>
@@ -85,7 +111,7 @@ const Map = () => {
           strategy={strategy}
           onMarkerPreviewClick={onMarkerPreviewClick}
         />
-        <View className="absolute items-center justify-center bottom-4 right-4">
+        <View className="absolute items-center justify-center flex-row gap-4 bottom-4 right-4">
           {actions}
         </View>
       </View>

@@ -9,6 +9,12 @@ import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, Text, TextInput, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 
+declare const process: {
+  env: {
+    EXPO_PUBLIC_API_URL: string,
+  }
+}
+
 const mapStyle = [
   {
     featureType: "poi",
@@ -24,10 +30,11 @@ const mapStyle = [
 const MarkerPreview = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const { data: markerData } = useMarkerQuery(id);
+  const { data: markerData, refetch } = useMarkerQuery(id);
 
   const { EditExternalMarkerPhotosModal, openEditExternalMarkerPhotosModal } = useEditExternalMarkerPhotosModal({
-    markerKey: id as string
+    markerKey: id as string,
+    refetch,
   });
 
   const photos =
@@ -54,7 +61,7 @@ const MarkerPreview = () => {
       <View className="pt-4">
         {markerData?.pendingVerificationsCount === 0 ? (
           <Link asChild href={`markers/${markerData?.id}/solvePreface`}>
-            <Button title="Podziel się rezultatem" />
+            <Button title="Podziel się rezultatem" disabled={!photos?.length} />
           </Link>
         ) : (
           <Link

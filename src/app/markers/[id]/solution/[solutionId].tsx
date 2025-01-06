@@ -125,7 +125,9 @@ const PreivewMarkerSolution = () => {
     mutateAsync(result).then(() => {
       refetchMarker()
       refetchSolution()
-      queryClient.refetchQueries({ queryKey: [`/markers/${id}`, '/users/getUsers', '/users/current', '/markers'] });
+      queryClient.refetchQueries({ queryKey: [`/markers/${id}`,'all-markers', '/users/getUsers', '/users/current', '/markers'] });
+      queryClient.setQueryData(['all-markers'], new Map());
+      queryClient.invalidateQueries({ queryKey: ['/markers'] })
       goBackOnSuccess && navigation.goBack();
     });
   };

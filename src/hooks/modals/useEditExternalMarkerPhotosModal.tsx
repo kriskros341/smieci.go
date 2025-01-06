@@ -14,7 +14,8 @@ import { Checkbox } from "@ui/checkbox";
 
 
 type useEditExternalMarkerPhotosModalOptions = {
-  markerKey: string
+  markerKey: string,
+  refetch: Function,
 }
 
 interface ExistingPhotosFormFieldProps {
@@ -92,6 +93,7 @@ export const useEditExternalMarkerPhotosModal = (props: useEditExternalMarkerPho
   const onSubmit = async (formState: EditExternalMarkerPhotosFormValues) => {
     await mutation.mutateAsync(formState);
     queryClient.invalidateQueries({ queryKey: [`/markers/${props.markerKey}`] });
+    props.refetch();
     setIsModalVisible(false);
   };
 
