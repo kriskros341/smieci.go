@@ -194,7 +194,9 @@ func (r *markerRepository) CreateMarker(marker models.CreateMarkerBody, userId s
 		filenames[i] = upload.Filename
 	}
 
-	isValid, err := helpers.ValidateImagesWithPython(markerId, filenames)
+	// Marker validation based on images
+
+	isValid, err := helpers.ValidateImagesWithPython(filenames)
 	if err != nil {
 		return err
 	}

@@ -13,7 +13,7 @@ import (
 
 type UploadsRepository interface {
 	GetUploadsByMarkerId(markerId string) ([]models.Upload, error)
-	GetUploadsBySolutionId(solutionId string) ([]models.SolutionUpload, error)
+	GetUploadsBySolutionId(solutionId int) ([]models.SolutionUpload, error)
 	CreateUploadsFromHeaders(headers []*multipart.FileHeader) ([]int64, error)
 	FilterMarkerUploads(markerKey string, uploadsIds []string) error
 	GetPathForUploadById(uploadId string) (path string, err error)
@@ -55,13 +55,13 @@ func (r *uploadsRepository) GetUploadsByMarkerId(markerID string) ([]models.Uplo
 	return uploads, err
 }
 
-func (r *uploadsRepository) GetUploadsBySolutionId(solutionId string) ([]models.SolutionUpload, error) {
+func (r *uploadsRepository) GetUploadsBySolutionId(solutionId int) ([]models.SolutionUpload, error) {
 	var uploads []models.SolutionUpload
 	// get associated uploads
 	query := fmt.Sprintf(`
-select uploads.id, filename, blurhash, uploadtype FROM solutions_uploads_relation supr
-join uploads on supr.uploadid = uploads.id
-WHERE supr.solutionid = %s;
+		select uploads.id, filename, blurhash, uploadtype FROM solutions_uploads_relation supr
+		join uploads on supr.uploadId = uploads.id
+		WHERE supr.solutionId = %d;
 		`, solutionId)
 	fmt.Printf("executing query: %s", query)
 	err := r.db.Select(&uploads, query)

@@ -12,7 +12,7 @@ type UsersRepository interface {
 	GetAll() ([]models.User, error)
 	GetUserById(userId string) (*models.User, error)
 	GetPermissionsByUserId(userId string) ([]string, error)
-	GetParticipantsBySolutionId(solutionId string) ([]models.Participant, error)
+	GetParticipantsBySolutionId(solutionId int) ([]models.Participant, error)
 	UpdateAvailablePoints(increment int) (int64, error)
 }
 
@@ -59,12 +59,12 @@ func (r *usersRepository) GetPermissionsByUserId(userId string) ([]string, error
 	return permissions, nil
 }
 
-func (r *usersRepository) GetParticipantsBySolutionId(solutionId string) ([]models.Participant, error) {
+func (r *usersRepository) GetParticipantsBySolutionId(solutionId int) ([]models.Participant, error) {
 	var participants []models.Participant
 	query := fmt.Sprintf(`
-select users.id FROM solutions_users_relation susr
-join users on susr.userid = users.id
-WHERE susr.solutionid = %s;
+		select users.id FROM solutions_users_relation susr
+		join users on susr.userId = users.id
+		WHERE susr.solutionId = %d;
 		`, solutionId)
 	fmt.Printf("executing query: %s", query)
 	err := r.db.Select(&participants, query)

@@ -5,61 +5,66 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
-	"time"
+	"os"
 )
-
-type pythonRequest struct {
-	MarkerId  int64    `json:"markerId"`
-	Filenames []string `json:"filenames"`
-}
 
 type pythonResponse struct {
 	Valid bool `json:"valid"`
 }
 
-func ValidateImagesWithPython(markerId int64, filenames []string) (bool, error) {
-	requestBody := pythonRequest{
-		MarkerId:  markerId,
-		Filenames: filenames,
-	}
+func ValidateImagesWithPython(filenames []string) (bool, error) {
+	const uploadPath = "uploads"
 
-	jsonData, err := json.Marshal(requestBody)
-	if err != nil {
-		return false, fmt.Errorf("error marshaling request body: %w", err)
-	}
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
 
-	maxRetries := 3
-	for i := 0; i < maxRetries; i++ {
-		resp, err := http.Post(
-			"http://localhost:6969/validate-images",
-			"application/json",
-			bytes.NewBuffer(jsonData),
-		)
+	for _, filename := range filenames {
+		filePath := fmt.Sprintf("%s/%s", uploadPath, filename)
+		file, err := os.Open(filePath)
 		if err != nil {
-			if i < maxRetries-1 {
-				time.Sleep(time.Second * time.Duration(i+1))
-				continue
-			}
-			return false, fmt.Errorf("failed after %d retries: %w", maxRetries, err)
+			return false, fmt.Errorf("error opening file %s: %w", filePath, err)
 		}
-		defer resp.Body.Close()
+		defer file.Close()
 
-		if resp.StatusCode != http.StatusOK {
-			body, _ := io.ReadAll(resp.Body)
-			if i < maxRetries-1 {
-				time.Sleep(time.Second * time.Duration(i+1))
-				continue
-			}
-			return false, fmt.Errorf("service returned status %d: %s", resp.StatusCode, string(body))
+		part, err := writer.CreateFormFile("files", filePath)
+		if err != nil {
+			return false, fmt.Errorf("error creating form file for %s: %w", filePath, err)
 		}
 
-		var response pythonResponse
-		if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-			return false, fmt.Errorf("error decoding response: %w", err)
+		if _, err := io.Copy(part, file); err != nil {
+			return false, fmt.Errorf("error copying file %s content: %w", filename, err)
 		}
-
-		return response.Valid, nil
 	}
-	return false, fmt.Errorf("failed after %d retries", maxRetries)
+
+	err := writer.Close()
+	if err != nil {
+		return false, fmt.Errorf("error closing multipart writer: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", "http://0.0.0.0:6969/validate-images", body)
+	if err != nil {
+		return false, fmt.Errorf("error creating request: %w", err)
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return false, fmt.Errorf("error making request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return false, fmt.Errorf("service returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var response pythonResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return false, fmt.Errorf("error decoding response: %w", err)
+	}
+
+	return response.Valid, nil
 }

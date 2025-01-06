@@ -1,0 +1,1 @@
+ALTER TABLE markers DROP COLUMN solved_at;

@@ -72,7 +72,7 @@ func (e *Env) PostMarkerSolution(c *gin.Context) {
 		return
 	}
 
-	additionalFilesIds, err := e.Uploads.CreateUploadsFromHeaders(primaryFiles)
+	additionalFilesIds, err := e.Uploads.CreateUploadsFromHeaders(additionalFiles)
 	if err != nil {
 		fmt.Println("File processing error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -109,7 +109,7 @@ func (e *Env) PostMarkerSolution(c *gin.Context) {
 }
 
 type GetSolutionRequestPayload struct {
-	SolutionId string `uri:"solutionId" binding:"required"`
+	SolutionId int `uri:"solutionId" binding:"required"`
 }
 
 type GetSolutionResponseDto struct {
@@ -207,33 +207,31 @@ func (e *Env) SetSolutionStatus(c *gin.Context) {
 
 	var err error = nil
 	// Act on solution
-	{
-		status := setSolutionStatusPayload.Status
-		solutionStatus, err := e.Solutions.GetSolutionStatus(solutionId)
-		if err != nil {
-			var e = gin.H{"error": err.Error()}
-			fmt.Println(e)
-			c.JSON(http.StatusInternalServerError, e)
-			return
-		}
+	status := setSolutionStatusPayload.Status
+	solutionStatus, err := e.Solutions.GetSolutionStatus(solutionId)
+	if err != nil {
+		var e = gin.H{"error": err.Error()}
+		fmt.Println(e)
+		c.JSON(http.StatusInternalServerError, e)
+		return
+	}
 
-		switch {
-		case status == database.SolutionStatusApproved && solutionStatus == database.SolutionStatusPending:
-			{
-				err = e.Solutions.ApproveMarkerSolution(solutionId)
-			}
-		case status == database.SolutionStatusDenied && solutionStatus == database.SolutionStatusPending:
-			{
-				err = e.Solutions.DenyMarkerSolution(solutionId)
-			}
-		case status == database.SolutionStatusPending && solutionStatus != database.SolutionStatusPending:
-			{
-				err = e.Solutions.ReopenMarkerSolution(solutionId)
-			}
-		default:
-			{
-				err = fmt.Errorf("Invalid operation %s -> %s", solutionStatus, status)
-			}
+	switch {
+	case status == database.SolutionStatusApproved && solutionStatus == database.SolutionStatusPending:
+		{
+			err = e.Solutions.ApproveMarkerSolution(solutionId)
+		}
+	case status == database.SolutionStatusDenied && solutionStatus == database.SolutionStatusPending:
+		{
+			err = e.Solutions.DenyMarkerSolution(solutionId)
+		}
+	case status == database.SolutionStatusPending && solutionStatus != database.SolutionStatusPending:
+		{
+			err = e.Solutions.ReopenMarkerSolution(solutionId)
+		}
+	default:
+		{
+			err = fmt.Errorf("invalid operation %s -> %s", solutionStatus, status)
 		}
 	}
 

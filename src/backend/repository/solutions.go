@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"backend/database"
+	"backend/helpers"
 	"backend/models"
 	"fmt"
 	"strings"
@@ -13,11 +14,11 @@ import (
 type SolutionsRepository interface {
 	GetSolutionsInfoForMarker(markerId string) (*models.LatestSolutionPayload, error)
 	CreateSolution(markerId string, participantsIds []string, primaryFilesIds []int64, additionalFilesIds []int64) error
-	DoesExistById(solutionId string) (bool, error)
-	ApproveMarkerSolution(solutionId string) error
-	DenyMarkerSolution(solutionId string) error
-	ReopenMarkerSolution(solutionId string) error
-	GetSolutionStatus(solutionId string) (database.SolutionStatus, error)
+	DoesExistById(solutionId int) (bool, error)
+	ApproveMarkerSolution(solutionId int) error
+	DenyMarkerSolution(solutionId int) error
+	ReopenMarkerSolution(solutionId int) error
+	GetSolutionStatus(solutionId int) (database.SolutionStatus, error)
 }
 
 type solutionsRepository struct {
@@ -65,11 +66,14 @@ func (r *solutionsRepository) GetSolutionsInfoForMarker(markerId string) (*model
 
 func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []string, primaryFilesIds []int64, additionalFilesIds []int64) error {
 	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
 
 	// STEP: Create solution
 	var solutionId int
 	insertSolutionQuery := fmt.Sprintf(`INSERT INTO solutions (markerid) VALUES (%s) RETURNING id`, markerId)
-	fmt.Println("Executing query: %s", insertSolutionQuery)
+	fmt.Printf("Executing query: %s", insertSolutionQuery)
 	err = tx.QueryRow(insertSolutionQuery).Scan(&solutionId)
 	if err != nil {
 		tx.Rollback()
@@ -115,13 +119,58 @@ func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []
 		}
 	}
 
-	tx.Commit()
-	return nil
+	// STEP: VERIFY SOLUTION BASED ON UPLOADS
+	// TODO: additional GPS check with marker ???
+
+	var filenames []string
+	err = r.db.Select(&filenames, `
+		SELECT u.filename 
+		FROM solutions_uploads_relation sur 
+		LEFT JOIN uploads u 
+			ON sur.uploadid = u.id 
+		WHERE sur.solutionid = $1
+	`, solutionId)
+
+	if err != nil {
+		return err
+	}
+
+	// Validate images
+
+	isValid, err := helpers.ValidateImagesWithPython(filenames)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	status := "pending"
+	if isValid {
+		status = "approved"
+	} else {
+		status = "denied"
+	}
+
+	switch status {
+	case "approved":
+		err = r.ApproveMarkerSolution(solutionId)
+	case "denied":
+		err = r.DenyMarkerSolution(solutionId)
+	default:
+		err = fmt.Errorf("invalid status %s", status)
+	}
+
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	return err
 }
 
-func (r *solutionsRepository) DoesExistById(solutionId string) (bool, error) {
+func (r *solutionsRepository) DoesExistById(solutionId int) (bool, error) {
 	query := fmt.Sprintf(`select id from solutions where id = $1`)
-	fmt.Printf("executing query: %s, with parameter %s", query, solutionId)
+	fmt.Printf("executing query: %s, with parameter %d", query, solutionId)
 	rows, err := r.db.Queryx(query, solutionId)
 	if err != nil {
 		return false, err
@@ -134,11 +183,18 @@ func (r *solutionsRepository) DoesExistById(solutionId string) (bool, error) {
 	return true, nil
 }
 
-func (r *solutionsRepository) ApproveMarkerSolution(solutionId string) error {
+func (r *solutionsRepository) ApproveMarkerSolution(solutionId int) error {
 	tx, err := r.db.Beginx()
 	if err != nil {
 		return err
 	}
+
+	_, err = tx.Exec(`UPDATE markers SET solved_at = Now() WHERE id = $1`, solutionId)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to update marker solved_at: %w", err)
+	}
+
 	// update solution status and return marker points
 	var totalPoints int64
 	{
@@ -166,7 +222,7 @@ func (r *solutionsRepository) ApproveMarkerSolution(solutionId string) error {
 
 		if participantsCount == 0 {
 			tx.Rollback()
-			return fmt.Errorf("no participants found for solution ID %s", solutionId)
+			return fmt.Errorf("no participants found for solution ID %d", solutionId)
 		}
 	}
 
@@ -195,18 +251,25 @@ func (r *solutionsRepository) ApproveMarkerSolution(solutionId string) error {
 	return nil
 }
 
-func (r *solutionsRepository) DenyMarkerSolution(solutionId string) error {
+func (r *solutionsRepository) DenyMarkerSolution(solutionId int) error {
 	Status := "denied"
-	query := fmt.Sprintf("UPDATE solutions set verification_status = '%s' WHERE id = %s RETURNING markerId", Status, solutionId)
+	query := fmt.Sprintf("UPDATE solutions set verification_status = '%s' WHERE id = %d RETURNING markerId", Status, solutionId)
 	_, err := r.db.Exec(query)
 	return err
 }
 
-func (r *solutionsRepository) ReopenMarkerSolution(solutionId string) error {
+func (r *solutionsRepository) ReopenMarkerSolution(solutionId int) error {
 	tx, err := r.db.Beginx()
 	if err != nil {
 		return err
 	}
+
+	_, err = tx.Exec(`UPDATE markers SET solved_at = NULL WHERE id = $1`, solutionId)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to update marker solved_at: %w", err)
+	}
+
 	// update solution status and return marker points
 	var totalPoints int64
 	{
@@ -234,7 +297,7 @@ func (r *solutionsRepository) ReopenMarkerSolution(solutionId string) error {
 
 		if participantsCount == 0 {
 			tx.Rollback()
-			return fmt.Errorf("no participants found for solution ID %s", solutionId)
+			return fmt.Errorf("no participants found for solution ID %d", solutionId)
 		}
 	}
 
@@ -263,7 +326,7 @@ func (r *solutionsRepository) ReopenMarkerSolution(solutionId string) error {
 	return nil
 }
 
-func (r *solutionsRepository) GetSolutionStatus(solutionId string) (database.SolutionStatus, error) {
+func (r *solutionsRepository) GetSolutionStatus(solutionId int) (database.SolutionStatus, error) {
 	var solutionStatus database.SolutionStatus
 	err := r.db.Get(&solutionStatus, "SELECT verification_status FROM solutions WHERE id = $1", solutionId)
 	return solutionStatus, err

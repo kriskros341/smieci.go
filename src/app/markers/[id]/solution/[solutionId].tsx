@@ -22,7 +22,7 @@ import {
 import { TouchableOpacity } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 
-const useSolutionQuery = (solutionId: string) => {
+const useSolutionQuery = (solutionId: number) => {
   return useQuery<any>({
     queryKey: [`/solutions/${solutionId}`],
   });
@@ -118,7 +118,7 @@ const PreivewMarkerSolution = () => {
   const queryClient = useQueryClient();
   const { solutionId, id } = useLocalSearchParams();
   const { data, refetch: refetchSolution } = useSolutionQuery(
-    solutionId as string,
+    Number(solutionId as string),
   );
   const { data: markerData, refetch: refetchMarker } = useMarkerQuery(
     id as string,

@@ -21,9 +21,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     libc6 \
-    && rm -rf /var/lib/apt/lists/* && apt-get clean
+    && rm -rf /var/lib/apt/lists/* && apt-get clean && mkdir -p uploads
 
-RUN mkdir uploads
 COPY --from=builder /workspace/backend .
 
 ENV GIN_MODE=release
