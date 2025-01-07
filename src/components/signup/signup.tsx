@@ -164,7 +164,6 @@ const SignUp: React.FC = () => {
                 onChangeText={onChange}
                 onBlur={onBlur}
                 value={value}
-                placeholder="Password..."
                 placeholderTextColor="#000"
                 secureTextEntry={true}
                 className="px-3 py-2.5 border border-solid rounded-lg border-slate-300"
@@ -187,7 +186,6 @@ const SignUp: React.FC = () => {
                 onChangeText={onChange}
                 onBlur={onBlur}
                 value={value}
-                placeholder="Confirm password..."
                 placeholderTextColor="#000"
                 secureTextEntry
                 className="px-3 py-2.5 border border-solid rounded-lg border-slate-300"
@@ -225,23 +223,41 @@ const SignUp: React.FC = () => {
   }
 
   return (
-    <>
-      <View className="flex p-4 gap-y-4">
-        <View className="border">
-          <TextInput
-            value={code}
-            placeholder="Code..."
-            onChangeText={(code) => setCode(code)}
-          />
-        </View>
-        <View>
-          <Button title="Verify Email" onPress={verifyCode} />
-        </View>
-        <View>
-          <Button title="back" onPress={goBack} />
-        </View>
+    <View className="w-2/3">
+      <Text className="mb-2 text-xl font-semibold">Weryfikacja email</Text>
+      <Text className="mb-4 text-sm text-slate-600">
+        Wprowadź kod weryfikacyjny, który został wysłany na Twój adres email
+      </Text>
+
+      <View className="flex my-2">
+        <Text className="mb-2 text-xs text-slate-400">Kod weryfikacyjny</Text>
+        <TextInput
+          value={code}
+          onChangeText={setCode}
+          autoCapitalize="none"
+          keyboardType="number-pad"
+          className="px-3 py-2.5 border border-solid rounded-lg border-slate-300"
+          placeholder="Wprowadź kod..."
+        />
       </View>
-    </>
+
+      <View className="my-2">
+        <Button
+          title="Zweryfikuj email"
+          onPress={verifyCode}
+          buttonClassName="px-3 py-2.5 rounded-lg bg-green"
+        />
+      </View>
+
+      <View className="mt-1">
+        <Button
+          title="Wróć"
+          onPress={goBack}
+          buttonClassName="px-3 py-2.5 rounded-lg bg-slate-100"
+          textClassName="text-slate-700"
+        />
+      </View>
+    </View>
   );
 };
 
