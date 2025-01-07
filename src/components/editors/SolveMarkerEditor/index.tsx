@@ -1,5 +1,5 @@
 import { useFormContext } from "react-hook-form";
-import { Text } from "react-native";
+import { Text, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -56,20 +56,22 @@ function SolveMarkerEditor({ markerId, disabled }: ResolveMarkerEditorProps) {
       </DividerWithText>
       <ParticipantsFormField control={control} disabled={disabled} />
       <DividerWithText>
-        <Text className="mr-2">
-          Zdjęcia ze zgłoszenia<Text className="text-red-800">*</Text>
-        </Text>
-        <Tooltip delayDuration={150}>
-          <TooltipTrigger>
-            <AntDesign name="questioncircleo" size={20} color="black" />
-          </TooltipTrigger>
-          <TooltipContent insets={contentInsets} className="bg-white">
-            <Text className="native:text-lg">
-              Zdjęcia które posłużą do weryfiacji zgłoszenia. Postaraj się aby
-              wiernie odwzorowywały oryginalne zdjęcia.
-            </Text>
-          </TooltipContent>
-        </Tooltip>
+        <View className="flex flex-row gap-x-2">
+          <Text>
+            Zdjęcia ze zgłoszenia <Text className="text-red-800">*</Text>
+          </Text>
+          <Tooltip delayDuration={150}>
+            <TooltipTrigger>
+              <AntDesign name="questioncircleo" size={20} color="black" />
+            </TooltipTrigger>
+            <TooltipContent insets={contentInsets} className="bg-white">
+              <Text className="native:text-lg">
+                Zdjęcia które posłużą do weryfiacji zgłoszenia. Postaraj się aby
+                wiernie odwzorowywały oryginalne zdjęcia.
+              </Text>
+            </TooltipContent>
+          </Tooltip>
+        </View>
       </DividerWithText>
       <VerificationPhotosFormField
         control={control}
@@ -79,18 +81,20 @@ function SolveMarkerEditor({ markerId, disabled }: ResolveMarkerEditorProps) {
         disabled={disabled}
       />
       <DividerWithText>
-        <Text className="mr-2">Dodatkowe zdjęcia</Text>
-        <Tooltip delayDuration={150}>
-          <TooltipTrigger>
-            <AntDesign name="questioncircleo" size={20} color="black" />
-          </TooltipTrigger>
-          <TooltipContent insets={contentInsets} className="bg-white">
-            <Text className="native:text-lg">
-              Zostaną wykorzystane w przypadku problemów z automatyczną
-              weryfikacją realizacji zgłoszenia.
-            </Text>
-          </TooltipContent>
-        </Tooltip>
+        <View className="flex flex-row gap-x-2">
+          <Text className="mr-2">Dodatkowe zdjęcia</Text>
+          <Tooltip delayDuration={150}>
+            <TooltipTrigger>
+              <AntDesign name="questioncircleo" size={20} color="black" />
+            </TooltipTrigger>
+            <TooltipContent insets={contentInsets} className="bg-white">
+              <Text className="native:text-lg">
+                Zostaną wykorzystane w przypadku problemów z automatyczną
+                weryfikacją realizacji zgłoszenia.
+              </Text>
+            </TooltipContent>
+          </Tooltip>
+        </View>
       </DividerWithText>
       <AdditionalPhotosFormField
         control={control}

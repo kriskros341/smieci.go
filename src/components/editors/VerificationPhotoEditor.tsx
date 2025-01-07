@@ -75,11 +75,11 @@ const VerificationPhotoEditor = ({
 
   const fabButtons = [];
   if (!tempPhotoUri) {
-    fabButtons.push(<Button title="Zrób zdjęcie" onPress={onPhoto} />);
+    fabButtons.push(<Button title="Zrób zdjęcie" onPress={onPhoto} key="zz" />);
   } else {
     fabButtons.push(
-      <Button title="Powtórz" onPress={onPhoto} />,
-      <Button title="Akceptuj" onPress={() => onCommitPress(tempPhotoUri)} />,
+      <Button title="Powtórz" onPress={onPhoto} key="pwtrz" />,
+      <Button title="Akceptuj" onPress={() => onCommitPress(tempPhotoUri)}  key="kcpj" />,
     );
   }
 

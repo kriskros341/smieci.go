@@ -1,3 +1,4 @@
+import { View, ActivityIndicator } from "react-native";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { Tabs } from "expo-router";
 import Entypo from '@expo/vector-icons/Entypo';
@@ -6,7 +7,15 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 export default function Layout() {
   const { user } = useUser();
   const { sessionId } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   console.log({ sessionId });
+  if (!isLoaded || !isSignedIn) {
+    return (
+      <View>
+        <ActivityIndicator />
+      </View>
+    );
+  }
   return (
     <Tabs
       initialRouteName="map"

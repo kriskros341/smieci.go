@@ -72,7 +72,7 @@ const VerificationPhotosFormField = ({
         );
       });
     return (
-      <View className="relative flex basis-1/3 aspect-[0.6]" key={idx}>
+      <View className="relative flex basis-1/3 aspect-[0.6]" key={idx + uri}>
         <Pressable
           key={`original-photo-${idx}`}
           className={clsx(
@@ -115,6 +115,7 @@ const VerificationPhotosFormField = ({
   } else if (fields[activePhotoIdx]?.uri) {
     buttons.push(
       <Button
+        key="pdmn"
         title="Podmień"
         onPress={() => {
           openVerificationPhotoModal({
@@ -130,6 +131,7 @@ const VerificationPhotosFormField = ({
   } else {
     buttons.push(
       <Button
+        key="ddj"
         title="Dodaj"
         onPress={() => {
           openVerificationPhotoModal({

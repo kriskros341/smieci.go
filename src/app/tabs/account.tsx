@@ -104,11 +104,10 @@ const Account = () => {
                     <Text>{timeString}</Text>
                   </View>
                 </View>
-                <View className="flex-row items-center gap-2">
+                <View className="flex-row items-center gap-2 pr-10">
                   <AntDesign name="warning" size={20} color="red" />
                   <Text>
-                    Nadmiarowe punkty są automatycznie rozdzielane pomiędzy
-                    pobliskie zgłoszenia
+                    Nadmiarowe punkty nie będą naliczane w wersji produkcyjnej
                   </Text>
                 </View>
               </View>

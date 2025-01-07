@@ -1,14 +1,17 @@
 import PhotoGallery from "@components/photoGallery";
 import StatusBadge from "@components/statusBadge";
+import { AntDesign } from "@expo/vector-icons";
 import { useEditExternalMarkerPhotosModal } from "@hooks/modals/useEditExternalMarkerPhotosModal";
 import { useMarkerQuery } from "@hooks/useMarkerQuery";
 import { useQuery } from "@tanstack/react-query";
 import Avatar from "@ui/avatar";
 import Button from "@ui/button";
 import DividerWithText from "@ui/DividerWithText";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui/tooltip";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, ScrollView, Text, TextInput, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 declare const process: {
   env: {
@@ -32,6 +35,7 @@ const MarkerPreview = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const { data: markerData, refetch } = useMarkerQuery(id as string);
+  const insets = useSafeAreaInsets();
 
   const { EditExternalMarkerPhotosModal, openEditExternalMarkerPhotosModal } = useEditExternalMarkerPhotosModal({
     markerKey: id as string,
@@ -53,12 +57,43 @@ const MarkerPreview = () => {
   });
 
   const markerStatus = markerData?.status ?? "pending";
-
-  const disabled = markerStatus !== "approved" && !markerData?.solvedAt;
+  const disabled = (markerStatus !== "approved" && !markerData?.solvedAt);
+  console.log({ markerStatus, p: photos.length })
 
   const verificationStatusSection = (
     <>
-      <DividerWithText>Status znacznika</DividerWithText>
+      <DividerWithText>
+        <View className="flex flex-row gap-x-2">
+          <Text>
+            Status znacznika
+          </Text>
+          <Tooltip delayDuration={150}>
+            <TooltipTrigger>
+              <AntDesign name="questioncircleo" size={20} color="black" />
+            </TooltipTrigger>
+            <TooltipContent insets={insets} className="bg-white gap-y-4 pb-4">
+              <View>
+                <StatusBadge status="pending" />
+                <Text>
+                  Weryfikacja w toku. Weryfikacja może przebiegać automatycznie (natychmiastowo) lub manualnie przez upoważnionego użytkownika.
+                </Text>
+              </View>
+              <View>
+                <StatusBadge status="denied" />
+                <Text>
+                  Znacznik został uznany za nieprawidłowy. Jeśli uważasz że niesłusznie, skontaktuj się z użytkownikiem upoważnionym w celu manualnej weryfikacji.
+                </Text>
+              </View>
+              <View>
+                <StatusBadge status="approved" />
+                <Text>
+                  Znacznik został zaakcpetowany. Użytkownicy mogą tworzyć jego rozwiązania.
+                </Text>
+              </View>
+            </TooltipContent>
+          </Tooltip>
+        </View>
+      </DividerWithText>
       <View className="flex-col p-4 gap-y-4">
         <View>
           <Text>Status weryfikacji wiarygodności zgłoszenia:</Text>
@@ -69,7 +104,7 @@ const MarkerPreview = () => {
         <View>
           {markerData?.pendingVerificationsCount === 0 ? (
             <Link asChild href={`markers/${markerData?.id}/solvePreface`}>
-              <Button title="Podziel się rezultatem" disabled={disabled} />
+              <Button title="Podziel się rezultatem" disabled={disabled || !photos.length} />
             </Link>
           ) : (
             <Link
@@ -114,7 +149,23 @@ const MarkerPreview = () => {
             disabled={disabled}
           />
           {verificationStatusSection}
-          <DividerWithText>Wsparcie znacznika</DividerWithText>
+        <DividerWithText>
+          <View className="flex flex-row gap-x-2">
+            <Text>
+              Wsparcie znacznika
+            </Text>
+            <Tooltip delayDuration={150}>
+              <TooltipTrigger>
+                <AntDesign name="questioncircleo" size={20} color="black" />
+              </TooltipTrigger>
+              <TooltipContent insets={insets} className="bg-white gap-y-4 pb-4">
+                <Text>
+                  Uzytkownicy mogą dorzucać punkty wsparcia do puli danego zgłoszenia. W przypadku zaakcpetowania rozwiązania zostaną one rozdzielone pomiędzy uczestników.
+                </Text>
+              </TooltipContent>
+            </Tooltip>
+          </View>
+        </DividerWithText>
           <View className="p-4">
             <Text>
               Liczba zebranych punktów wsparcia: {markerData?.points ?? 0}.
@@ -169,7 +220,6 @@ const MarkerPreview = () => {
               customMapStyle={mapStyle}
               provider={undefined}
               className="w-full aspect-square"
-              showsUserLocation
               region={{
                 latitude: markerData?.lat,
                 longitude: markerData?.long,

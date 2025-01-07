@@ -23,8 +23,8 @@ export const useMarkerQuery = (key: string) => {
   });
   console.log(data.data)
   // KCTODO debug
-  if (data?.data?.status === 'pending') {
-    data.data.status = 'approved'
-  }
+  // if (data?.data?.status === 'pending') {
+  //   data.data.status = 'approved'
+  // }
   return data;
 };

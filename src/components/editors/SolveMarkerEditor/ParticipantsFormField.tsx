@@ -24,10 +24,10 @@ const ParticipantsFormField = ({
 
   return (
     <View className="p-4">
-      {fields.slice(0, 3)?.map(({ userId }) => {
+      {fields.slice(0, 3)?.map(({ userId }, idx) => {
         const user = data?.find(({ id }: { id: string }) => id === userId);
         return (
-          <View className="flex flex-row items-center p-2" key={user?.id}>
+          <View className="flex flex-row items-center p-2" key={user?.id ?? '' + idx}>
             <Avatar key={user?.id} imageUrl={user?.profileImageURL} />
             <View className="mx-2">
               <Text>{user?.username}</Text>

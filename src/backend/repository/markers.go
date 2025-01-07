@@ -5,6 +5,7 @@ import (
 	"backend/helpers"
 	"backend/models"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -128,7 +129,7 @@ func (r *markerRepository) GetMarkerById(markerId string) (*models.GetMarkerPayl
 	marker.BlurHashes = []string{}
 
 	for _, upload := range uploads {
-		marker.FileNamesString = append(marker.FileNamesString, upload.Filename)
+		marker.FileNamesString = append(marker.FileNamesString, strconv.FormatInt(int64(upload.Id), 10))
 		marker.BlurHashes = append(marker.BlurHashes, upload.BlurHash)
 	}
 
@@ -151,8 +152,8 @@ func (r *markerRepository) CreateMarker(marker models.CreateMarkerBody, userId s
 		"mainPhotoId": uploadsIds[0],
 	}
 	query := `
-		INSERT INTO markers (userId, lat, long, mainPhotoId)
-		VALUES (:userId, :lat, :long, :mainPhotoId)
+		INSERT INTO markers (userId, lat, long, mainPhotoId, status)
+		VALUES (:userId, :lat, :long, :mainPhotoId, 'pending')
 		RETURNING id;`
 
 	var markerId int64

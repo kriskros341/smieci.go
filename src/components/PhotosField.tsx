@@ -62,12 +62,13 @@ export const PhotosField = (props: PhotosFieldProps) => {
         onPress={onPhoto}
         disabled={props.disabled}
         className="aspect-[0.6] basis-1/3 flex justify-center items-center"
+        key="a"
       >
         {({ pressed }) => (
-          <View>
+          <View className="flex items-center">
             <View
               className={clsx(
-                "flex justify-center items-center p-1 rounded-lg shadow-md shadow-black bg-blue-500",
+                "flex justify-center items-center p-1 rounded-lg shadow-md shadow-black bg-blue-500 aspect-square",
                 pressed && "opacity-50",
               )}
             >
@@ -87,7 +88,7 @@ export const PhotosField = (props: PhotosFieldProps) => {
 
   if (displayFields.length === 0) {
     displayFields.push(
-      <View className="flex-1 h-full justify-center items-center">
+      <View className="flex-1 h-full justify-center items-center" key="b">
         <Text>
           Brak
         </Text>

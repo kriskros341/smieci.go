@@ -2,7 +2,8 @@ import { useAuth } from "@clerk/clerk-expo";
 import axios from "axios";
 
 export const useAxios = () => {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
+  // @ts-ignore
   const baseURL = process.env.EXPO_PUBLIC_API_URL;
   if (!baseURL) {
     console.warn("missing EXPO_PUBLIC_API_URL configuration")
@@ -14,6 +15,7 @@ export const useAxios = () => {
   });
 
   instance.interceptors.request.use(async (req) => {
+    console.log('Auth state:', { isLoaded, isSignedIn }); // Debug auth state
     const token = await getToken({ template: "JWT" });
     if (!token) {
       console.error("missing Bearer token")

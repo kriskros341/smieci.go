@@ -59,7 +59,7 @@ const Map = () => {
 
   if (isViewMarkersMapStrategy(strategy)) {
     actions.push(
-      <Pressable className="z-10 right-12" onPressOut={onAddMarkerClick}>
+      <Pressable className="z-10 right-12" onPressOut={onAddMarkerClick} key="dd">
         {({ pressed }) => (
           <View
             style={{ opacity: pressed ? 0.5 : 1 }}
@@ -76,7 +76,7 @@ const Map = () => {
     );
   } else if (isMoveMarkerMapStrategy(strategy)) {
     actions.push(
-      <Pressable className="z-10 right-12" onPressOut={confirmMoveMarkerToMapFocusPoint}>
+      <Pressable className="z-10 right-12" onPressOut={confirmMoveMarkerToMapFocusPoint} key="mv">
         {({ pressed }) => (
           <View
             style={{ opacity: pressed ? 0.5 : 1 }}

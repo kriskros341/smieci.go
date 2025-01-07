@@ -131,7 +131,7 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
           <Animated.View className="flex items-center justify-center w-full aspect-square">
             <View
               className={cn(
-                "p-1 rounded-lg shadow-md shadow-black bg-blue-500",
+                "p-1 rounded-lg shadow-md shadow-black bg-blue-500 aspect-square",
                 pressed && "opacity-50",
                 props.disabled && "opacity-50",
               )}

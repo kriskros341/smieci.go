@@ -123,6 +123,7 @@ export const useEditExternalMarkerPhotosModal = (props: useEditExternalMarkerPho
           <Pressable className="p-4">
             <Button
               title="Dodaj zdjęcia"
+              disabled={mutation.isPending}
               onPress={handleSubmit(onSubmit)}
             />
           </Pressable>
