@@ -43,7 +43,8 @@ func ValidateImagesWithPython(filenames []string) (bool, error) {
 		return false, fmt.Errorf("error closing multipart writer: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", "http://0.0.0.0:6969/validate-images", body)
+	serviceURL := GetTrashDetectionServiceURL()
+	req, err := http.NewRequest("POST", serviceURL+"/validate-images", body)
 	if err != nil {
 		return false, fmt.Errorf("error creating request: %w", err)
 	}

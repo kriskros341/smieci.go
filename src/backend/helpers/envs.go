@@ -15,3 +15,11 @@ func LoadEnvsIfNotLoaded() error {
 	}
 	return nil
 }
+
+func GetTrashDetectionServiceURL() string {
+	env := os.Getenv("HOST")
+	if env == "postgres" { // postgres - in docker, localhost - locally. Yeah the naming is stupid but no time for refactor
+		return "http://trash-detection:6969"
+	}
+	return "http://localhost:6969"
+}

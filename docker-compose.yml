@@ -71,6 +71,8 @@ services:
       context: ./src/services/trash-detection
       dockerfile: ./Dockerfile
     container_name: trash-detection
+    networks:
+      - my-network
 
   cron:
     env_file:
