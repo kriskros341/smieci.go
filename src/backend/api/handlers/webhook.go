@@ -73,9 +73,9 @@ func (e *Env) HandleEvent(c *gin.Context) {
 			return
 		}
 
-		query := `INSERT INTO users (clerkId, email, username, points, supportPoints, profileImageURL) VALUES (:clerkId, :email, :username, :points, :supportPoints, :profileImageURL)`
+		query := `INSERT INTO users (id, email, username, points, supportPoints, profileImageURL) VALUES (:id, :email, :username, :points, :supportPoints, :profileImageURL)`
 		data := map[string]interface{}{
-			"clerkId":         userData.ID,
+			"id":              userData.ID,
 			"email":           userData.EmailAddresses[0].EmailAddress,
 			"username":        userData.Username,
 			"points":          0,
@@ -99,7 +99,7 @@ func (e *Env) HandleEvent(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user.created data"})
 			return
 		}
-		query := fmt.Sprintf(`UPDATE users SET email='%s', username='%s', profileImageURL='%s' WHERE clerkId='%s'`,
+		query := fmt.Sprintf(`UPDATE users SET email='%s', username='%s', profileImageURL='%s' WHERE id='%s'`,
 			userData.EmailAddresses[0].EmailAddress,
 			nullToSQLString(userData.Username),
 			userData.ProfileImageURL,
@@ -134,7 +134,7 @@ func (e *Env) HandleEvent(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user.created data"})
 			return
 		}
-		query := fmt.Sprintf(`UPDATE users SET deleted=%t WHERE clerkId = %s`,
+		query := fmt.Sprintf(`UPDATE users SET deleted=%t WHERE id = '%s'`,
 			userData.Deleted,
 			userData.ID,
 		)
