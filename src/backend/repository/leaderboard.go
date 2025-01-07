@@ -48,7 +48,7 @@ func (r *leaderboardRepository) GetLeaderboardByType(leaderboard models.Leaderbo
          left join nr_participants_per_solution npps on s.id = npps.solutionid
 	where s.approved_at > $1
 	and s.verification_status = 'approved'
-	group by u.id order by numberOfPoints desc LIMIT 10;`
+	group by u.id order by numberOfPoints desc;`
 
 	err := r.db.Select(&leaderboardEntries, query, startDate)
 	return leaderboardEntries, err
