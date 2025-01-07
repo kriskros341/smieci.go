@@ -19,7 +19,7 @@ const SolvePreface = () => {
       </Text>
       <Text>4. Po dodaniu, znacznik będzie oczekiwał na weryfikację. Po zweryfikowaniu, zgromadzone punkty zostaną rozdzielone pomiędzy uczestników.</Text>
       <Button
-        buttonClassName="mt-4 rounded-full"
+        buttonClassName="mt-4"
         title="Podziel się rezultatem"
         onPress={() => router.replace({ pathname: `markers/${id}/solve` })}
       />

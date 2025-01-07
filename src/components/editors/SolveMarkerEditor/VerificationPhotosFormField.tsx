@@ -116,7 +116,6 @@ const VerificationPhotosFormField = ({
     buttons.push(
       <Button
         title="Podmień"
-        buttonClassName="rounded-full"
         onPress={() => {
           openVerificationPhotoModal({
             newPhotoUri: undefined,
@@ -132,7 +131,6 @@ const VerificationPhotosFormField = ({
     buttons.push(
       <Button
         title="Dodaj"
-        buttonClassName="rounded-full"
         onPress={() => {
           openVerificationPhotoModal({
             newPhotoUri: fields[activePhotoIdx]?.uri,

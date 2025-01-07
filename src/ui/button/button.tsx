@@ -24,6 +24,7 @@ const Button: React.FC<Props> = ({
       className={cn(
         "flex flex-row justify-center",
         "bg-blue-500 p-2",
+        "rounded-lg",
         disabled && "opacity-40",
         buttonClassName,
       )}

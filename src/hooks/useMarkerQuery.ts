@@ -11,7 +11,7 @@ type MarkerResponse = {
   pendingVerificationsCount: number;
   latestSolutionId: number;
   externalObjectId?: number;
-  status: string;
+  status: 'pending' | 'approved' | 'denied';
   solvedAt?: string;
 };
 
@@ -21,5 +21,10 @@ export const useMarkerQuery = (key: string) => {
     refetchOnWindowFocus: true,
     enabled: !!key,
   });
+  console.log(data.data)
+  // KCTODO debug
+  if (data?.data?.status === 'pending') {
+    data.data.status = 'approved'
+  }
   return data;
 };

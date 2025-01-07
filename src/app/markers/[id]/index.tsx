@@ -1,3 +1,4 @@
+import { useClerk } from "@clerk/clerk-expo";
 import PhotoGallery from "@components/photoGallery";
 import StatusBadge from "@components/statusBadge";
 import { useEditExternalMarkerPhotosModal } from "@hooks/modals/useEditExternalMarkerPhotosModal";
@@ -5,8 +6,9 @@ import { useMarkerQuery } from "@hooks/useMarkerQuery";
 import { useQuery } from "@tanstack/react-query";
 import Avatar from "@ui/avatar";
 import Button from "@ui/button";
+import DividerWithText from "@ui/DividerWithText";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
-import { ScrollView, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, TextInput, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 
 const mapStyle = [
@@ -33,6 +35,7 @@ const MarkerPreview = () => {
 
   const photos =
     markerData?.fileNamesString?.map((uri: string, idx: number) => ({
+      // @ts-ignore
       uri: process.env.EXPO_PUBLIC_API_URL + "/uploads/" + uri,
       blurhash: markerData.blurHashes[idx],
     })) ?? [];
@@ -44,34 +47,37 @@ const MarkerPreview = () => {
     enabled: !!id,
   });
 
-  const markerStatus = (markerData?.status ?? "pending") as
-    | "pending"
-    | "approved"
-    | "denied";
+  const markerStatus = markerData?.status ?? "pending";
 
   const disabled = markerStatus !== "approved" && !markerData?.solvedAt;
 
   const verificationStatusSection = (
-    <View className="flex-col p-4">
-      <View className="flex-col gap-4">
-        <Text>Status weryfikacji wiarygodności zgłoszenia</Text>
-        <StatusBadge status={markerStatus} />
+    <>
+      <DividerWithText>Status znacznika</DividerWithText>
+      <View className="flex-col p-4 gap-y-4">
+        <View>
+          <Text>Status weryfikacji wiarygodności zgłoszenia:</Text>
+        </View>
+        <View>
+          <StatusBadge status={markerStatus} />
+        </View>
+        <View>
+          {markerData?.pendingVerificationsCount === 0 ? (
+            <Link asChild href={`markers/${markerData?.id}/solvePreface`}>
+              <Button title="Podziel się rezultatem" disabled={disabled} />
+            </Link>
+          ) : (
+            <Link
+              asChild
+              href={`markers/${markerData?.id}/solution/${markerData?.latestSolutionId}`}
+            >
+              <Button title="Wyświetl rozwiązanie" />
+            </Link>
+          )}
+        </View>
       </View>
-      <View className="pt-4">
-        {markerData?.pendingVerificationsCount === 0 ? (
-          <Link asChild href={`markers/${markerData?.id}/solvePreface`}>
-            <Button title="Podziel się rezultatem" disabled={disabled} />
-          </Link>
-        ) : (
-          <Link
-            asChild
-            href={`markers/${markerData?.id}/solution/${markerData?.latestSolutionId}`}
-          >
-            <Button title="Wyświetl rozwiązanie" />
-          </Link>
-        )}
-      </View>
-    </View>
+  
+    </>
   );
 
   const onPhoto = () => {
@@ -103,39 +109,8 @@ const MarkerPreview = () => {
             onPhoto={onPhoto}
             disabled={disabled}
           />
-          <View className="flex flex-row gap-8 p-4">
-            <View>
-              <Text>Szerokość geograficzna</Text>
-              <TextInput value={markerData?.lat?.toString()} editable={false} />
-              <Text>Długość geograficzna</Text>
-              <TextInput
-                value={markerData?.long?.toString()}
-                editable={false}
-              />
-            </View>
-            <MapView
-              customMapStyle={mapStyle}
-              provider={undefined}
-              className="w-24 h-24"
-              showsUserLocation
-              region={{
-                latitude: markerData?.lat ?? 0,
-                longitude: markerData?.lat ?? 0,
-                latitudeDelta: 0.1,
-                longitudeDelta: 0.1,
-              }}
-            >
-              <Marker
-                key="jdjd"
-                pinColor="green"
-                coordinate={{
-                  latitude: markerData?.lat ?? 0,
-                  longitude: markerData?.lat ?? 0,
-                }}
-              />
-            </MapView>
-          </View>
           {verificationStatusSection}
+          <DividerWithText>Wsparcie znacznika</DividerWithText>
           <View className="p-4">
             <Text>
               Liczba zebranych punktów wsparcia: {markerData?.points ?? 0}.
@@ -183,6 +158,51 @@ const MarkerPreview = () => {
               }
               disabled={disabled}
             />
+          </View>
+          <DividerWithText>Lokalizacja znacznika</DividerWithText>
+          {markerData?.lat && markerData?.long ? (
+            <MapView
+              customMapStyle={mapStyle}
+              provider={undefined}
+              className="w-full aspect-square"
+              showsUserLocation
+              region={{
+                latitude: markerData?.lat,
+                longitude: markerData?.long,
+                latitudeDelta: 0.1,
+                longitudeDelta: 0.1,
+              }}
+            >
+              <Marker
+                key="jdjd"
+                pinColor="green"
+                coordinate={{
+                  latitude: markerData?.lat,
+                  longitude: markerData?.long,
+                }}
+              />
+            </MapView>
+          ) : (
+            <View className="w-full aspect-square">
+              <ActivityIndicator />
+            </View>
+          )}
+          <View className="flex flex-col p-4">
+            <View className="flex flex-col">
+              <View>
+                <Text>Szerokość geograficzna</Text>
+              </View>
+              <View>
+                <TextInput value={markerData?.lat?.toString()} editable={false} />
+              </View>
+            </View>
+            <View className="flex flex-col">
+              <Text>Długość geograficzna</Text>
+              <TextInput
+                value={markerData?.long?.toString()}
+                editable={false}
+              />
+            </View>
           </View>
         </View>
       </ScrollView>

@@ -46,7 +46,7 @@ function Badge({ className, variant, asChild, ...props }: BadgeProps) {
   return (
     <TextClassContext.Provider value={badgeTextVariants({ variant })}>
       <Component
-        className={cn(badgeVariants({ variant }), className)}
+        className={cn(badgeVariants({ variant }), className, "p-2")}
         {...props}
       />
     </TextClassContext.Provider>

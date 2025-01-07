@@ -1,28 +1,28 @@
 import SolveMarkerEditor from "@components/editors/SolveMarkerEditor";
-import { SolveMarkerEditorFormValues } from "@components/editors/SolveMarkerEditor/interfaces";
-import StatusBadge from "@components/statusBadge";
-import { Entypo } from "@expo/vector-icons";
-import { useAxios } from "@hooks/use-axios";
-import { useMarkerQuery } from "@hooks/useMarkerQuery";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { SolutionStatus } from "@utils/databaseConstants";
-import { getUriByUploadId } from "@utils/getUriFromPhotoId";
 import { useLocalSearchParams, useNavigation } from "expo-router";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { SolveMarkerEditorFormValues } from "@components/editors/SolveMarkerEditor/interfaces";
 import { FormProvider, useForm } from "react-hook-form";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getUriByUploadId } from "@utils/getUriFromPhotoId";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import { Entypo } from "@expo/vector-icons";
 import {
-  ActivityIndicator,
   Modal,
   Pressable,
   StyleSheet,
   Text,
   TouchableWithoutFeedback,
   View,
+  ActivityIndicator,
 } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { useAxios } from "@hooks/use-axios";
 import Toast from "react-native-toast-message";
+import { useMarkerQuery } from "@hooks/useMarkerQuery";
+import StatusBadge from "@components/statusBadge";
+import { SolutionStatus } from "@utils/databaseConstants";
 
-const useSolutionQuery = (solutionId: number) => {
+const useSolutionQuery = (solutionId: string) => {
   return useQuery<any>({
     queryKey: [`/solutions/${solutionId}`],
   });
@@ -117,34 +117,23 @@ const PreivewMarkerSolution = () => {
   const navigation = useNavigation();
   const queryClient = useQueryClient();
   const { solutionId, id } = useLocalSearchParams();
-  const { data, refetch: refetchSolution } = useSolutionQuery(
-    Number(solutionId as string),
-  );
-  const { data: markerData, refetch: refetchMarker } = useMarkerQuery(
-    id as string,
-  );
+  const { data, refetch: refetchSolution } = useSolutionQuery(solutionId as string);
+  const { data: markerData, refetch: refetchMarker } = useMarkerQuery(id as string);
   const { mutateAsync, isPending } = useSolutionStatusMutation(solutionId);
 
   const option = (result: string, goBackOnSuccess?: boolean) => {
-    mutateAsync(result)
-      .then(() => {
-        refetchMarker();
-        refetchSolution();
-        queryClient.refetchQueries({
-          queryKey: [
-            `/markers/${id}`,
-            "/users/getUsers",
-            "/users/current",
-            "/markers",
-          ],
-        });
-        goBackOnSuccess && navigation.goBack();
-      })
-      .catch((err) => console.log(err));
+    mutateAsync(result).then(() => {
+      refetchMarker()
+      refetchSolution()
+      queryClient.refetchQueries({ queryKey: [`/markers/${id}`,'all-markers', '/users/getUsers', '/users/current', '/markers'] });
+      queryClient.setQueryData(['all-markers'], new Map());
+      queryClient.setQueryData(['/markers'], [])
+      goBackOnSuccess && navigation.goBack();
+    });
   };
 
   const contextMenuItems = [];
-  if (markerData?.solvedAt) {
+  if (markerData?.pendingVerificationsCount === -1) {
     // Rozwiązany
     contextMenuItems.push({
       text: "Otwórz ponownie",
@@ -152,10 +141,7 @@ const PreivewMarkerSolution = () => {
     });
   } else {
     contextMenuItems.push(
-      {
-        text: "Zatwierdź",
-        callback: () => option(SolutionStatus.Approved, true),
-      },
+      { text: "Zatwierdź", callback: () => option(SolutionStatus.Approved, true) },
       { text: "Odrzuć", callback: () => option(SolutionStatus.Denied, true) },
     );
   }
@@ -183,17 +169,12 @@ const PreivewMarkerSolution = () => {
     queryKey: ["/users/current/permissions"],
   });
 
-  const markerStatus = (markerData?.status ?? "pending") as
-    | "pending"
-    | "approved"
-    | "denied";
-
   useLayoutEffect(() => {
     if (currentUserPermissions?.includes("reviewing")) {
       navigation.setOptions({
         headerRight: () => (
           <View className="flex flex-row gap-4">
-            <StatusBadge status={markerStatus} />
+            <StatusBadge status={markerData?.status ?? 'pending'} />
             {isPending ? <ActivityIndicator /> : Trigger}
           </View>
         ),

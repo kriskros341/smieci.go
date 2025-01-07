@@ -42,7 +42,7 @@ const ParticipantsFormField = ({
       ) : null}
       {!disabled && (
         <Button
-          buttonClassName="rounded-full mt-4"
+          buttonClassName="mt-4"
           title="Dodaj uczestników"
           onPress={() =>
             openAddParticipantsModal({
