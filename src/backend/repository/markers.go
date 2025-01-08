@@ -15,7 +15,7 @@ type MarkerRepository interface {
 	GetMarkers() ([]models.Marker, error)
 	GetMarkersInRegion(latitude float64, longitude float64, latitudeDelta float64, longitudeDelta float64) ([]models.Marker, error)
 	GetMarkerById(markerId string) (*models.GetMarkerPayload, error)
-	CreateMarker(marker models.CreateMarkerBody, userId string, uploadsIds []int64) error
+	CreateMarker(marker models.CreateMarkerBody, userId string, uploadsIds []int64) (int64, error)
 	SupportMarker(userId string, markerId int64, amount int64) error
 	GetMarkerSupporters(markerId string) ([]models.GetMarkerSupportersResult, error)
 	UpsertExternalMarkers(markers []models.CreateMarkerBody) (int64, error)
@@ -144,7 +144,7 @@ func (r *markerRepository) GetMarkerUploads(markerId string) ([]models.Upload, e
 	return uploads, err
 }
 
-func (r *markerRepository) CreateMarker(marker models.CreateMarkerBody, userId string, uploadsIds []int64) error {
+func (r *markerRepository) CreateMarker(marker models.CreateMarkerBody, userId string, uploadsIds []int64) (int64, error) {
 	data := map[string]interface{}{
 		"userId":      userId,
 		"lat":         marker.Latitude,
@@ -159,12 +159,12 @@ func (r *markerRepository) CreateMarker(marker models.CreateMarkerBody, userId s
 	var markerId int64
 	stmt, err := r.db.PrepareNamed(query)
 	if err != nil {
-		return err
+		return -1, err
 	}
 	fmt.Println("Executing query:", query)
 	err = stmt.Get(&markerId, data)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	rows := []string{}
@@ -180,7 +180,7 @@ func (r *markerRepository) CreateMarker(marker models.CreateMarkerBody, userId s
 
 	_, err = r.db.Exec(query)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	var uploads []struct {
@@ -193,7 +193,7 @@ func (r *markerRepository) CreateMarker(marker models.CreateMarkerBody, userId s
                      WHERE rmu.markerId = $1`
 	err = r.db.Select(&uploads, uploadsQuery, markerId)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	filenames := make([]string, len(uploads))
@@ -205,7 +205,7 @@ func (r *markerRepository) CreateMarker(marker models.CreateMarkerBody, userId s
 
 	isValid, err := helpers.ValidateImagesWithPython(filenames)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	status := "pending"
@@ -217,7 +217,7 @@ func (r *markerRepository) CreateMarker(marker models.CreateMarkerBody, userId s
 
 	updateQuery := `UPDATE markers SET status = $1 WHERE id = $2`
 	_, err = r.db.Exec(updateQuery, status, markerId)
-	return err
+	return markerId, err
 }
 
 func (r *markerRepository) SupportMarker(userId string, markerId int64, amount int64) error {

@@ -13,7 +13,7 @@ export type editorStateType = {
 
 const initial = {
   photosUris: [] as string[],
-}
+};
 
 export const useEditorState = () => {
   const [editorState, setEditorState] = useState<editorStateType>(initial);
@@ -25,7 +25,7 @@ export const useEditorState = () => {
   };
 
   const reset = () => {
-    let changes = {}
+    let changes = {};
     if (location) {
       changes = {
         location: true,
@@ -34,7 +34,7 @@ export const useEditorState = () => {
       };
     }
     changeEditorState({ ...initial, ...changes });
-  }
+  };
 
   useEffect(() => {
     if (location && !editorState.latitude && !editorState.longitude) {
@@ -61,7 +61,7 @@ export const useEditorState = () => {
     isPending,
     addPhotoUri,
     reorderPhotoUris,
-    reset
+    reset,
   };
 };
 
@@ -85,10 +85,13 @@ export const useCreateMarkerMutation = () => {
         latitude: latitude!,
         longitude: longitude!,
       };
-      return _createMarker(axios, payload);
+      const { id } = await _createMarker(axios, payload);
     },
     onSettled() {
       queryClient.invalidateQueries({ queryKey: ["/markers"] });
+    },
+    onError(err) {
+      console.log("blad:", JSON.stringify(err));
     },
   });
   return createMarkersMutation;

@@ -7,10 +7,10 @@ type createMarkerPayload = {
   longitude: number;
 };
 
-export const _createMarker = (
+export const _createMarker = async (
   axios: AxiosInstance,
   payload: createMarkerPayload,
-) => {
+): Promise<{ id: number }> => {
   const formData = new FormData();
   payload.uris.forEach((uri) => {
     formData.append("file", {
@@ -27,22 +27,21 @@ export const _createMarker = (
     }),
   );
 
-  return axios
-    .post("/markers", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    })
-    .catch((e) => console.warn("blad", JSON.stringify(e)));
+  const res = await axios.post("/markers", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res.data;
 };
 
 type modifyExternalMarkerData = {
-  existingPhotosKeys: string[],
-  newPhotos: string[],
-}
+  existingPhotosKeys: string[];
+  newPhotos: string[];
+};
 
 export const _modifyExternalMarkerMutation = (
   axios: AxiosInstance,
   markerKey: string,
-  data: modifyExternalMarkerData
+  data: modifyExternalMarkerData,
 ) => {
   const formData = new FormData();
   data.newPhotos.forEach((uri) => {
