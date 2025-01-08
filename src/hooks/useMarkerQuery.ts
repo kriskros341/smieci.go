@@ -8,6 +8,7 @@ type MarkerResponse = {
   userId: string;
   points: number;
   blurHashes: string[];
+  confidences: number[];
   pendingVerificationsCount: number;
   latestSolutionId: number;
   externalObjectId?: number;

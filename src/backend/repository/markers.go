@@ -128,8 +128,10 @@ func (r *markerRepository) GetMarkerById(markerId string) (*models.GetMarkerPayl
 
 	marker.FileNamesString = []string{}
 	marker.BlurHashes = []string{}
+	marker.Confidences = []*float64{}
 
 	for _, upload := range uploads {
+		marker.Confidences = append(marker.Confidences, upload.Confidence)
 		marker.FileNamesString = append(marker.FileNamesString, strconv.FormatInt(int64(upload.Id), 10))
 		marker.BlurHashes = append(marker.BlurHashes, upload.BlurHash)
 	}
@@ -139,7 +141,7 @@ func (r *markerRepository) GetMarkerById(markerId string) (*models.GetMarkerPayl
 
 func (r *markerRepository) GetMarkerUploads(markerId string) ([]models.Upload, error) {
 	var uploads []models.Upload
-	query := `SELECT u.id, u.filename, u.blurhash FROM relation_marker_uploads rmu JOIN uploads u ON rmu.uploadId = u.id WHERE rmu.markerId = $1`
+	query := `SELECT u.id, u.filename, u.blurhash, rmu.confidence FROM relation_marker_uploads rmu JOIN uploads u ON rmu.uploadId = u.id WHERE rmu.markerId = $1`
 	println("Executing query:", query, markerId)
 	err := r.db.Select(&uploads, query, markerId)
 	return uploads, err

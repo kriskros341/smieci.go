@@ -3,9 +3,10 @@ package models
 import "time"
 
 type Upload struct {
-	Id       int64  `json:"id"`
-	Filename string `json:"filename"`
-	BlurHash string `json:"blurHash"`
+	Id         int64    `json:"id"`
+	Filename   string   `json:"filename"`
+	BlurHash   string   `json:"blurHash"`
+	Confidence *float64 `json:"confidence"`
 }
 
 type SolutionUpload struct {
@@ -36,6 +37,7 @@ type GetMarkerPayload struct {
 	ExternalObjectId          *int64     `json:"externalObjectId" db:"externalobjectid"`
 	Status                    string     `json:"status" db:"status"`
 	SolvedAt                  *time.Time `json:"solvedAt" db:"solved_at"`
+	Confidences               []*float64 `json:"confidences"`
 }
 
 type CreateMarkerBody struct {

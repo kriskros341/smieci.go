@@ -48,6 +48,7 @@ const MarkerPreview = () => {
       // @ts-ignore
       uri: process.env.EXPO_PUBLIC_API_URL + "/uploads/" + uri,
       blurhash: markerData.blurHashes[idx],
+      confidence: markerData.confidences[idx],
     })) ?? [];
 
   const { data: markerSupportersData } = useQuery<
@@ -59,52 +60,6 @@ const MarkerPreview = () => {
 
   const markerStatus = markerData?.status ?? "pending";
   const disabled = (markerStatus !== "approved" && !markerData?.solvedAt);
-  console.log({ markerStatus, p: photos.length })
-
-  const verificationStatusSection = (
-    <>
-      <DividerWithText>
-        <View className="flex flex-row gap-x-2">
-          <Text>
-            Status znacznika
-          </Text>
-          <Tooltip delayDuration={150}>
-            <TooltipTrigger>
-              <AntDesign name="questioncircleo" size={20} color="black" />
-            </TooltipTrigger>
-            <TooltipContent insets={insets} className="bg-white gap-y-4 pb-4">
-              <View>
-                <StatusBadge status="pending" />
-                <Text>
-                  Weryfikacja w toku. Weryfikacja może przebiegać automatycznie (natychmiastowo) lub manualnie przez upoważnionego użytkownika.
-                </Text>
-              </View>
-              <View>
-                <StatusBadge status="denied" />
-                <Text>
-                  Znacznik został uznany za nieprawidłowy. Jeśli uważasz że niesłusznie, skontaktuj się z użytkownikiem upoważnionym w celu manualnej weryfikacji.
-                </Text>
-              </View>
-              <View>
-                <StatusBadge status="approved" />
-                <Text>
-                  Znacznik został zaakcpetowany. Użytkownicy mogą tworzyć jego rozwiązania.
-                </Text>
-              </View>
-            </TooltipContent>
-          </Tooltip>
-        </View>
-      </DividerWithText>
-      <View className="flex-col p-4 gap-y-4">
-        <View>
-          <Text>Status weryfikacji wiarygodności zgłoszenia:</Text>
-        </View>
-        <View>
-          <StatusBadge status={markerStatus} />
-        </View>
-      </View>
-    </>
-  );
 
   const onPhoto = () => {
     if (!markerData?.externalObjectId) {
@@ -135,7 +90,49 @@ const MarkerPreview = () => {
             onPhoto={onPhoto}
             disabled={disabled}
           />
-          {verificationStatusSection}
+          <DividerWithText>
+            <View className="flex flex-row gap-x-2">
+              <Text>
+                Status znacznika
+              </Text>
+              <Tooltip delayDuration={150}>
+                <TooltipTrigger>
+                  <AntDesign name="questioncircleo" size={20} color="black" />
+                </TooltipTrigger>
+                <TooltipContent insets={insets} className="bg-white gap-y-4 pb-4">
+                  <View>
+                    <StatusBadge status="pending" />
+                    <Text>
+                      Weryfikacja w toku. Weryfikacja może przebiegać automatycznie (natychmiastowo) lub manualnie przez upoważnionego użytkownika.
+                    </Text>
+                  </View>
+                  <View>
+                    <StatusBadge status="denied" />
+                    <Text>
+                      Znacznik został uznany za nieprawidłowy. Jeśli uważasz że niesłusznie, skontaktuj się z użytkownikiem upoważnionym w celu manualnej weryfikacji.
+                    </Text>
+                  </View>
+                  <View>
+                    <StatusBadge status="approved" />
+                    <Text>
+                      Znacznik został zaakcpetowany. Użytkownicy mogą tworzyć jego rozwiązania.
+                    </Text>
+                  </View>
+                </TooltipContent>
+              </Tooltip>
+            </View>
+          </DividerWithText>
+          <View className="flex-col p-4 gap-y-4">
+            <View>
+              <Text>Status weryfikacji wiarygodności zgłoszenia:</Text>
+            </View>
+            <View>
+              <StatusBadge status={markerStatus} />
+            </View>
+            <View>
+              <Text>Średnia pewność oceny: {Math.round(100 * photos.reduce((prev, curr) => prev + curr.confidence, 0) / photos.length)}%</Text>
+            </View>
+          </View>
           {markerStatus === 'approved' && (
           <View className="flex-col p-4 gap-y-4">
             <DividerWithText>

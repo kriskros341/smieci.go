@@ -25,6 +25,7 @@ interface PhotoGalleryProps {
   photos: {
     uri: string;
     blurhash?: string;
+    confidence: number;
   }[];
   onPhoto?: () => void;
   reorder?: (newData: any) => void;
@@ -33,7 +34,26 @@ interface PhotoGalleryProps {
   disabled?: boolean;
 }
 
+
+// Linear interpolation between colors
+const interpolateColor = (val: number) => {
+
+  // RGB values for our colors
+  const startColor = [22, 163, 74];  // green-600
+  const endColor = [202, 138, 4];    // yellow-600
+  // Normalize value from [0.5, 1] to [0, 1]
+  const t = (val - 0.5) * 2;
+  
+  // Interpolate each RGB component
+  const r = Math.round(startColor[0] + (endColor[0] - startColor[0]) * t);
+  const g = Math.round(startColor[1] + (endColor[1] - startColor[1]) * t);
+  const b = Math.round(startColor[2] + (endColor[2] - startColor[2]) * t);
+
+  return `rgb(${r}, ${g}, ${b})`;
+};
+
 export const PhotoGallery = (props: PhotoGalleryProps) => {
+  const [isConfidenceHidden, setIsConfidenceHidden] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
   const translateX = useSharedValue(0);
   const tempTranslateX = useSharedValue(0);
@@ -163,13 +183,30 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
           removeClippedSubviews={false}
           keyExtractor={(data, index) => data.uri + index}
           renderItem={({ item }) => (
-            <AnimatedImage
-              style={style}
-              key={item.uri}
-              className={cn("aspect-square h-full bg-green")}
-              source={{ uri: item.uri }}
-              placeholder={{ blurhash: item.blurhash }}
-            />
+            <View className="relative aspect-square h-full">
+              <AnimatedImage
+                style={style}
+                key={item.uri}
+                className={cn("flex-1 bg-green")}
+                source={{ uri: item.uri }}
+                placeholder={{ blurhash: item.blurhash }}
+              />
+              {item.confidence && (
+              <Pressable onPressOut={() => setIsConfidenceHidden(current => !current)}>
+                <Animated.View className={cn("absolute bottom-4 right-4 rounded-full px-4 py-2 bg-white flex-row items-center")} style={style}>
+                  {!isConfidenceHidden && (
+                    <>
+                      <View className="w-4 h-4 mr-2 rounded-full" style={{ backgroundColor: interpolateColor(item.confidence) }} />
+                      <Text className="mr-2">
+                        Pewność oceny: {Math.round(item.confidence * 100)}%
+                      </Text>
+                    </>
+                    )}
+                    {isConfidenceHidden ? <Text>{'<'}</Text> : <Text>X</Text>}
+                  </Animated.View>
+                </Pressable>
+              )}
+            </View>
           )}
         />
       </GestureDetector>
