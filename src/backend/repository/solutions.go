@@ -141,10 +141,7 @@ func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []
 	}
 
 	// Validate images
-
-	fmt.Println("filenames", filenames)
-
-	isValid, err := helpers.ValidateImagesWithPython(filenames)
+	isValid, _, err := helpers.ValidateImagesWithPython(filenames)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -167,7 +164,6 @@ func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []
 	default:
 		err = fmt.Errorf("invalid status %s", status)
 	}
-
 	return err
 }
 

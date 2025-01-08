@@ -203,10 +203,13 @@ func (r *markerRepository) CreateMarker(marker models.CreateMarkerBody, userId s
 
 	// Marker validation based on images
 
-	isValid, err := helpers.ValidateImagesWithPython(filenames)
+	isValid, confidences, err := helpers.ValidateImagesWithPython(filenames)
 	if err != nil {
 		return -1, err
 	}
+
+	fmt.Println("isValid", isValid)
+	fmt.Println("confidences", confidences)
 
 	status := "pending"
 	if isValid {
@@ -217,6 +220,19 @@ func (r *markerRepository) CreateMarker(marker models.CreateMarkerBody, userId s
 
 	updateQuery := `UPDATE markers SET status = $1 WHERE id = $2`
 	_, err = r.db.Exec(updateQuery, status, markerId)
+	if err != nil {
+		return -1, err
+	}
+
+	updateConfidencesQuery := ""
+	for i, uploads := range uploads {
+		updateConfidencesQuery += fmt.Sprintf(`UPDATE relation_marker_uploads SET confidence = %f WHERE uploadid = %d;`, confidences[i], uploads.ID)
+	}
+	_, err = r.db.Exec(updateConfidencesQuery)
+	if err != nil {
+		return -1, err
+	}
+
 	return markerId, err
 }
 

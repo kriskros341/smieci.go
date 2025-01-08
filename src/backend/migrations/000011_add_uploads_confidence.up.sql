@@ -1,0 +1,1 @@
+ALTER TABLE relation_marker_uploads ADD COLUMN confidence float default null;

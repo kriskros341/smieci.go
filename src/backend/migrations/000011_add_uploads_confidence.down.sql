@@ -1,0 +1,1 @@
+ALTER TABLE relation_marker_uploads DROP COLUMN confidence;

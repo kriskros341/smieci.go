@@ -57,6 +57,7 @@ class ImageProcessRequest(BaseModel):
 
 class ValidationResponse(BaseModel):
     valid: bool
+    confidences: List[float]
 
 
 @app.post("/validate-images", response_model=ValidationResponse)
@@ -82,14 +83,18 @@ async def validate_images(
         images_results = results.xyxy
 
         detections_found = False
-        for image_result in images_results:
+        confidences: list[float] = [0.0 for _ in range(len(files))]
+        for i, image_result in enumerate(images_results):
+            confidence = 0
             for detection in image_result:
-                confidence = detection[4].item()
+                detection_confidence = detection[4].item()
+                confidence = max(confidence, detection_confidence)
                 if confidence > DETECTION_CONFIDENCE_THRESHOLD:
                     detections_found = True
-                    break
-        print("detections_found", detections_found)
-        return ValidationResponse(valid=detections_found)
+            confidences[i] = confidence
+        print("l(confidences) == l(files)", len(confidences) == len(files))
+        print("detections_found", detections_found, confidences)
+        return ValidationResponse(valid=detections_found, confidences=confidences)
 
     except Exception as e:
         print(f"Error processing images: {str(e)}")
