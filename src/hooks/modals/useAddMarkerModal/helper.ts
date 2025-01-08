@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { _createMarker } from "@api/markers";
 import { useAxios } from "@hooks/use-axios";
 import useLocation from "@hooks/useLocation";
-import Toast from "react-native-toast-message";
 
 export type editorStateType = {
   latitude?: number;
@@ -86,13 +85,8 @@ export const useCreateMarkerMutation = () => {
         latitude: latitude!,
         longitude: longitude!,
       };
-      const { id } = await _createMarker(axios, payload);
-    },
-    onSuccess({ isValid, message }: any) {
-      Toast.show({ // KCTODO przenieść
-        type: isValid ? 'success' : 'error',
-        text1: message,
-      })
+      const result = await _createMarker(axios, payload);
+      return result;
     },
     onSettled() {
       queryClient.invalidateQueries({ queryKey: ["/markers"] });

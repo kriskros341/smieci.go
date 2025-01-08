@@ -4,14 +4,17 @@ import { LatLng } from "react-native-maps";
 import MarkerEditor from "@components/editors/MarkerEditor";
 import { useCreateMarkerMutation, useEditorState } from "./helper";
 import { ActivityIndicator, Modal, View } from "react-native";
+import Toast from "react-native-toast-message";
+import { useRouter } from "expo-router";
 
 type useAddMarkerModalOptions = {
   onMoveMarkerPress: () => void,
-  onCancel: () => void,
+  resetMapStrategy: () => void,
 }
 
 export const useAddMarkerModal = (options: useAddMarkerModalOptions) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const router = useRouter()
 
   const editorState = useEditorState();
   const createMarkersMutation = useCreateMarkerMutation();
@@ -22,21 +25,36 @@ export const useAddMarkerModal = (options: useAddMarkerModalOptions) => {
   };
 
   const setMarkerCoordinates = (coords: LatLng) => {
-    setIsModalVisible(true)
+    setIsModalVisible(true);
+    options.resetMapStrategy?.();
     editorState.changeEditorState({ ...coords });
   };
 
   const onSubmit = async () => {
-    await createMarkersMutation.mutateAsync(editorState);
-    editorState.reset();
-    setIsModalVisible(false);
-    options.onCancel?.()
+    try {
+      const {id, isValid, message}: any = await createMarkersMutation.mutateAsync(editorState);
+      setIsModalVisible(false);
+      Toast.show({
+        type: isValid ? 'success' : 'error',
+        text1: message,
+      });
+
+      if (isValid) {
+        router.push({ pathname: `markers/${id}` })
+      }
+    } catch {
+      Toast.show({
+        type: 'error',
+        text1: 'Wystąpił błąd',
+      })
+    }
   };
 
   useEffect(() => {
     return () => {
       editorState.reset();
-      options.onCancel?.()
+      setIsModalVisible(false);
+      options.resetMapStrategy?.()
     }
   }, [])
 

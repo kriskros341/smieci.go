@@ -15,7 +15,7 @@ const Map = () => {
     onMoveMarkerPress: () => {
       changeMapStrategy("moveMarkerStrategy")
     },
-    onCancel: () => {
+    resetMapStrategy: () => {
       changeMapStrategy("viewMarkersStrategy")
     }
   })
