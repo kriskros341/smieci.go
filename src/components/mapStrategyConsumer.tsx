@@ -200,7 +200,7 @@ const MapStrategyConsumer = ({
   if (!location || isPending || error) {
     return (
       <View className="flex justify-center flex-1 h-full">
-        <ActivityIndicator size="large" color="#00ff00" />
+        <ActivityIndicator size="large" color="#10a37f" />
       </View>
     );
   }
@@ -265,7 +265,7 @@ const MapStrategyConsumer = ({
       </MapView>
       {isFetching && (
         <View className="absolute flex justify-center w-10 h-10 bg-white opacity-75 top-3 left-3 align-center">
-          <ActivityIndicator size="small" />
+          <ActivityIndicator size="small" color="#10a37f" />
         </View>
       )}
     </View>

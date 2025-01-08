@@ -89,7 +89,7 @@ export const useCreateMarkerMutation = () => {
       const { id } = await _createMarker(axios, payload);
     },
     onSuccess({ isValid, message }: any) {
-      Toast.show({
+      Toast.show({ // KCTODO przenieść
         type: isValid ? 'success' : 'error',
         text1: message,
       })

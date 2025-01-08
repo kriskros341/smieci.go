@@ -176,7 +176,7 @@ const PreivewMarkerSolution = () => {
         headerRight: () => (
           <View className="flex flex-row gap-4">
             <StatusBadge status={markerData?.status ?? 'pending'} />
-            {isPending ? <ActivityIndicator /> : Trigger}
+            {isPending ? <ActivityIndicator color="#10a37f" /> : Trigger}
           </View>
         ),
       });

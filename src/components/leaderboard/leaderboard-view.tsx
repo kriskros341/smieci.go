@@ -42,7 +42,7 @@ const LeaderboardView: React.FC<Props> = ({ leaderboardType }) => {
   if (isPending) {
     return (
       <View className="items-center justify-center flex-1">
-        <ActivityIndicator size="large" color="#1d4ed8" />
+        <ActivityIndicator size="large" color="#10a37f" />
         <Text className="mt-4 text-slate-600">Wczytywanie rankingu...</Text>
       </View>
     );

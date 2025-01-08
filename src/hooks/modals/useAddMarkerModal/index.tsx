@@ -51,7 +51,7 @@ export const useAddMarkerModal = (options: useAddMarkerModalOptions) => {
     >
       {createMarkersMutation.isPending ? (
         <View className="flex-1 justify-center">
-          <ActivityIndicator size="large" />
+          <ActivityIndicator size="large" color="#10a37f" />
         </View>
       ) : (
         <MarkerEditor

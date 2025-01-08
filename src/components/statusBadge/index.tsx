@@ -31,7 +31,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
     );
   }
 
-  return <View className="justify-end">{component}</View>;
+  return <View className="justify-end shadow-lg">{component}</View>;
 };
 
 export default StatusBadge;

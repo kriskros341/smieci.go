@@ -35,7 +35,7 @@ const CustomQueryClientProvider = (props: any) => {
   if (!queryClientRef.current) {
     return (
       <View className="flex justify-center items-center">
-        <ActivityIndicator />
+        <ActivityIndicator color="#10a37f"/>
       </View>
     );
   }

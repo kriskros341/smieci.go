@@ -1,4 +1,5 @@
 import PhotoGallery from "@components/photoGallery";
+import SolutionStatusBadge from "@components/solutionStatusBadge";
 import StatusBadge from "@components/statusBadge";
 import { AntDesign } from "@expo/vector-icons";
 import { useEditExternalMarkerPhotosModal } from "@hooks/modals/useEditExternalMarkerPhotosModal";
@@ -101,20 +102,6 @@ const MarkerPreview = () => {
         <View>
           <StatusBadge status={markerStatus} />
         </View>
-        <View>
-          {markerData?.pendingVerificationsCount === 0 ? (
-            <Link asChild href={`markers/${markerData?.id}/solvePreface`}>
-              <Button title="Podziel się rezultatem" disabled={disabled || !photos.length} />
-            </Link>
-          ) : (
-            <Link
-              asChild
-              href={`markers/${markerData?.id}/solution/${markerData?.latestSolutionId}`}
-            >
-              <Button title="Wyświetl rozwiązanie" />
-            </Link>
-          )}
-        </View>
       </View>
     </>
   );
@@ -149,6 +136,59 @@ const MarkerPreview = () => {
             disabled={disabled}
           />
           {verificationStatusSection}
+          {markerStatus === 'approved' && (
+          <View className="flex-col p-4 gap-y-4">
+            <DividerWithText>
+              <View className="flex flex-row gap-x-2">
+                <Text>
+                  Status rozwiązania
+                </Text>
+                <Tooltip delayDuration={150}>
+                  <TooltipTrigger>
+                    <AntDesign name="questioncircleo" size={20} color="black" />
+                  </TooltipTrigger>
+                  <TooltipContent insets={insets} className="bg-white gap-y-4 pb-4">
+                    <View>
+                      <SolutionStatusBadge status="pending" />
+                      <Text>
+                        Znacznik nie ma jeszcze zaakcpetowanego rozwiązania.
+                      </Text>
+                    </View>
+                    <View>
+                      <SolutionStatusBadge status="denied" />
+                      <Text>
+                        Rozwiązanie zostało odrzucone.
+                      </Text>
+                    </View>
+                    <View>
+                      <SolutionStatusBadge status="approved" />
+                      <Text>
+                        Rozwiązanie zostało zaakcpetowane, co oznacza że śmieci ze zdjęć zostały wyprzątane.
+                      </Text>
+                    </View>
+                  </TooltipContent>
+                </Tooltip>
+              </View>
+            </DividerWithText>
+            <View>
+              <SolutionStatusBadge status={markerData?.solvedAt ? 'approved' : 'pending'} />
+            </View>
+            <View>
+              {markerData?.pendingVerificationsCount === 0 ? (
+                <Link asChild href={`markers/${markerData?.id}/solvePreface`}>
+                  <Button title="Podziel się rezultatem" disabled={disabled || !photos.length} />
+                </Link>
+              ) : (
+                <Link
+                  asChild
+                  href={`markers/${markerData?.id}/solution/${markerData?.latestSolutionId}`}
+                >
+                  <Button title="Wyświetl rozwiązanie" />
+                </Link>
+              )}
+            </View>
+          </View>
+        )}
         <DividerWithText>
           <View className="flex flex-row gap-x-2">
             <Text>
@@ -238,7 +278,7 @@ const MarkerPreview = () => {
             </MapView>
           ) : (
             <View className="w-full aspect-square">
-              <ActivityIndicator />
+              <ActivityIndicator color="#10a37f" />
             </View>
           )}
           <View className="flex flex-col p-4">

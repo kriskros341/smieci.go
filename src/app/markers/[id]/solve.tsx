@@ -173,7 +173,7 @@ const SolveMarker = () => {
   useLayoutEffect(() => {
     if (solveMarkerMutation.isPending) {
       navigation.setOptions({
-        headerRight: () => <ActivityIndicator />,
+        headerRight: () => <ActivityIndicator color="#10a37f" />,
       });
     } else {
       navigation.setOptions({
