@@ -19,7 +19,6 @@ const MarkerStack = () => {
         }}
       />
       <Stack.Screen name="support" options={{ title: "Wesprzyj" }} />
-      <Stack.Screen name="supporters" options={{ title: "Wspierający" }} />
       <Stack.Screen name="solvePreface" options={{ title: "Rozwiązywanie" }} />
       <Stack.Screen name="solve" options={{ title: "Rozwiązywanie" }} />
       <Stack.Screen

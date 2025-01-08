@@ -3,7 +3,7 @@ import { View, Text } from "react-native";
 const Supporters = () => {
   return (
     <View>
-      <Text>jdjdjd</Text>
+      <Text>TODO</Text>
     </View>
   );
 };

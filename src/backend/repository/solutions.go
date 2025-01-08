@@ -13,7 +13,7 @@ import (
 
 type SolutionsRepository interface {
 	GetSolutionsInfoForMarker(markerId string) (*models.LatestSolutionPayload, error)
-	CreateSolution(markerId string, participantsIds []string, primaryFilesIds []int64, additionalFilesIds []int64) error
+	CreateSolution(markerId string, participantsIds []string, primaryFilesIds []int64, additionalFilesIds []int64) (bool, error)
 	DoesExistById(solutionId int) (bool, error)
 	ApproveMarkerSolution(solutionId int) error
 	DenyMarkerSolution(solutionId int) error
@@ -64,10 +64,10 @@ func (r *solutionsRepository) GetSolutionsInfoForMarker(markerId string) (*model
 	return &result, nil
 }
 
-func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []string, primaryFilesIds []int64, additionalFilesIds []int64) error {
+func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []string, primaryFilesIds []int64, additionalFilesIds []int64) (bool, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// STEP: Create solution
@@ -77,7 +77,7 @@ func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []
 	err = tx.QueryRow(insertSolutionQuery).Scan(&solutionId)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return false, err
 	}
 
 	// STEP: POPULATE SOLUTIONS-USERS RELATION
@@ -94,7 +94,7 @@ func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []
 			var error = gin.H{"error": err.Error()}
 			fmt.Println(error)
 			tx.Rollback()
-			return err
+			return false, err
 		}
 	}
 
@@ -115,13 +115,13 @@ func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []
 			var error = gin.H{"error": err.Error()}
 			fmt.Println(error)
 			tx.Rollback()
-			return err
+			return false, err
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// STEP: VERIFY SOLUTION BASED ON UPLOADS
@@ -137,20 +137,20 @@ func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []
 	`, solutionId)
 
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// Validate images
 	isValid, _, err := helpers.ValidateImagesWithPython(filenames)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return false, err
 	}
 
 	fmt.Println("isValid", isValid)
 
 	status := "pending"
-	if isValid {
+	if !isValid {
 		status = "approved"
 	} else {
 		status = "denied"
@@ -164,7 +164,8 @@ func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []
 	default:
 		err = fmt.Errorf("invalid status %s", status)
 	}
-	return err
+
+	return isValid, err
 }
 
 func (r *solutionsRepository) DoesExistById(solutionId int) (bool, error) {

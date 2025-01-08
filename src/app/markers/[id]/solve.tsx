@@ -43,12 +43,16 @@ const _postMarkerSolution = async (
     .post(`/markers/${markerId}/solve`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     })
+    .then(d => d.data as SolveResponse)
     .catch((e) => console.warn("blad", JSON.stringify(e, undefined, 2)));
 };
 
+type SolveResponse = { isValid: boolean, message: string }
+
 type useSolveMarkerMutationOptions = {
-  onSuccess: () => void;
+  onSuccess: (data: SolveResponse) => void;
 };
+
 
 const useSolveMarkerMutation = (
   markerId: string,
@@ -58,10 +62,12 @@ const useSolveMarkerMutation = (
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: (solveMarkerPayload: SolveMarkerEditorFormValues) => {
-      return _postMarkerSolution(axios, markerId, solveMarkerPayload);
+      return _postMarkerSolution(axios, markerId, solveMarkerPayload)
     },
-    onSuccess: () => {
-      options?.onSuccess?.();
+    onSuccess: (result: SolveResponse | void) => {
+      if (result) {
+        options?.onSuccess?.(result);
+      }
       const cache = queryClient.getQueryData(['all-markers']) as Map<string, any>;
       cache.delete(markerId);
     },
@@ -78,14 +84,16 @@ const SolveMarker = () => {
   const { user } = useUser();
   const queryClient = useQueryClient();
   const solveMarkerMutation = useSolveMarkerMutation(id as string, {
-    onSuccess: () => {
-      queryClient.refetchQueries({ queryKey: [`/markers/${id}`, "/markers"] });
-      navigation.removeListener("beforeRemove", onBeforeRemove);
-      navigation.goBack();
+    onSuccess: ({ isValid, message }) => {
+      if (isValid) {
+        queryClient.refetchQueries({ queryKey: [`/markers/${id}`, "/markers"] });
+        navigation.removeListener("beforeRemove", onBeforeRemove);
+        navigation.goBack();
+      }
       Toast.show({
-        type: "success",
-        text1: "Oczekiwanie na weryfikację zgłoszenia.",
-        text2: "Dziękujemy!",
+        type: isValid ? "success" : "error",
+        text1: message,
+        text2: isValid ? "Dziękujemy!" : "Spróbuj ponownie z innymi zdjęciami",
       });
     },
   });

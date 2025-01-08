@@ -14,8 +14,8 @@
     "tunnel-lt": "lt --port 8080 --subdomain yourpreferredname",
     "clean": "rm -rf node_modules && npm cache clean --force",
     "android": "expo run:android",
-    "migrate-down": "migrate -source file://src/backend/migrations -database postgres://postgres:dbpass@localhost:5432/postgres?sslmode=disable down",
-    "migrate-up": "migrate -source file://src/backend/migrations -database postgres://postgres:dbpass@localhost:5432/postgres?sslmode=disable up"
+    "migrate-down": "migrate -source file://src/backend/migrations -database postgres://postgres:hnwCJmz3fJuHElCRkQeenzN1htcFKvaM@localhost:5432/postgres?sslmode=disable down",
+    "migrate-up": "migrate -source file://src/backend/migrations -database postgres://postgres:hnwCJmz3fJuHElCRkQeenzN1htcFKvaM@localhost:5432/postgres?sslmode=disable up"
   },
   "dependencies": {
     "@babel/runtime": "^7.26.0",

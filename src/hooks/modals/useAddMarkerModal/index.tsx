@@ -3,7 +3,7 @@ import { LatLng } from "react-native-maps";
 
 import MarkerEditor from "@components/editors/MarkerEditor";
 import { useCreateMarkerMutation, useEditorState } from "./helper";
-import { Modal } from "react-native";
+import { ActivityIndicator, Modal, View } from "react-native";
 
 type useAddMarkerModalOptions = {
   onMoveMarkerPress: () => void,
@@ -49,12 +49,18 @@ export const useAddMarkerModal = (options: useAddMarkerModalOptions) => {
         console.log("close");
       }}
     >
-      <MarkerEditor
-        editorState={editorState}
-        onSubmit={onSubmit}
-        moveMarker={onMoveMarkerPress}
-        isPending={createMarkersMutation.isPending}
-      />
+      {createMarkersMutation.isPending ? (
+        <View className="flex-1 justify-center">
+          <ActivityIndicator size="large" />
+        </View>
+      ) : (
+        <MarkerEditor
+          editorState={editorState}
+          onSubmit={onSubmit}
+          moveMarker={onMoveMarkerPress}
+          isPending={createMarkersMutation.isPending}
+        />
+      )}
     </Modal>
   );
 

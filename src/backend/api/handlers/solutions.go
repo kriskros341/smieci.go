@@ -98,14 +98,21 @@ func (e *Env) PostMarkerSolution(c *gin.Context) {
 		participantsIds = append(participantsIds, participant.UserId)
 	}
 
-	err = e.Solutions.CreateSolution(getMarkerRequestPayload.MarkerId, participantsIds, primaryFilesIds, additionalFilesIds)
+	isValid, err := e.Solutions.CreateSolution(getMarkerRequestPayload.MarkerId, participantsIds, primaryFilesIds, additionalFilesIds)
 	if err != nil {
 		var error = gin.H{"error": err.Error()}
 		fmt.Println(error)
 		c.JSON(http.StatusInternalServerError, error)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Solution created successfully"})
+
+	if isValid {
+		c.JSON(http.StatusOK, gin.H{"isValid": true, "message": "Solution created successfully"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"isValid": false, "message": "Solution has been denied by automatic system"})
+
 }
 
 type GetSolutionRequestPayload struct {

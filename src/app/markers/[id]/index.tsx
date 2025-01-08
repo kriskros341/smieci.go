@@ -190,7 +190,7 @@ const MarkerPreview = () => {
                       </View>
                     </View>
                   ))}
-                {markerSupportersData?.length > 3 && (
+                {/* {markerSupportersData?.length > 3 && (
                   <Button
                     title="Więcej"
                     onPress={() =>
@@ -199,7 +199,7 @@ const MarkerPreview = () => {
                       })
                     }
                   />
-                )}
+                )} */}
               </View>
             ) : (
               <View className="py-4">
