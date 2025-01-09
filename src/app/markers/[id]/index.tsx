@@ -84,7 +84,7 @@ const MarkerPreview = () => {
             </View>
           )}
           <PhotoGallery
-            photos={[...photos]}
+            photos={photos}
             showAddPhotoButton={!!markerData?.externalObjectId}
             isDragDisabled
             onPhoto={onPhoto}

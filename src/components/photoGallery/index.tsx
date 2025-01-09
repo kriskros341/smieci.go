@@ -18,6 +18,7 @@ import Animated, {
 
 import { cn } from "@utils/cn";
 import { DraggablePhoto } from "./draggablePhoto";
+import { useContextMenu } from "@/app/markers/[id]/solution/[solutionId]";
 
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
@@ -25,13 +26,14 @@ interface PhotoGalleryProps {
   photos: {
     uri: string;
     blurhash?: string;
-    confidence: number;
+    confidence?: number;
   }[];
   onPhoto?: () => void;
   reorder?: (newData: any) => void;
   isDragDisabled?: boolean;
   showAddPhotoButton?: boolean;
   disabled?: boolean;
+  showActionsMenu?: boolean,
 }
 
 
@@ -59,6 +61,14 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
   const tempTranslateX = useSharedValue(0);
   const mainPhotoLayoutWidth = useSharedValue(0);
   const mainPhotoRef = useRef<FlatList<any>>(null);
+
+  const { Trigger, Menu } = useContextMenu({ items: [
+    { text: 'Usuń', callback: () => {
+      const photos = [...props.photos]
+      photos.splice(focusedIndex, 1)
+      props.reorder?.(photos);  
+    } },
+  ] });
 
   const onFocusChange = (index: number) => {
     translateX.value = withTiming(index * -mainPhotoLayoutWidth.value, {
@@ -146,7 +156,7 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
       );
     }
     return (
-      <Pressable onPress={props.onPhoto} disabled={props.disabled}>
+      <Pressable onPress={() => props.onPhoto?.()} disabled={props.disabled}>
         {({ pressed }) => (
           <Animated.View className="flex items-center justify-center w-full aspect-square">
             <View
@@ -171,7 +181,12 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
   }
 
   return (
-    <GestureHandlerRootView>
+    <GestureHandlerRootView className="relative">
+      {props.showActionsMenu && (
+        <View className="absolute top-4 right-4 w-10 h-10 bg-white z-10 rounded-full justify-center items-center">
+          {Trigger}
+        </View>
+      )}
       <GestureDetector gesture={gesture}>
         <Animated.FlatList
           onLayout={handleLayout}
@@ -227,7 +242,7 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
           )}
         />
         {props.showAddPhotoButton && (
-          <Pressable onPress={props.onPhoto} disabled={props.disabled}>
+          <Pressable onPress={() => props.onPhoto?.()} disabled={props.disabled}>
             {({ pressed }) => (
               <Animated.View className="flex items-center justify-center h-full aspect-square">
                 <View
@@ -249,6 +264,7 @@ export const PhotoGallery = (props: PhotoGalleryProps) => {
           </Pressable>
         )}
       </View>
+      {Menu}
     </GestureHandlerRootView>
   );
 };

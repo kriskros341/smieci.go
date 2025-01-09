@@ -32,7 +32,8 @@ type useContextMenuOptions = {
   items: { text: string; callback: Function }[];
 };
 
-const useContextMenu = ({ items }: useContextMenuOptions) => {
+// KCTODO Wyciągnąć
+export const useContextMenu = ({ items }: useContextMenuOptions) => {
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
   const [menuVisible, setMenuVisible] = useState(false);
 

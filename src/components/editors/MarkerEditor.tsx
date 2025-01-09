@@ -8,6 +8,7 @@ import { hasCoords } from "@/utils/hasCoords";
 
 import PhotoGallery from "../photoGallery";
 import { useEditorState } from "@hooks/modals/useAddMarkerModal/helper";
+import { ScrollView } from "react-native-gesture-handler";
 
 type CreateMarkerEditorProps = {
   onSubmit: () => void;
@@ -36,7 +37,7 @@ const MarkerEditor = ({
     );
   };
 
-  const onPhoto = async () => {
+  const onPhoto = async (index?: number) => {
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
@@ -52,12 +53,13 @@ const MarkerEditor = ({
   }));
 
   return (
-    <>
+    <ScrollView>
       <PhotoGallery
         photos={d}
         onPhoto={onPhoto}
         reorder={editorState.reorderPhotoUris}
         showAddPhotoButton
+        showActionsMenu
       />
       <View className="p-4">
         <Text>Szerokość geograficzna</Text>
@@ -84,7 +86,7 @@ const MarkerEditor = ({
           />
         </Pressable>
       </View>
-    </>
+    </ScrollView>
   );
 };
 
