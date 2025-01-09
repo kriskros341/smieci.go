@@ -47,29 +47,17 @@ const _postMarkerSolution = async (
     .catch((e) => console.warn("blad", JSON.stringify(e, undefined, 2)));
 };
 
-type SolveResponse = { isValid: boolean, message: string }
-
-type useSolveMarkerMutationOptions = {
-  onSuccess: (data: SolveResponse) => void;
-};
-
+type SolveResponse = { isTrashFound: boolean, message: string }
 
 const useSolveMarkerMutation = (
   markerId: string,
-  options: useSolveMarkerMutationOptions,
 ) => {
   const axios = useAxios();
-  const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: (solveMarkerPayload: SolveMarkerEditorFormValues) => {
       return _postMarkerSolution(axios, markerId, solveMarkerPayload)
     },
     onSuccess: (result: SolveResponse | void) => {
-      if (result) {
-        options?.onSuccess?.(result);
-      }
-      const cache = queryClient.getQueryData(['all-markers']) as Map<string, any>;
-      cache.delete(markerId);
     },
   });
 
@@ -83,20 +71,7 @@ const SolveMarker = () => {
   const { YesNoModal, openYesNoModal } = useYesNoModal();
   const { user } = useUser();
   const queryClient = useQueryClient();
-  const solveMarkerMutation = useSolveMarkerMutation(id as string, {
-    onSuccess: ({ isValid, message }) => {
-      if (isValid) {
-        queryClient.refetchQueries({ queryKey: [`/markers/${id}`, "/markers"] });
-        navigation.removeListener("beforeRemove", onBeforeRemove);
-        navigation.goBack();
-      }
-      Toast.show({
-        type: isValid ? "success" : "error",
-        text1: message,
-        text2: isValid ? "Dziękujemy!" : "Spróbuj ponownie z innymi zdjęciami",
-      });
-    },
-  });
+  const solveMarkerMutation = useSolveMarkerMutation(id as string);
 
   const methods = useForm<SolveMarkerEditorFormValues>({
     defaultValues: {
@@ -115,7 +90,7 @@ const SolveMarker = () => {
   } = methods;
 
   const validate = (data: SolveMarkerEditorFormValues) => {
-    let isValid = true;
+    let isTrashFound = true;
     if (!markerData?.externalObjectId) {
       // Jeśli znacznik jest zewnętrzny to nie waliduj czy jest komplet zdjęć
       data.photos.forEach(({ uri }, index) => {
@@ -124,20 +99,33 @@ const SolveMarker = () => {
             type: "manual",
             message: "Pole wymagane",
           });
-          isValid = false;
+          isTrashFound = false;
         }
       });
     }
-    return isValid;
+    return isTrashFound;
   };
 
-  const onSubmit = (data: SolveMarkerEditorFormValues) => {
+  const onSubmit = async (data: SolveMarkerEditorFormValues) => {
     // Clear previous errors
     clearErrors();
 
     // Run custom validation and submit if valid
     if (validate(data)) {
-      solveMarkerMutation.mutate(data);
+      const result: any = await solveMarkerMutation.mutateAsync(data);
+
+      Toast.show({
+        type: !result.isTrashFound ? "success" : "error",
+        text1: result.message,
+        text2: !result.isTrashFound ? "Dziękujemy!" : "Spróbuj ponownie z innymi zdjęciami",
+      });
+
+      if (!result.isTrashFound) {
+        queryClient.invalidateQueries({ queryKey: [`/markers/${id}`, "/markers"] });
+        // KCTODO nie działa. Nie chcę myśleć czemu. poprostu to wyjebałem
+        // navigation.removeListener("beforeRemove", onBeforeRemove);
+        navigation.goBack();
+      }
     } else {
       Toast.show({
         type: "error",
@@ -184,9 +172,9 @@ const SolveMarker = () => {
         ),
       });
     }
-    navigation.addListener("beforeRemove", onBeforeRemove);
+    // navigation.addListener("beforeRemove", onBeforeRemove);
     return () => {
-      navigation.removeListener("beforeRemove", onBeforeRemove);
+      // navigation.removeListener("beforeRemove", onBeforeRemove);
     };
   }, [navigation, onSubmit, solveMarkerMutation.isPending]);
 

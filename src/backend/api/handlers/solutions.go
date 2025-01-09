@@ -98,7 +98,7 @@ func (e *Env) PostMarkerSolution(c *gin.Context) {
 		participantsIds = append(participantsIds, participant.UserId)
 	}
 
-	isValid, err := e.Solutions.CreateSolution(getMarkerRequestPayload.MarkerId, participantsIds, primaryFilesIds, additionalFilesIds)
+	isTrashFound, err := e.Solutions.CreateSolution(getMarkerRequestPayload.MarkerId, participantsIds, primaryFilesIds, additionalFilesIds)
 	if err != nil {
 		var error = gin.H{"error": err.Error()}
 		fmt.Println(error)
@@ -106,13 +106,14 @@ func (e *Env) PostMarkerSolution(c *gin.Context) {
 		return
 	}
 
-	if isValid {
-		c.JSON(http.StatusOK, gin.H{"isValid": true, "message": "Solution created successfully"})
-		return
+	message := ""
+	if isTrashFound {
+		message = "Rozwiązanie zostało odrzucone przez autoamtyczny system."
+	} else {
+		message = "Rozwiązanie zostało utworzone pomyślnie!"
 	}
 
-	c.JSON(http.StatusOK, gin.H{"isValid": false, "message": "Solution has been denied by automatic system"})
-
+	c.JSON(http.StatusOK, gin.H{"isTrashFound": isTrashFound, "message": message})
 }
 
 type GetSolutionRequestPayload struct {

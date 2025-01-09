@@ -32,14 +32,14 @@ export const useAddMarkerModal = (options: useAddMarkerModalOptions) => {
 
   const onSubmit = async () => {
     try {
-      const {id, isValid, message}: any = await createMarkersMutation.mutateAsync(editorState);
+      const {id, isTrashFound, message}: any = await createMarkersMutation.mutateAsync(editorState);
       setIsModalVisible(false);
       Toast.show({
-        type: isValid ? 'success' : 'error',
+        type: isTrashFound ? 'success' : 'error',
         text1: message,
       });
 
-      if (isValid) {
+      if (isTrashFound) {
         router.push({ pathname: `markers/${id}` })
       }
     } catch {

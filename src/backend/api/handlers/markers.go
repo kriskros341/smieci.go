@@ -129,7 +129,7 @@ func (e *Env) CreateMarker(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing JSON data"})
 		return
 	}
-	markerId, isValid, err := e.Markers.CreateMarker(payload, userId, filesIds)
+	markerId, isTrashFound, err := e.Markers.CreateMarker(payload, userId, filesIds)
 	if err != nil {
 		println(err.Error())
 		c.JSON(http.StatusInternalServerError, err.Error())
@@ -137,13 +137,13 @@ func (e *Env) CreateMarker(c *gin.Context) {
 	}
 
 	message := ""
-	if isValid {
+	if isTrashFound {
 		message = "Utworzono znacznik"
 	} else {
 		message = "Automatyczna walidacja odrzuciła zdjęcia"
 	}
 
-	c.JSON(http.StatusOK, gin.H{"id": markerId, "isValid": isValid, "message": message})
+	c.JSON(http.StatusOK, gin.H{"id": markerId, "isTrashFound": isTrashFound, "message": message})
 }
 
 type SupportMarkerBody struct {

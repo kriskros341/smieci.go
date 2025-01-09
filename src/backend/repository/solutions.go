@@ -141,31 +141,21 @@ func (r *solutionsRepository) CreateSolution(markerId string, participantsIds []
 	}
 
 	// Validate images
-	isValid, _, err := helpers.ValidateImagesWithPython(filenames)
+	isTrashFound, _, err := helpers.ValidateImagesWithPython(filenames)
 	if err != nil {
 		tx.Rollback()
 		return false, err
 	}
 
-	fmt.Println("isValid", isValid)
+	fmt.Println("isTrashFound", isTrashFound)
 
-	status := "pending"
-	if !isValid {
-		status = "approved"
-	} else {
-		status = "denied"
-	}
-
-	switch status {
-	case "approved":
+	if !isTrashFound {
 		err = r.ApproveMarkerSolution(solutionId)
-	case "denied":
+	} else {
 		err = r.DenyMarkerSolution(solutionId)
-	default:
-		err = fmt.Errorf("invalid status %s", status)
 	}
 
-	return isValid, err
+	return isTrashFound, err
 }
 
 func (r *solutionsRepository) DoesExistById(solutionId int) (bool, error) {

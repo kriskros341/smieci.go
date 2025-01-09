@@ -206,16 +206,16 @@ func (r *markerRepository) CreateMarker(marker models.CreateMarkerBody, userId s
 
 	// Marker validation based on images
 
-	isValid, confidences, err := helpers.ValidateImagesWithPython(filenames)
+	isTrashFound, confidences, err := helpers.ValidateImagesWithPython(filenames)
 	if err != nil {
 		return -1, false, err
 	}
 
-	fmt.Println("isValid", isValid)
+	fmt.Println("isTrashFound", isTrashFound)
 	fmt.Println("confidences", confidences)
 
 	status := "pending"
-	if isValid {
+	if isTrashFound {
 		status = "approved"
 	} else {
 		status = "denied"
@@ -236,7 +236,7 @@ func (r *markerRepository) CreateMarker(marker models.CreateMarkerBody, userId s
 		return -1, false, err
 	}
 
-	return markerId, isValid, err
+	return markerId, isTrashFound, err
 }
 
 func (r *markerRepository) SupportMarker(userId string, markerId int64, amount int64) error {

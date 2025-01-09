@@ -16,6 +16,7 @@ const SignUp: React.FC = () => {
   const [pendingVerification, setPendingVerification] = useState(false);
   const [code, setCode] = useState("");
   const codeVerificationCallback = useRef<(code: string) => void>();
+  const [codeErrorMessage, setCodeErrorMessage] = useState("")
 
   const {
     control,
@@ -53,17 +54,25 @@ const SignUp: React.FC = () => {
       username: string;
       password: string;
     }) => {
+      setCodeErrorMessage("")
       if (!isLoaded) {
         throw new Error("Clerk failed to load");
       }
-      await signUp.create({
-        username,
-        emailAddress,
-        password,
-      });
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      const session = await handleCodeVerification();
-      await setActive({ session });
+      try {
+        await signUp.create({
+          username,
+          emailAddress,
+          password,
+        });
+
+        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+        const session = await handleCodeVerification();
+        await setActive({ session });
+      } catch (error: any) {
+        setCodeErrorMessage(error.errors[0].longMessage)
+        console.log(JSON.stringify(error))
+        throw error
+      }
     },
 
     // TODO: convert to toast
@@ -87,6 +96,7 @@ const SignUp: React.FC = () => {
   };
 
   const verifyCode = async () => {
+    setCodeErrorMessage("")
     if (!isLoaded) {
       return;
     }
@@ -99,19 +109,24 @@ const SignUp: React.FC = () => {
       }
       codeVerificationCallback.current?.(completeSignUp.createdSessionId);
       router.replace("/tabs");
-    } catch (error) {
-      console.warn(`error occured ${error}`);
+    } catch (error: any) {
+      setCodeErrorMessage(error.errors[0].longMessage)
+      console.warn(`error occured ${error.message}`);
     }
   };
 
   const goBack = () => {
     setCode("");
+    setCodeErrorMessage("")
     setPendingVerification(false);
   };
 
   if (!pendingVerification) {
     return (
       <View className="w-2/3">
+        {codeErrorMessage && (
+          <Text className="text-red-600">{codeErrorMessage}</Text>
+        )}
         <Text className="mb-2 text-xl font-semibold">Stwórz konto</Text>
         <View className="flex my-2">
           <Text className="mb-2 text-xs text-slate-400">Email</Text>
@@ -239,6 +254,9 @@ const SignUp: React.FC = () => {
           className="px-3 py-2.5 border border-solid rounded-lg border-slate-300"
           placeholder="Wprowadź kod..."
         />
+        {codeErrorMessage && (
+          <Text className="text-red-600">{codeErrorMessage}</Text>
+        )}
       </View>
 
       <View className="my-2">

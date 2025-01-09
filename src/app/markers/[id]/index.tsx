@@ -9,7 +9,8 @@ import Avatar from "@ui/avatar";
 import Button from "@ui/button";
 import DividerWithText from "@ui/DividerWithText";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui/tooltip";
-import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { Link, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect } from "react";
 import { ActivityIndicator, ScrollView, Text, TextInput, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -68,6 +69,10 @@ const MarkerPreview = () => {
 
     openEditExternalMarkerPhotosModal(photos);
   };
+
+  useFocusEffect(() => {
+    refetch();
+  })
 
   console.log({ markerData });
 
