@@ -38,7 +38,9 @@ interface CustomMarkerProps extends MapMarkerProps {
   isFocused: boolean;
   mainPhotoId?: number;
   markerId: number;
-  verificationStatus?: string | null;
+  verificationStatus: string | null
+  status: string | null;
+  solvedAt?: unknown;
   mainPhotoBlurHash?: string;
   onDispayPreviewPress: () => void;
 }
@@ -47,13 +49,19 @@ interface CustomMarkerProps extends MapMarkerProps {
 const OPEN_MARKER_COLOR = "blue";
 const PENDING_MARKER_COLOR = "yellow";
 const APPROVED_MARKER_COLOR = "#10a37f";
+const DENIED_MARKER_COLOR = "red";
 
 const CustomMarker = (props: CustomMarkerProps) => {
+  // VerificationStatus = solution
+  // Status = marker
+  console.log("aa", props.solvedAt)
   let color = OPEN_MARKER_COLOR;
-  if (props.verificationStatus === "approved") {
-    color = APPROVED_MARKER_COLOR;
+  if (props.status === 'denied') {
+    color = DENIED_MARKER_COLOR
+  } else if (props.solvedAt) {
+    color = APPROVED_MARKER_COLOR; // Zatwierdzony
   } else if (props.verificationStatus === "pending") {
-    color = PENDING_MARKER_COLOR;
+    color = PENDING_MARKER_COLOR; // czeka na ręczną weryfikację.
   }
 
   const imageSrc = getUriByUploadId(props.mainPhotoId);
@@ -141,6 +149,8 @@ type Markerr = {
   id: number;
   lat: number;
   long: number;
+  status: string;
+  solvedAt?: unknown | null,
   verificationStatus?: string | null;
   mainPhotoBlurhash?: string;
   mainPhotoId?: number;
@@ -161,7 +171,6 @@ const useMarkersInRegion = (mapRegion?: Region, filterConfig?: { showResolved: b
     queryKey: regionQueryKey,
     queryFn: async () => {
       if (!mapRegion) return [];
-      console.log({ filterConfig })
       const newMarkers = await _getMarkersInRegion(axios, mapRegion, filterConfig);
 
       const cache: Map<number, Markerr> =
@@ -271,8 +280,10 @@ const MapStrategyConsumer = ({
             onDispayPreviewPress={() => {
               onMarkerPreviewClick?.(marker.id);
             }}
-            verificationStatus={marker.verificationStatus}
+            status={marker.status}
+            verificationStatus={marker.verificationStatus ?? null}
             externalObjectId={marker.externalObjectId}
+            solvedAt={marker.solvedAt}
           />
         ))}
         {customMarker}

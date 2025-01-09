@@ -10,7 +10,6 @@ import Button from "@ui/button";
 import DividerWithText from "@ui/DividerWithText";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui/tooltip";
 import { Link, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect } from "react";
 import { ActivityIndicator, ScrollView, Text, TextInput, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

@@ -49,6 +49,8 @@ func (r *markerRepository) GetMarkersInRegion(latitude float64, longitude float6
 				m.mainPhotoId, 
 				u.blurhash,
 				m.externalobjectid,
+				m.solved_at,
+				m.status,
 				ls.verification_status
 		FROM 
 				markers m
@@ -86,29 +88,29 @@ func (r *markerRepository) GetMarkersInRegion(latitude float64, longitude float6
 func (r *markerRepository) GetMarkers() ([]models.Marker, error) {
 	var markers []models.Marker
 	query := `
-		WITH latest_solutions AS (
-    SELECT 
-        s.markerid, 
-        s.verification_status, 
-        ROW_NUMBER() OVER (PARTITION BY s.markerid ORDER BY s.approved_at DESC) AS row_num
-    FROM 
-        solutions s
-		)
-
+	WITH latest_solutions AS (
 		SELECT 
-				m.id,
-				m.lat, 
-				m.long, 
-				m.mainPhotoId, 
-				u.blurhash,
-				m.externalobjectid,
-				ls.verification_status
+			s.markerid, 
+			s.verification_status, 
+			ROW_NUMBER() OVER (PARTITION BY s.markerid ORDER BY s.approved_at DESC) AS row_num
 		FROM 
-				markers m
-		WHERE 
-				m.solved_at IS NULL AND m.status != 'denied'
-		LEFT JOIN latest_solutions ls ON m.id = ls.markerid AND ls.row_num = 1
-		left JOIN uploads u ON u.id = m.mainPhotoId;`
+			solutions s
+			)
+	
+			SELECT 
+					m.id,
+					m.lat, 
+					m.long, 
+					m.mainPhotoId, 
+					u.blurhash,
+					m.externalobjectid,
+					m.solved_at,
+					m.status,
+					ls.verification_status
+			FROM 
+					markers m
+			LEFT JOIN latest_solutions ls ON m.id = ls.markerid AND ls.row_num = 1
+			left JOIN uploads u ON u.id = m.mainPhotoId`
 	println("Executing queyr", query)
 	err := r.db.Select(&markers, query)
 	return markers, err

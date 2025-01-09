@@ -6,6 +6,7 @@ import { useCreateMarkerMutation, useEditorState } from "./helper";
 import { ActivityIndicator, Modal, View } from "react-native";
 import Toast from "react-native-toast-message";
 import { useRouter } from "expo-router";
+import { Text } from "@ui/text";
 
 type useAddMarkerModalOptions = {
   onMoveMarkerPress: () => void,
@@ -18,6 +19,7 @@ export const useAddMarkerModal = (options: useAddMarkerModalOptions) => {
 
   const editorState = useEditorState();
   const createMarkersMutation = useCreateMarkerMutation();
+  const [codeErrorMessage, setCodeErrorMessage] = useState("")
 
   const onMoveMarkerPress = () => {
     setIsModalVisible(false)
@@ -31,6 +33,7 @@ export const useAddMarkerModal = (options: useAddMarkerModalOptions) => {
   };
 
   const onSubmit = async () => {
+    setCodeErrorMessage("")
     try {
       const {id, isTrashFound, message}: any = await createMarkersMutation.mutateAsync(editorState);
       setIsModalVisible(false);
@@ -43,11 +46,17 @@ export const useAddMarkerModal = (options: useAddMarkerModalOptions) => {
       if (isTrashFound) {
         router.push({ pathname: `markers/${id}` })
       }
-    } catch {
-      Toast.show({
-        type: 'error',
-        text1: 'Wystąpił błąd',
-      })
+    } catch (error: any) {
+			// KCTODO NIE MAM POMYSŁU JAK TO OBSŁUŻYĆ TYMCZASOWO ZWACAM BYLE JAKI KOD
+      if (error.status === 420) {
+        setCodeErrorMessage("Znacznik zbyt blisko innego znacznika! Promień graniczny: 30m")
+      } else {
+        console.log(JSON.parse(JSON.stringify(error)), error, "djdjd")
+        Toast.show({
+          type: 'error',
+          text1: 'Wystąpił błąd',
+        })
+      }
     }
   };
 
@@ -68,6 +77,10 @@ export const useAddMarkerModal = (options: useAddMarkerModalOptions) => {
         console.log("close");
       }}
     >
+
+      {codeErrorMessage && (
+        <Text className="text-red-600">{codeErrorMessage}</Text>
+      )}
       {createMarkersMutation.isPending ? (
         <View className="flex-1 justify-center">
           <ActivityIndicator size="large" color="#10a37f" />

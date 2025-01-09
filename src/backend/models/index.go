@@ -15,13 +15,15 @@ type SolutionUpload struct {
 }
 
 type Marker struct {
-	Id                 int64   `json:"id"`
-	Lat                float64 `json:"lat"`
-	Long               float64 `json:"long"`
-	MainPhotoId        *int64  `json:"mainPhotoId"`
-	Blurhash           *string `json:"blurhash"`
-	VerificationStatus *string `json:"verificationStatus" db:"verification_status"`
-	ExternalObjectId   *int64  `json:"externalObjectId" db:"externalobjectid"`
+	Id                 int64      `json:"id"`
+	Lat                float64    `json:"lat"`
+	Long               float64    `json:"long"`
+	MainPhotoId        *int64     `json:"mainPhotoId"`
+	Blurhash           *string    `json:"blurhash"`
+	SolvedAt           *time.Time `json:"solvedAt" db:"solved_at"`
+	Status             *string    `json:"status" db:"status"`
+	VerificationStatus *string    `json:"verificationStatus" db:"verification_status"`
+	ExternalObjectId   *int64     `json:"externalObjectId" db:"externalobjectid"`
 }
 
 type GetMarkerPayload struct {

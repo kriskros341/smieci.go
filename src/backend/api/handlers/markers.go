@@ -3,6 +3,7 @@ package handlers
 import (
 	"backend/helpers"
 	"backend/models"
+	"math"
 	"mime/multipart"
 	"net/http"
 
@@ -96,6 +97,38 @@ func (e *Env) CreateMarker(c *gin.Context) {
 		return
 	}
 
+	// 2. Extract JSON data (as string) from the form
+	jsonData := c.PostForm("payload")
+	if jsonData == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing JSON data"})
+		return
+	}
+
+	// 3. Parse JSON data into the CreateMarkerBody struct
+	var payload models.CreateMarkerBody
+	if err := json.Unmarshal([]byte(jsonData), &payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON data"})
+		return
+	}
+
+	markers, err := e.Markers.GetMarkers()
+
+	if err != nil {
+		fmt.Println("File processing error:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Szczerze nie wiem czy to działa. wszystko jedno
+	for _, marker := range markers {
+		// +- promień +- 30 metrów
+		if (marker.Status != nil && *marker.Status == "pending") && (marker.Status != nil) && (math.Abs(marker.Lat-payload.Latitude) < 0.00030 || math.Abs(marker.Long-payload.Longitude) < 0.00030) {
+			// KCTODO NIE MAM POMYSŁU JAK TO OBSŁUŻYĆ TYMCZASOWO ZWACAM BYLE JAKI KOD
+			c.JSON(420, gin.H{"message": "Znacznik zbyt blisko innego znacznika! Promień graniczny: 30m"})
+			return
+		}
+	}
+
 	var allFilesHeaders []*multipart.FileHeader
 	for _, fileHeaders := range c.Request.MultipartForm.File {
 		for _, fileHeader := range fileHeaders {
@@ -108,20 +141,6 @@ func (e *Env) CreateMarker(c *gin.Context) {
 	if err != nil {
 		fmt.Println("File processing error:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	// 2. Extract JSON data (as string) from the form
-	jsonData := c.PostForm("payload")
-	if jsonData == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing JSON data"})
-		return
-	}
-
-	// 3. Parse JSON data into the CreateMarkerBody struct
-	var payload models.CreateMarkerBody
-	if err := json.Unmarshal([]byte(jsonData), &payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON data"})
 		return
 	}
 

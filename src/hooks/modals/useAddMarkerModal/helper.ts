@@ -91,9 +91,6 @@ export const useCreateMarkerMutation = () => {
     onSettled() {
       queryClient.invalidateQueries({ queryKey: ["/markers"] });
     },
-    onError(err) {
-      console.log("blad:", JSON.stringify(err));
-    },
   });
   return createMarkersMutation;
 };
