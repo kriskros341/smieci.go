@@ -21,8 +21,8 @@ import {
 import { useAxios } from "@hooks/use-axios";
 import Toast from "react-native-toast-message";
 import { useMarkerQuery } from "@hooks/useMarkerQuery";
-import StatusBadge from "@components/statusBadge";
 import { SolutionStatus } from "@utils/databaseConstants";
+import SolutionStatusBadge from "@components/solutionStatusBadge";
 
 const useSolutionQuery = (solutionId: string) => {
   return useQuery<any>({
@@ -181,13 +181,13 @@ const PreivewMarkerSolution = () => {
       navigation.setOptions({
         headerRight: () => (
           <View className="flex flex-row gap-4">
-            <StatusBadge status={markerData?.status ?? 'pending'} />
+            <SolutionStatusBadge status={data?.verificationStatus} />
             {isPending ? <ActivityIndicator color="#10a37f" /> : Trigger}
           </View>
         ),
       });
     }
-  }, [currentUserPermissions, isPending, markerData]);
+  }, [currentUserPermissions, isPending, data]);
 
   return (
     <>

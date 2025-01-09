@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"backend/api/auth"
+	"backend/database"
 	"backend/helpers"
 	"backend/models"
 	"math"
@@ -282,4 +284,52 @@ func (e *Env) PatchMarkerPhotos(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, 1)
+}
+
+// -- BARDZO TEMP --
+type MarkerStatusPayload struct {
+	Status string `json:"status"`
+}
+
+func (e *Env) SetMarkerStatus(c *gin.Context) {
+	claims, exists := c.Get("authorizerClaims")
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No claim"})
+		return
+	}
+
+	if err := helpers.Authorize(e.Db, claims.(*auth.AuthorizerClaims), database.PermissionReviewing); err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	var getMarkerRequestPayload GetMarkerRequestPayload
+	// Recieve marker id payload
+	if err := c.ShouldBindUri(&getMarkerRequestPayload); err != nil {
+		fmt.Println(err.Error())
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+
+	markerId := getMarkerRequestPayload.MarkerId
+	var setMarkerStatusPayload MarkerStatusPayload
+
+	if err := c.BindJSON(&setMarkerStatusPayload); err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON body"})
+		return
+	}
+
+	// KCTODO rozwiązanie też by się przydało z automatu odrzucić
+	err := e.Markers.SetMarkerStatus(markerId, setMarkerStatusPayload.Status)
+
+	if err != nil {
+		var e = gin.H{"error": err.Error()}
+		fmt.Println(e)
+		c.JSON(http.StatusInternalServerError, e)
+		return
+	}
+
+	c.JSON(http.StatusOK, "success")
 }

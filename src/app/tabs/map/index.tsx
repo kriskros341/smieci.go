@@ -10,6 +10,7 @@ import { useAddMarkerModal } from "@hooks/modals/useAddMarkerModal";
 import { useMapFocusPoint } from "@stores/useMapFocusPoint";
 import { useContextMenu } from "@/app/markers/[id]/solution/[solutionId]";
 import { useState } from "react";
+import { useInstructionModal } from "@hooks/modals/useInstructionModal";
 
 const Map = () => {
   const [strategy, changeMapStrategy] = useMapStrategy();
@@ -20,7 +21,9 @@ const Map = () => {
     resetMapStrategy: () => {
       changeMapStrategy("viewMarkersStrategy")
     }
-  })
+  });
+
+  const { InstructionModal, setIsModalVisible: setIsModalVisible2 } = useInstructionModal()
   const { mapFocusPoint } = useMapFocusPoint();
 
   const actions = [];
@@ -87,12 +90,23 @@ const Map = () => {
 
   if (isViewMarkersMapStrategy(strategy)) {
     actions.push(
+      <Pressable className="z-10 right-12" onPressOut={() => setIsModalVisible2(true)} key="xd">
+        {({ pressed }) => (
+          <View
+            style={{ opacity: pressed ? 0.5 : 1 }}
+            className="w-16 h-16 bg-white rounded-full justify-center items-center"
+          >
+            <MaterialIcons name="question-mark" size={24} color="black" />
+          </View>
+        )}
+      </Pressable>,
       <View
+        key="kk"
         className="z-10 right-12 w-16 h-16 bg-white rounded-full justify-center items-center"
       >
         {Trigger}
       </View>,
-      <Pressable className="z-10 right-12" onPressOut={onAddMarkerClick} key="dd">
+      <Pressable className="z-10 right-12" onPressOut={onAddMarkerClick} key="dc">
         {({ pressed }) => (
           <View
             style={{ opacity: pressed ? 0.5 : 1 }}
@@ -150,6 +164,7 @@ const Map = () => {
         </View>
       </View>
       {Menu}
+      {InstructionModal}
       {AddMarkerModal}
     </>
   );

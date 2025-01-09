@@ -5,6 +5,7 @@ import (
 	"backend/helpers"
 	"backend/models"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -20,6 +21,7 @@ type MarkerRepository interface {
 	GetMarkerSupporters(markerId string) ([]models.GetMarkerSupportersResult, error)
 	UpsertExternalMarkers(markers []models.CreateMarkerBody) (int64, error)
 	AddUploadsToMarker(markerId string, uploadsIds []int64) error
+	SetMarkerStatus(markerId string, status string) error
 }
 
 type markerRepository struct {
@@ -249,8 +251,20 @@ func (r *markerRepository) SupportMarker(userId string, markerId int64, amount i
 		return err
 	}
 
-	// Separate points and support points
-	// Validate supportPoints in User
+	if os.Getenv("ENVIRONMENT") != "dev" {
+		// Check if user has sufficient points before update
+		var currentPoints int64
+		checkPointsQuery := `SELECT supportPoints FROM users WHERE id = $1`
+		if err := tx.QueryRow(checkPointsQuery, userId).Scan(&currentPoints); err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		if currentPoints < amount {
+			tx.Rollback()
+			return fmt.Errorf("insufficient points: user has %d points, tried to use %d points", currentPoints, amount)
+		}
+	}
 
 	usersQuery := `UPDATE users SET supportPoints = supportPoints - $1 WHERE id = $2`
 	markersQuery := `UPDATE markers SET points = points + $1 WHERE id = $2`
@@ -364,4 +378,25 @@ func (r *markerRepository) AddUploadsToMarker(markerId string, uploadsIds []int6
 	fmt.Println("executing query", query)
 	_, err := r.db.Exec(query)
 	return err
+}
+
+func (r *markerRepository) SetMarkerStatus(markerId string, status string) error {
+	query := `UPDATE markers SET status = $1 WHERE id = $2`
+
+	result, err := r.db.Exec(query, status, markerId)
+	if err != nil {
+		return err
+	}
+
+	// Check if any row was actually updated
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("marker with id %s not found", markerId)
+	}
+
+	return nil
 }

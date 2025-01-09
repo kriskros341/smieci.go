@@ -3,16 +3,20 @@ import SolutionStatusBadge from "@components/solutionStatusBadge";
 import StatusBadge from "@components/statusBadge";
 import { AntDesign } from "@expo/vector-icons";
 import { useEditExternalMarkerPhotosModal } from "@hooks/modals/useEditExternalMarkerPhotosModal";
+import { useAxios } from "@hooks/use-axios";
 import { useMarkerQuery } from "@hooks/useMarkerQuery";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Avatar from "@ui/avatar";
 import Button from "@ui/button";
 import DividerWithText from "@ui/DividerWithText";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui/tooltip";
-import { Link, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { Link, useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import { useLayoutEffect } from "react";
 import { ActivityIndicator, ScrollView, Text, TextInput, View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
+import { useContextMenu } from "./solution/[solutionId]";
 
 declare const process: {
   env: {
@@ -32,11 +36,55 @@ const mapStyle = [
   },
 ];
 
+const useMarkerStatusMutation = (makrerId: unknown) => {
+  const axios = useAxios();
+  return useMutation({
+    mutationFn: (payload: string) =>
+      axios.post(`/markers/${makrerId}/status`, { status: payload }),
+    onError: (e: any) => {
+      Toast.show({
+        type: "error",
+        text1: "wystąpił błąd",
+        text2: JSON.stringify(e),
+      });
+    },
+  });
+};
+
 const MarkerPreview = () => {
+  const navigation = useNavigation();
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const { data: markerData, refetch } = useMarkerQuery(id as string);
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
+  const { mutateAsync } = useMarkerStatusMutation(id);
+
+  const option = (result: string) => {
+    mutateAsync(result).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['/markers'] })
+      refetch()
+    });
+  };
+
+  const contextMenuItems = [];
+  if (markerData?.status === 'approved' || markerData?.status === 'denied') {
+    // Rozwiązany
+    contextMenuItems.push({
+      text: "Otwórz ponownie",
+      callback: () => option('pending'),
+    });
+  } else if (!markerData?.solvedAt) {
+    contextMenuItems.push(
+      { text: "Zatwierdź", callback: () => option('approved') },
+      { text: "Odrzuć", callback: () => option('denied'), },
+    );
+  }
+  const { Trigger, Menu } = useContextMenu({ items: contextMenuItems });
+
+  const { data: currentUserPermissions } = useQuery<string[]>({
+    queryKey: ["/users/current/permissions"],
+  });
 
   const { EditExternalMarkerPhotosModal, openEditExternalMarkerPhotosModal } = useEditExternalMarkerPhotosModal({
     markerKey: id as string,
@@ -72,6 +120,19 @@ const MarkerPreview = () => {
   useFocusEffect(() => {
     refetch();
   })
+
+  useLayoutEffect(() => {
+    if (currentUserPermissions?.includes("reviewing")) {
+      navigation.setOptions({
+        headerRight: () => (
+          <View className="flex flex-row gap-4">
+            <StatusBadge status={markerData?.status!} />
+            {Trigger}
+          </View>
+        ),
+      });
+    }
+  }, [currentUserPermissions, markerData]);
 
   console.log({ markerData });
 
@@ -302,6 +363,7 @@ const MarkerPreview = () => {
         </View>
       </ScrollView>
       {EditExternalMarkerPhotosModal}
+      {Menu}
     </>
   );
 };

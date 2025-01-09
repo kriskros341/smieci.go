@@ -121,9 +121,10 @@ type GetSolutionRequestPayload struct {
 }
 
 type GetSolutionResponseDto struct {
-	Participants     []models.Participant    `json:"participants"`
-	Photos           []models.SolutionUpload `json:"photos"`
-	AdditionalPhotos []models.SolutionUpload `json:"additionalPhotos"`
+	Participants       []models.Participant    `json:"participants"`
+	Photos             []models.SolutionUpload `json:"photos"`
+	AdditionalPhotos   []models.SolutionUpload `json:"additionalPhotos"`
+	VerificationStatus database.SolutionStatus `json:"verificationStatus"`
 }
 
 func (e *Env) GetSolution(c *gin.Context) {
@@ -146,6 +147,13 @@ func (e *Env) GetSolution(c *gin.Context) {
 
 	if !exists {
 		c.JSON(http.StatusNotFound, err)
+		return
+	}
+
+	solutionStatus, err := e.Solutions.GetSolutionStatus(solutionId)
+	if err != nil {
+		log.Fatalln("Error executing query:", err.Error())
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -173,9 +181,10 @@ func (e *Env) GetSolution(c *gin.Context) {
 		}
 	}
 	result := GetSolutionResponseDto{
-		Participants:     participants,
-		Photos:           primaryPhotos,
-		AdditionalPhotos: additionalPhotos,
+		Participants:       participants,
+		Photos:             primaryPhotos,
+		AdditionalPhotos:   additionalPhotos,
+		VerificationStatus: solutionStatus,
 	}
 	c.JSON(http.StatusOK, result)
 }

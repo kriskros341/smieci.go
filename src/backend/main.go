@@ -174,6 +174,7 @@ func main() {
 	router.GET("/markers/:markerId", env.GetMarkerById)
 	router.PATCH("/markers/:markerId/uploads", env.PatchMarkerPhotos)
 	router.POST("/markers/:markerId/solve", env.PostMarkerSolution) // do przeniesienia jako solutions/create
+	router.POST("/markers/:markerId/status", env.SetMarkerStatus)
 	router.GET("/markers/:markerId/supporters", env.GetMarkerSupporters)
 	router.GET("/markers", env.GetMarkers)
 	router.GET("/markers/region", env.GetMarkersInRegion)

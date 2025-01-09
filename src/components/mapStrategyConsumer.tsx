@@ -54,7 +54,6 @@ const DENIED_MARKER_COLOR = "red";
 const CustomMarker = (props: CustomMarkerProps) => {
   // VerificationStatus = solution
   // Status = marker
-  console.log("aa", props.solvedAt)
   let color = OPEN_MARKER_COLOR;
   if (props.status === 'denied') {
     color = DENIED_MARKER_COLOR
@@ -62,6 +61,8 @@ const CustomMarker = (props: CustomMarkerProps) => {
     color = APPROVED_MARKER_COLOR; // Zatwierdzony
   } else if (props.verificationStatus === "pending") {
     color = PENDING_MARKER_COLOR; // czeka na ręczną weryfikację.
+  } else if (props.status === 'pending') {
+    color = PENDING_MARKER_COLOR;
   }
 
   const imageSrc = getUriByUploadId(props.mainPhotoId);
@@ -83,7 +84,7 @@ const CustomMarker = (props: CustomMarkerProps) => {
                 <Image
                   className="w-40 h-40"
                   contentFit="contain"
-                  source={imageSrc}
+                  source={{ uri: imageSrc }}
                   placeholder={{ blurhash: props.mainPhotoBlurHash }}
                   cachePolicy="memory"
                 />
