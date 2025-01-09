@@ -153,18 +153,18 @@ func main() {
 		if err != nil {
 			return
 		}
-		markers, err := integrations.GetAllGovMarkers()
-		if err != nil {
-			log.Fatal(err)
-			return
-		}
+	}
+	markers, err := integrations.GetAllGovMarkers()
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 
-		count, err := env.Markers.UpsertExternalMarkers(markers)
-		if err != nil {
-			fmt.Println(fmt.Errorf("failed to fetch markers from .gov integration %w", err))
-		} else {
-			fmt.Printf("%d markers upserted from .gov datasources\n\n", count)
-		}
+	count, err := env.Markers.UpsertExternalMarkers(markers)
+	if err != nil {
+		fmt.Println(fmt.Errorf("failed to fetch markers from .gov integration %w", err))
+	} else {
+		fmt.Printf("%d markers upserted from .gov datasources\n\n", count)
 	}
 
 	router.GET("/users/getUsers", env.GetUsers)
