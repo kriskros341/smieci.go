@@ -7,6 +7,7 @@ import { getUriByUploadId } from "@utils/getUriFromPhotoId";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { Entypo } from "@expo/vector-icons";
+
 import {
   Modal,
   Pressable,
@@ -15,6 +16,7 @@ import {
   TouchableWithoutFeedback,
   View,
   ActivityIndicator,
+  LayoutChangeEvent,
 } from "react-native";
 import { useAxios } from "@hooks/use-axios";
 import Toast from "react-native-toast-message";
@@ -30,10 +32,11 @@ const useSolutionQuery = (solutionId: string) => {
 
 type useContextMenuOptions = {
   items: { text: string; callback: Function }[];
+  customIconResolver?: (onLayout: (event: LayoutChangeEvent) => void) => JSX.Element,
 };
 
 // KCTODO Wyciągnąć
-export const useContextMenu = ({ items }: useContextMenuOptions) => {
+export const useContextMenu = ({ items, customIconResolver }: useContextMenuOptions) => {
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
   const [menuVisible, setMenuVisible] = useState(false);
 
@@ -41,7 +44,7 @@ export const useContextMenu = ({ items }: useContextMenuOptions) => {
   const onLayout = (event: any) => {
     event.target?.measure?.(
       (x: any, y: any, width: any, height: any, pageX: any, pageY: any) => {
-        setButtonPosition({ x, y: y + height });
+        setButtonPosition({ x: pageX - 100, y: pageY + height });
       },
     );
   };
@@ -51,12 +54,16 @@ export const useContextMenu = ({ items }: useContextMenuOptions) => {
       className="flex flex-row"
       onPress={() => setMenuVisible(true)}
     >
-      <Entypo
-        name="dots-three-vertical"
-        size={24}
-        color="black"
-        onLayout={onLayout}
-      />
+      {customIconResolver ? (
+        customIconResolver(onLayout)
+      ) : (
+        <Entypo
+          name="dots-three-vertical"
+          size={24}
+          color="black"
+          onLayout={onLayout}
+        />
+      )}
     </TouchableOpacity>
   );
 
@@ -75,7 +82,7 @@ export const useContextMenu = ({ items }: useContextMenuOptions) => {
           <View
             style={[
               styles.menu,
-              { right: buttonPosition.x, top: buttonPosition.y },
+              { left: buttonPosition.x, top: buttonPosition.y },
             ]}
           >
             {items.map(({ text, callback }) => (

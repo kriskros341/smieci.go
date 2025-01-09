@@ -129,6 +129,10 @@ const mapStyle = [
 type MapStrategyConsumerProps = {
   strategy: MapStrategies;
   onMarkerPreviewClick: (id: number) => void;
+  filterConfig?: {
+    showResolved: boolean,
+    showDenied: boolean,
+  }
 };
 
 type Markerr = {
@@ -140,14 +144,15 @@ type Markerr = {
   verificationStatus?: string | null;
   mainPhotoBlurhash?: string;
   mainPhotoId?: number;
+  
 };
 
-const useMarkersInRegion = (mapRegion?: Region) => {
+const useMarkersInRegion = (mapRegion?: Region, filterConfig?: { showResolved: boolean, showDenied: boolean }) => {
   const axios = useAxios();
   const queryClient = useQueryClient();
 
   // Query key for the current region
-  const regionQueryKey = ["/markers", "get-markers-in-region", mapRegion];
+  const regionQueryKey = ["/markers", "get-markers-in-region", mapRegion, filterConfig];
 
   // Centralized cache for all markers
   const markersCacheKey = ["/markers", "all-markers"];
@@ -156,7 +161,8 @@ const useMarkersInRegion = (mapRegion?: Region) => {
     queryKey: regionQueryKey,
     queryFn: async () => {
       if (!mapRegion) return [];
-      const newMarkers = await _getMarkersInRegion(axios, mapRegion);
+      console.log({ filterConfig })
+      const newMarkers = await _getMarkersInRegion(axios, mapRegion, filterConfig);
 
       const cache: Map<number, Markerr> =
         queryClient.getQueryData(markersCacheKey) ?? new Map<number, Markerr>();
@@ -179,6 +185,13 @@ const useMarkersInRegion = (mapRegion?: Region) => {
   });
 
   React.useEffect(() => {
+    const cache: Map<number, Markerr> =
+      queryClient.getQueryData(markersCacheKey) ?? new Map<number, Markerr>();
+    cache.clear()
+    result.refetch();
+  }, [filterConfig]);
+
+  React.useEffect(() => {
     result.refetch();
   }, [mapRegion]);
 
@@ -188,12 +201,13 @@ const useMarkersInRegion = (mapRegion?: Region) => {
 const MapStrategyConsumer = ({
   strategy,
   onMarkerPreviewClick,
+  filterConfig
 }: MapStrategyConsumerProps) => {
   const { changeMapFocusPoint, mapFocusPoint } = useMapFocusPoint();
   const mapRef = useRef<MapView>(null);
   const [mapRegion, setMapRegion] = useState<Region>();
 
-  const { data, isFetching } = useMarkersInRegion(mapRegion);
+  const { data, isFetching } = useMarkersInRegion(mapRegion, filterConfig);
 
   const { location, isPending, error } = useLocation();
 

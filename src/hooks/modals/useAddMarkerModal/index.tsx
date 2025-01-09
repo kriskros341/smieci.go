@@ -34,6 +34,7 @@ export const useAddMarkerModal = (options: useAddMarkerModalOptions) => {
     try {
       const {id, isTrashFound, message}: any = await createMarkersMutation.mutateAsync(editorState);
       setIsModalVisible(false);
+      editorState.reset();
       Toast.show({
         type: isTrashFound ? 'success' : 'error',
         text1: message,

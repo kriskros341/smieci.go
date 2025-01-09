@@ -19,6 +19,8 @@ type GetMarkersInRegionPayload struct {
 	Longitude      float64 `form:"longitude" json:"longitude" binding:"required"`
 	LatitudeDelta  float64 `form:"latitudeDelta" json:"latitudeDelta" binding:"required"`
 	LongitudeDelta float64 `form:"longitudeDelta" json:"longitudeDelta" binding:"required"`
+	ShowResolved   bool    `form:"showResolved" json:"showResolved"`
+	ShowDenied     bool    `form:"showDenied" json:"showDenied"`
 }
 
 func (e *Env) GetMarkersInRegion(c *gin.Context) {
@@ -31,7 +33,7 @@ func (e *Env) GetMarkersInRegion(c *gin.Context) {
 		return
 	}
 
-	markers, err := e.Markers.GetMarkersInRegion(payload.Latitude, payload.Longitude, payload.LatitudeDelta, payload.LongitudeDelta)
+	markers, err := e.Markers.GetMarkersInRegion(payload.Latitude, payload.Longitude, payload.LatitudeDelta, payload.LongitudeDelta, payload.ShowResolved, payload.ShowDenied)
 	if err != nil {
 		var error = gin.H{"error": err.Error()}
 		fmt.Println(error)

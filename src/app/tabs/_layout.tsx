@@ -6,13 +6,11 @@ import { ActivityIndicator, View } from "react-native";
 
 export default function Layout() {
   const { user } = useUser();
-  const { sessionId } = useAuth();
   const { isLoaded, isSignedIn } = useAuth();
-  console.log({ sessionId });
   if (!isLoaded || !isSignedIn) {
     return (
-      <View>
-        <ActivityIndicator />
+      <View className="flex-1">
+        <ActivityIndicator size="large" />
       </View>
     );
   }

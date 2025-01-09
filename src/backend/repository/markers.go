@@ -13,7 +13,7 @@ import (
 
 type MarkerRepository interface {
 	GetMarkers() ([]models.Marker, error)
-	GetMarkersInRegion(latitude float64, longitude float64, latitudeDelta float64, longitudeDelta float64) ([]models.Marker, error)
+	GetMarkersInRegion(latitude float64, longitude float64, latitudeDelta float64, longitudeDelta float64, showResolved bool, showDenied bool) ([]models.Marker, error)
 	GetMarkerById(markerId string) (*models.GetMarkerPayload, error)
 	CreateMarker(marker models.CreateMarkerBody, userId string, uploadsIds []int64) (int64, bool, error)
 	SupportMarker(userId string, markerId int64, amount int64) error
@@ -30,7 +30,7 @@ func NewMarkerRepository(db *sqlx.DB) MarkerRepository {
 	return &markerRepository{db: db}
 }
 
-func (r *markerRepository) GetMarkersInRegion(latitude float64, longitude float64, latitudeDelta float64, longitudeDelta float64) ([]models.Marker, error) {
+func (r *markerRepository) GetMarkersInRegion(latitude float64, longitude float64, latitudeDelta float64, longitudeDelta float64, showResolved bool, showDenied bool) ([]models.Marker, error) {
 	var markers []models.Marker
 	query := `
 		WITH latest_solutions AS (
@@ -55,12 +55,12 @@ func (r *markerRepository) GetMarkersInRegion(latitude float64, longitude float6
 		LEFT JOIN latest_solutions ls ON m.id = ls.markerid AND ls.row_num = 1
 		left JOIN uploads u ON u.id = m.mainPhotoId
 		WHERE 
-				m.solved_at IS NULL AND
-				m.status != 'denied' AND
-				m.lat >= $1 AND
-				m.lat <= $2 AND
-				m.long >= $3 AND
-				m.long <= $4;`
+			m.lat >= $1 AND
+			m.lat <= $2 AND
+			m.long >= $3 AND
+			m.long <= $4 AND
+			(m.solved_at IS NULL OR $5) AND
+			(m.status != 'denied' OR $6);`
 	println("Executing query", query)
 
 	fmt.Println("latitude", latitude)
@@ -76,8 +76,10 @@ func (r *markerRepository) GetMarkersInRegion(latitude float64, longitude float6
 	fmt.Println("latMax", latMax)
 	fmt.Println("longMin", longMin)
 	fmt.Println("longMax", longMax)
+	fmt.Println("ShowResolved", showResolved)
+	fmt.Println("ShowDenied", showDenied)
 
-	err := r.db.Select(&markers, query, latMin, latMax, longMin, longMax)
+	err := r.db.Select(&markers, query, latMin, latMax, longMin, longMax, showResolved, showDenied)
 	return markers, err
 }
 

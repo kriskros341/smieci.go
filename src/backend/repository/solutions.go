@@ -243,6 +243,7 @@ func (r *solutionsRepository) ApproveMarkerSolution(solutionId int) error {
 
 func (r *solutionsRepository) DenyMarkerSolution(solutionId int) error {
 	Status := "denied"
+	// KCTODO!
 	query := fmt.Sprintf("UPDATE solutions set verification_status = '%s' WHERE id = %d RETURNING markerId", Status, solutionId)
 	_, err := r.db.Exec(query)
 	return err

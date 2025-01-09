@@ -8,6 +8,8 @@ import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { isMoveMarkerMapStrategy, isViewMarkersMapStrategy } from "@utils/hasCoords";
 import { useAddMarkerModal } from "@hooks/modals/useAddMarkerModal";
 import { useMapFocusPoint } from "@stores/useMapFocusPoint";
+import { useContextMenu } from "@/app/markers/[id]/solution/[solutionId]";
+import { useState } from "react";
 
 const Map = () => {
   const [strategy, changeMapStrategy] = useMapStrategy();
@@ -57,8 +59,39 @@ const Map = () => {
   //   </Pressable>,
   // )
 
+  const [filterConfig, setFilterConfig] = useState({
+    showResolved: false,
+    showDenied: false,
+  })
+
+  const { Trigger, Menu } = useContextMenu({
+    items: [
+      {
+        text: filterConfig.showResolved ? "Ukryj rozwiązane" : "Pokaż rozwiązane",
+        callback: () => setFilterConfig(curr => ({...curr, showResolved: !filterConfig.showResolved}))
+      },
+      {
+        text: filterConfig.showDenied ? "Ukryj odrzucone" : "Pokaż odrzucone",
+        callback: () => setFilterConfig(curr => ({...curr, showDenied: !filterConfig.showDenied}))
+      }
+    ],
+    customIconResolver: (onLayout) => (
+      <MaterialCommunityIcons
+        name="filter"
+        color="green"
+        size={40}
+        onLayout={onLayout}
+      />
+    )
+  })
+
   if (isViewMarkersMapStrategy(strategy)) {
     actions.push(
+      <View
+        className="z-10 right-12 w-16 h-16 bg-white rounded-full justify-center items-center"
+      >
+        {Trigger}
+      </View>,
       <Pressable className="z-10 right-12" onPressOut={onAddMarkerClick} key="dd">
         {({ pressed }) => (
           <View
@@ -110,11 +143,13 @@ const Map = () => {
         <MapStrategyConsumer
           strategy={strategy}
           onMarkerPreviewClick={onMarkerPreviewClick}
+          filterConfig={filterConfig}
         />
-        <View className="absolute items-center justify-center flex-row gap-4 bottom-4 right-4">
+        <View className="absolute items-center justify-center flex-col gap-4 bottom-4 right-4">
           {actions}
         </View>
       </View>
+      {Menu}
       {AddMarkerModal}
     </>
   );

@@ -80,13 +80,17 @@ export const _supportMarker = async (
 export const _getMarkersInRegion = async (
   axios: AxiosInstance,
   region: Region,
+  filterConfig?: { showResolved: boolean, showDenied: boolean },
 ): Promise<any[]> => {
+  console.log({ filterConfig })
   const res = await axios.get("/markers/region", {
     params: {
       latitude: region.latitude,
       longitude: region.longitude,
       latitudeDelta: region.latitudeDelta,
       longitudeDelta: region.longitudeDelta,
+      showResolved: filterConfig?.showResolved ?? false,
+      showDenied: filterConfig?.showDenied ?? false,
     },
   });
 

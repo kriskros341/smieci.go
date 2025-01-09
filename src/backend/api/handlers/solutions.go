@@ -213,7 +213,6 @@ func (e *Env) SetSolutionStatus(c *gin.Context) {
 		return
 	}
 
-	var err error = nil
 	// Act on solution
 	status := setSolutionStatusPayload.Status
 	solutionStatus, err := e.Solutions.GetSolutionStatus(solutionId)
