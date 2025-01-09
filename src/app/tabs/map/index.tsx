@@ -96,7 +96,7 @@ const Map = () => {
             style={{ opacity: pressed ? 0.5 : 1 }}
             className="w-16 h-16 bg-white rounded-full justify-center items-center"
           >
-            <MaterialIcons name="question-mark" size={24} color="black" />
+            <MaterialIcons name="question-mark" size={24} color="green"/>
           </View>
         )}
       </Pressable>,
