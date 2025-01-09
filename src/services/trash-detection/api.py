@@ -2,7 +2,8 @@ import io
 import os
 from dataclasses import dataclass
 from typing import List
-
+from datetime import datetime
+from PIL import Image, ImageDraw
 import torch
 import uvicorn
 from dotenv import load_dotenv
@@ -59,6 +60,33 @@ class ValidationResponse(BaseModel):
     valid: bool
     confidences: List[float]
 
+def draw_boxes(image: Image.Image, detections: torch.Tensor, output_path: str) -> None:
+    """
+    Draw bounding boxes on the image and save it.
+    
+    Args:
+        image: PIL Image object
+        detections: Tensor of shape (num_detections, 6) [x1, y1, x2, y2, confidence, class]
+        output_path: Path to save the annotated image
+    """
+    draw = ImageDraw.Draw(image)
+    
+    for detection in detections:
+        # Extract coordinates and confidence
+        x1, y1, x2, y2, confidence, class_id = detection.tolist()
+        
+        # Convert coordinates to integers
+        x1, y1, x2, y2 = map(int, [x1, y1, x2, y2])
+        
+        # Draw rectangle
+        draw.rectangle([x1, y1, x2, y2], outline='red', width=3)
+        
+        # Add confidence text
+        confidence_text = f"{confidence:.2f}"
+        draw.text((x1, y1-20), confidence_text, fill='red')
+    
+    # Save the image
+    image.save(output_path)
 
 @app.post("/validate-images", response_model=ValidationResponse)
 async def validate_images(
@@ -84,16 +112,24 @@ async def validate_images(
 
         detections_found = False
         confidences: list[float] = [0.0 for _ in range(len(files))]
-        for i, image_result in enumerate(images_results):
+        for i, (image_result, img, file) in enumerate(zip(images_results, imgs, files)):
             confidence = 0
             for detection in image_result:
                 detection_confidence = detection[4].item()
                 confidence = max(confidence, detection_confidence)
-                if confidence > DETECTION_CONFIDENCE_THRESHOLD:
-                    detections_found = True
+                
             confidences[i] = confidence
-        print("l(confidences) == l(files)", len(confidences) == len(files))
-        print("detections_found", detections_found, confidences)
+            
+            if confidence > DETECTION_CONFIDENCE_THRESHOLD:
+                detections_found = True
+                # Generate unique filename with timestamp
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"{timestamp}_{file.filename.split("/")[-1]}"
+                print(timestamp)
+                print(file.filename)
+                print(filename)
+                draw_boxes(img, image_result, filename)
+
         return ValidationResponse(valid=detections_found, confidences=confidences)
 
     except Exception as e:
