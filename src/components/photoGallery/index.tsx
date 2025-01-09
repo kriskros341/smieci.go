@@ -41,8 +41,8 @@ interface PhotoGalleryProps {
 const interpolateColor = (val: number) => {
 
   // RGB values for our colors
-  const startColor = [22, 163, 74];  // green-600
-  const endColor = [202, 138, 4];    // yellow-600
+  const startColor = [202, 138, 4];    // yellow-600
+  const endColor = [22, 163, 74];  // green-600
   // Normalize value from [0.5, 1] to [0, 1]
   const t = (val - 0.5) * 2;
   

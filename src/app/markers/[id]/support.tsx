@@ -65,6 +65,7 @@ const Support = () => {
             Dostępne punkty: {userData?.supportPoints}
           </Text>
         </View>
+        <Text>W wersji deweloperskiej możliwe jest zejście poniżej zera.</Text>
   
         {/* Multiplier Selection */}
         <View>

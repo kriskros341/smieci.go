@@ -255,7 +255,7 @@ func (r *solutionsRepository) ReopenMarkerSolution(solutionId int) error {
 		return err
 	}
 
-	_, err = tx.Exec(`UPDATE markers SET solved_at = NULL WHERE id = $1`, solutionId)
+	_, err = tx.Exec(`UPDATE markers m SET solved_at = NULL FROM solutions s WHERE m.id = s.markerId AND s.id = $1`, solutionId)
 	if err != nil {
 		tx.Rollback()
 		return fmt.Errorf("failed to update marker solved_at: %w", err)
