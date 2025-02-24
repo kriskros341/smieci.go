@@ -67,8 +67,8 @@ The application follows a client-server architecture with:
 
 ## Authors
 
-- Piotr Skowroński (Backend Development, Infrastructure)
-- Krzysztof Czuba (Frontend Development, Application Design)
+- Piotr Skowroński (Fullstack development, Infrastructure)
+- Krzysztof Czuba (Fullstack development, Project management)
 
 ## Acknowledgments
 
