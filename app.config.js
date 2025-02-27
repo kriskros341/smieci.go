@@ -21,7 +21,7 @@ module.exports = {
     android: {
       config: {
         googleMaps: {
-          apiKey: "AIzaSyAo0hhvg2ojViwGzSKT7XkIipQPybLUlPY"
+          apiKey: ""
         }
       },
       permissions: ["CAMERA", "WRITE_EXTERNAL_STORAGE"],
