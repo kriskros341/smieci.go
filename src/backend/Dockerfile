@@ -3,25 +3,30 @@ FROM golang:1.22 AS builder
 WORKDIR /workspace
 
 COPY go.mod go.sum main.go ./
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    go mod download
 
-COPY database/ database/
-COPY models/ models/
-COPY integrations/ integrations/
-COPY helpers/ helpers/
-COPY repository/ repository/
-COPY api/ api/
-
-RUN go build -o backend .
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=bind,source=./database,target=/workspace/database \
+    --mount=type=bind,source=./models,target=/workspace/models \
+    --mount=type=bind,source=./integrations,target=/workspace/integrations \
+    --mount=type=bind,source=./helpers,target=/workspace/helpers \
+    --mount=type=bind,source=./repository,target=/workspace/repository \
+    --mount=type=bind,source=./api,target=/workspace/api \
+    go build -o backend .
 
 FROM ubuntu:22.04
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt \
+    apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     libc6 \
-    && rm -rf /var/lib/apt/lists/* && apt-get clean && mkdir -p uploads
+    && mkdir -p uploads
 
 COPY --from=builder /workspace/backend .
 

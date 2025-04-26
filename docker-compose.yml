@@ -1,3 +1,5 @@
+# run with DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker compose up
+
 services:
   postgres:
     image: postgres:16.2
@@ -52,6 +54,8 @@ services:
     build:
       context: ./src/backend
       dockerfile: ./Dockerfile
+      args:
+        - BUILDKIT_INLINE_CACHE=1
     container_name: api
     networks:
       - my-network
@@ -71,6 +75,8 @@ services:
     build:
       context: ./src/services/trash-detection
       dockerfile: ./Dockerfile
+      args:
+        - BUILDKIT_INLINE_CACHE=1
     container_name: trash-detection
     networks:
       - my-network
@@ -83,6 +89,8 @@ services:
     build:
       context: ./src/backend
       dockerfile: ./cron/Dockerfile
+      args:
+        - BUILDKIT_INLINE_CACHE=1
     container_name: cron
     networks:
       - my-network
